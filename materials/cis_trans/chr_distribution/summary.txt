@@ -1,0 +1,51 @@
+[1] "------------------------"
+[1] "SA1035"
+[1] "Top 5 chrs with highest number of positive influence genes (IU, DD): "
+[1]  8 11  1 19  2
+[1] "Top 5 chrs with highest number of IU genes: "
+[1]  8  1  2 11 19
+[1] "Top 5 chrs with highest number of DD genes: "
+[1] 11 19  1  8  2
+[1] "------------------------"
+[1] "------------------------"
+[1] "SA535"
+[1] "Top 5 chrs with highest number of positive influence genes (IU, DD): "
+[1]  "1"  "16" "7"  "X"  "6" 
+[1] "Top 5 chrs with highest number of IU genes: "
+[1] "16" "X"  "18" "1"  "7" 
+[1] "Top 5 chrs with highest number of DD genes: "
+[1] "1"  "7"  "16" "6"  "10"
+[1] "------------------------"
+[1] "------------------------"
+[1] "SA609"
+[1] "Top 5 chrs with highest number of positive influence genes (IU, DD): "
+[1]  7  4 20 11  8
+[1] "Top 5 chrs with highest number of IU genes: "
+[1]  7  4 20 11 13
+[1] "Top 5 chrs with highest number of DD genes: "
+[1] 12  1  8 22 18
+[1] "------------------------"
+
+
+
+[1] "------------------------"
+[1] "SA1035"
+[1] "In_cis_Increase_UpRegulated"
+[1] 31  3
+[1] "In_cis_Decrease_DownRegulated"
+[1] 27  3
+[1] "------------------------"
+[1] "------------------------"
+[1] "SA535"
+[1] "In_cis_Increase_UpRegulated"
+[1] 105   4
+[1] "In_cis_Decrease_DownRegulated"
+[1] 171   4
+[1] "------------------------"
+[1] "------------------------"
+[1] "SA609"
+[1] "In_cis_Increase_UpRegulated"
+[1] 730   5
+[1] "In_cis_Decrease_DownRegulated"
+[1] 169   5
+[1] "------------------------"
