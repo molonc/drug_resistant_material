@@ -1,3 +1,0 @@
-KeyError in line 160 of /home/htran/Projects/farhia_project/rscript/snakemake_10x/SA535_cys/download_Snakefile_human:
-'normalized_samples'
-  File "/home/htran/Projects/farhia_project/rscript/snakemake_10x/SA535_cys/download_Snakefile_human", line 160, in <module>

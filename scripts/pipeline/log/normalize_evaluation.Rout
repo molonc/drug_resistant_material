@@ -1,339 +1,0 @@
-
-R version 3.6.2 (2019-12-12) -- "Dark and Stormy Night"
-Copyright (C) 2019 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
-
-R is free software and comes with ABSOLUTELY NO WARRANTY.
-You are welcome to redistribute it under certain conditions.
-Type 'license()' or 'licence()' for distribution details.
-
-R is a collaborative project with many contributors.
-Type 'contributors()' for more information and
-'citation()' on how to cite R or R packages in publications.
-
-Type 'demo()' for some demos, 'help()' for on-line help, or
-'help.start()' for an HTML browser interface to help.
-Type 'q()' to quit R.
-
-> 
-> # remotes::install_github("satijalab/seurat", ref = "release/4.0.0")
-> # remotes::install_github("jlmelville/uwot")
-> # devtools::install_github(repo = 'ChristophH/sctransform')
-> # BiocManager::install(c("RcppAnnoy"))
-> 
-> # Load sce data
-> # Combining into 1 object 
-> # Then remove MT, ribo genes first 
-> # Then test normalization methods 
-> # Test twice scran here 
-> # Test Seurat, with scale factor 10e6 
-> # Test SCTransform 
-> 
-> source(paste0("/home/htran/Projects/farhia_project/rscript/pipeline/utils/normalize_utils.R"))
-Warning message:
-replacing previous import ‘vctrs::data_frame’ by ‘tibble::data_frame’ when loading ‘dplyr’ 
-> source(paste0("/home/htran/Projects/farhia_project/rscript/pipeline/twice_scran_normalization_corrected.R"))
-> input_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
-> output_dir <- paste0(input_dir,'rnaseq_v6/normalization_evaluation/')
-> datatag <- 'SA609'
-> sce_fn <- paste0(input_dir,'rnaseq_v6/',datatag,'-v6/total_sce.rds')
-> sce <- readRDS(sce_fn)
-> 
-> print("Twice scran normalization")
-[1] "Twice scran normalization"
-> twice_scran_normalize_v2(sce, input_dir, output_dir, datatag, return_data=F)
-[1] 33421 33881
-[1] "Processing sample:  SA609X3XB01584"
-[1] 33421   274
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Processing sample:  SA609X4XB03080"
-[1] 33421  4869
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Processing sample:  SA609X4XB003083"
-[1] 33421   600
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Processing sample:  SA609X5XB03235"
-[1] 33421  2540
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Processing sample:  SA609X5XB03230"
-[1] 33421  2419
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Processing sample:  SA609X5XB03231"
-[1] 33421  2612
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Processing sample:  SA609X5XB03223"
-[1] 33421  2773
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Processing sample:  SA609X6XB03401"
-[1] 33421  1844
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Processing sample:  SA609X6XB03404"
-[1] 33421  3047
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Processing sample:  SA609X6XB03447"
-[1] 33421  2450
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Processing sample:  SA609X7XB03510"
-[1] 33421  2372
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Processing sample:  SA609X7XB03505"
-[1] 33421  1934
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Processing sample:  SA609X7XB03554"
-[1] 33421  1743
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Processing sample:  SA609X4XB03084"
-[1] 33421  2628
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Processing sample:  SA609X7XB03573"
-[1] 33421  1776
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts"
-[1] "Dim sce combine: 33421" "Dim sce combine: 33881"
-[1] "sce combine assay name: counts"     "sce combine assay name: normcounts"
-[1] "Normalizing total data..."
-[1] "Quick clustering"
-[1] "Compute sum factors"
-[1] "Normalize data"
-[1] "counts"     "normcounts" "logcounts" 
-> 
-> print("Seurat normalization")
-[1] "Seurat normalization"
-> normalize_Seurat(sce, input_dir, output_dir, return_data=F)
-[1] 33421 33881
-[1] "Normalizing data..."
-Performing log-normalization
-0%   10   20   30   40   50   60   70   80   90   100%
-[----|----|----|----|----|----|----|----|----|----|
-**************************************************|
-Centering and scaling data matrix
-  |                                                                              |                                                                      |   0%  |                                                                              |==                                                                    |   3%  |                                                                              |====                                                                  |   6%  |                                                                              |======                                                                |   9%  |                                                                              |========                                                              |  12%  |                                                                              |==========                                                            |  15%  |                                                                              |============                                                          |  18%  |                                                                              |==============                                                        |  21%  |                                                                              |================                                                      |  24%  |                                                                              |===================                                                   |  26%  |                                                                              |=====================                                                 |  29%  |                                                                              |=======================                                               |  32%  |                                                                              |=========================                                             |  35%  |                                                                              |===========================                                           |  38%  |                                                                              |=============================                                         |  41%  |                                                                              |===============================                                       |  44%  |                                                                              |=================================                                     |  47%  |                                                                              |===================================                                   |  50%  |                                                                              |=====================================                                 |  53%  |                                                                              |=======================================                               |  56%  |                                                                              |=========================================                             |  59%  |                                                                              |===========================================                           |  62%  |                                                                              |=============================================                         |  65%  |                                                                              |===============================================                       |  68%  |                                                                              |=================================================                     |  71%  |                                                                              |===================================================                   |  74%  |                                                                              |======================================================                |  76%  |                                                                              |========================================================              |  79%  |                                                                              |==========================================================            |  82%  |                                                                              |============================================================          |  85%  |                                                                              |==============================================================        |  88%  |                                                                              |================================================================      |  91%  |                                                                              |==================================================================    |  94%  |                                                                              |====================================================================  |  97%  |                                                                              |======================================================================| 100%
-[1] "counts"     "logcounts"  "normcounts"
-[1] 33421 33881
-[1] "Save normalized data..."
-> 
-> 
-> print("SCTransform normalization")
-[1] "SCTransform normalization"
-> normalize_SCTransform(sce, input_dir, output_dir, return_data=F)
-[1] 33421 33881
-Warning: Invalid name supplied, making object name syntactically valid. New object name is Seurat..SCTransform.RNA; see ?make.names for more details on syntax validity
-[1] "Scale sctransform normalized data..."
-Centering and scaling data matrix
-  |                                                                              |                                                                      |   0%  |                                                                              |===                                                                   |   4%  |                                                                              |=====                                                                 |   8%  |                                                                              |========                                                              |  12%  |                                                                              |===========                                                           |  15%  |                                                                              |=============                                                         |  19%  |                                                                              |================                                                      |  23%  |                                                                              |===================                                                   |  27%  |                                                                              |======================                                                |  31%  |                                                                              |========================                                              |  35%  |                                                                              |===========================                                           |  38%  |                                                                              |==============================                                        |  42%  |                                                                              |================================                                      |  46%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================                                |  54%  |                                                                              |========================================                              |  58%  |                                                                              |===========================================                           |  62%  |                                                                              |==============================================                        |  65%  |                                                                              |================================================                      |  69%  |                                                                              |===================================================                   |  73%  |                                                                              |======================================================                |  77%  |                                                                              |=========================================================             |  81%  |                                                                              |===========================================================           |  85%  |                                                                              |==============================================================        |  88%  |                                                                              |=================================================================     |  92%  |                                                                              |===================================================================   |  96%  |                                                                              |======================================================================| 100%
-[1] "counts"     "logcounts"  "normcounts"
-[1] 25174 33881
-[1] "Save normalized data..."
-There were 50 or more warnings (use warnings() to see the first 50)
-> 
-> 
-> # sce_scran <- readRDS(paste0(output_dir,'twice_scran_normalized.rds'))
-> # sce_seurat <- readRDS(paste0(output_dir,'seurat_normalized.rds'))
-> # sce_transform <- readRDS(paste0(output_dir,'sctransform_normalized.rds'))
-> # 
-> # # Load scSEG genes list
-> # scSEG_df <- read.csv(paste0(output_dir,'segIndx_df_filtered_80.csv'),check.names = F, stringsAsFactors = F)
-> # dim(scSEG_df)
-> # # View(head(scSEG_df))
-> # stable_genes <- intersect(scSEG_df$gene_ens, rownames(sce))
-> # 
-> # 
-> # p_raw <- plot_stable_genes_exp(sce, stable_genes, use_raw=T, exprs='logcounts', plottitle='Raw data - stable genes mean expression', 
-> #                       xlabel='', ylabel="Mean exp of stably expressed genes", yl=NULL)
-> # 
-> # p_scran <- plot_stable_genes_exp(sce_scran, stable_genes, use_raw=F, exprs='logcounts', plottitle='Twice scran normalize - stable genes mean expression', 
-> #                                   xlabel='', ylabel="Mean exp of stably expressed genes", yl=NULL)
-> # 
-> # p_seurat <- plot_stable_genes_exp(sce_seurat, stable_genes, use_raw=F, exprs='normcounts', plottitle='Seurat normalize - stable genes mean expression', 
-> #                                xlabel='', ylabel="Mean exp of stably expressed genes", yl=NULL)
-> # 
-> # p_sctransform <- plot_stable_genes_exp(sce_transform, stable_genes, use_raw=F, exprs='normcounts', plottitle='SCTransform normalize - stable genes mean expression', 
-> #                                   xlabel='', ylabel="Mean exp of stably expressed genes", yl=NULL)
-> # 
-> # p <- cowplot::plot_grid(p_raw, p_scran, p_seurat, p_sctransform, ncol = 1, align='v')
-> # 
-> # png(paste0(output_dir,"scSEG_evaluation.png"), height = 2*1200, width=2*500,res = 2*72)
-> # print(p)
-> # dev.off()
-> # 
-> # 
-> # # Load housekeeping genes list
-> # scHK_df <- readxl::read_excel(paste0(output_dir,'HKGenes.xlsx'))
-> # # dim(scHK_df)
-> # head(scHK_df)
-> # scHK_df$stability_index <- scHK_df$`Stability index`
-> # scHK_df <- scHK_df %>%
-> #       dplyr::filter(stability_index > quantile(x=stability_index, probs = 0.75))
-> # 
-> # dim(scHK_df)
-> # summary(scHK_df$stability_index)
-> # stable_genes <- intersect(scHK_df$GeneSymbol, rowData(sce)$Symbol)
-> # length(stable_genes)
-> # 
-> # meta_genes <- data.frame(ens_gene=rowData(sce)$ID, gene_symb=rowData(sce)$Symbol, 
-> #                          row.names = rowData(sce)$ID)
-> # meta_genes <- meta_genes[meta_genes$gene_symb %in% stable_genes,]
-> # stable_genes <- meta_genes$ens_gene
-> # 
-> # 
-> # p_raw <- plot_stable_genes_exp(sce, stable_genes, use_raw=T, exprs='logcounts', plottitle='Raw data - HK genes mean exp', 
-> #                                xlabel='', ylabel="Mean exp of HK genes", yl=NULL)
-> # 
-> # p_scran <- plot_stable_genes_exp(sce_scran, stable_genes, use_raw=F, exprs='logcounts', plottitle='Twice scran normalize - HK genes mean exp', 
-> #                                  xlabel='', ylabel="Mean exp of HK genes", yl=NULL)
-> # 
-> # p_seurat <- plot_stable_genes_exp(sce_seurat, stable_genes, use_raw=F, exprs='normcounts', plottitle='Seurat + Scale normalize - HK genes mean exp', 
-> #                                   xlabel='', ylabel="Mean exp of HK genes", yl=NULL)
-> # 
-> # p_sctransform <- plot_stable_genes_exp(sce_transform, stable_genes, use_raw=F, exprs='normcounts', plottitle='SCTransform + Scale normalize - HK genes mean exp', 
-> #                                        xlabel='', ylabel="Mean exp of HK genes", yl=NULL)
-> # 
-> # p <- cowplot::plot_grid(p_raw, p_scran, p_seurat, p_sctransform, ncol = 1, align='v')
-> # 
-> # png(paste0(output_dir,"HK_genes_evaluation.png"), height = 2*1200, width=2*500,res = 2*72)
-> # print(p)
-> # dev.off()
-> # 
-> # summary(as.factor(sce_scran$clone))
-> # summary(as.factor(sce_seurat$clone))
-> # summary(as.factor(sce_transform$clone))
-> 
-> 
-> 
-> # View(head(results$gene_cluster))
-> # dim(results$gene_cluster)
-> # gene_cluster <- results$gene_cluster
-> # gene_cluster <- gene_cluster %>%
-> #   dplyr::filter(ens_gene %in% rownames(sce_raw))
-> # dim(gene_cluster)
-> # meta_cells_df$cell_id[1:3]
-> # meta_cells_df <- meta_cells_df %>%
-> #                     dplyr::filter(cell_id %in% colnames(sce_raw))
-> # p_old_scran <- plot_genes_exp_v3(gene_cluster, meta_genes, norm_data,
-> #                   meta_cells_df, obs_clones, 
-> #                   output_dir, datatag, clone_aware=TRUE)
-> # 
-> # observed_cells <- meta_cells_df$cell_id
-> # observed_genes <- gene_cluster$ens_gene
-> # norm_scran <- get_norm_data(sce_scran, observed_genes, observed_cells, exprs='logcounts')
-> # norm_seurat <- get_norm_data(sce_seurat, observed_genes, observed_cells, exprs='normcounts')
-> # norm_sctransform <- get_norm_data(sce_transform, observed_genes, observed_cells, exprs='normcounts')
-> # 
-> # write.csv(gene_cluster, paste0(output_dir, 'gene_cluster.csv'), quote = F, row.names = F)
-> # write.csv(meta_genes, paste0(output_dir, 'meta_genes.csv'), quote = F, row.names = F)
-> # write.csv(meta_cells_df, paste0(output_dir, 'meta_cells_df.csv'), quote = F, row.names = F)
-> # p_twice_scran <- plot_genes_exp_v3(gene_cluster, meta_genes, norm_scran,
-> #                                  meta_cells_df, obs_clones, 
-> #                                  output_dir, datatag, clone_aware=TRUE)
-> # p_seurat <- plot_genes_exp_v3(gene_cluster, meta_genes, norm_seurat,
-> #                                  meta_cells_df, obs_clones, 
-> #                                  output_dir, datatag, clone_aware=TRUE)
-> # p_sctransform <- plot_genes_exp_v3(gene_cluster, meta_genes, norm_sctransform,
-> #                                  meta_cells_df, obs_clones, 
-> #                                  output_dir, datatag, clone_aware=TRUE)
-> # 
-> # 
-> # p <- cowplot::plot_grid(p_old_scran,p_twice_scran, p_seurat, p_sctransform, 
-> #                         labels=c('Previous Scran','Twice Scran','Seurat_Scaled','SCTransform_Scaled'),
-> #                         ncol=1, align = 'v')
-> # 
-> # png(paste0(output_dir,"genes_clustering_mean_exp_evaluation.png"), height = 2*1200, width=2*600,res = 2*72)
-> # print(p)
-> # dev.off()
-> # 
-> # 
-> # 
-> # meta_cells <- as.data.frame(colData(sce_raw))
-> # meta_cells$total_features_by_counts
-> # meta_cells$total_counts
-> # 
-> # meta_cells <- meta_cells %>%
-> #           dplyr::group_by(series) %>%
-> #           dplyr::mutate(nb_cells = n())
-> # 
-> # meta_cells$series <- paste0(meta_cells$series,'_',meta_cells$nb_cells,' cells')
-> # 
-> # p <- plot_variation_function(meta_cells, xstring="series", ystring="total_features_by_counts", 
-> #                              plottype="series", "Raw data total_features_by_counts",
-> #                              '', 'total_features_by_counts')
-> # 
-> # p_c <- plot_variation_function(meta_cells, xstring="series", ystring="total_counts", 
-> #                              plottype="series", "Raw data total_counts",
-> #                              '', 'total_counts')
-> # p <- cowplot::plot_grid(p, p_c, 
-> #                         ncol=2, align = 'h')
-> # 
-> # png(paste0(output_dir,"raw_data_features.png"), height = 2*500, width=2*1200,res = 2*72)
-> # print(p)
-> # dev.off()
-> # 
-> # get_norm_data <- function(observed_sce, observed_genes, observed_cells, exprs='logcounts'){
-> #   observed_sce <- observed_sce[observed_genes, observed_cells]
-> #   # norm_data <- logcounts(observed_sce)
-> #   norm_data <- assay(observed_sce, exprs)
-> #   norm_data <- as.data.frame(as.matrix(norm_data))
-> #   norm_data[norm_data==0] <- NA
-> #   norm_data$gene <- rownames(observed_sce)
-> #   print(dim(norm_data))
-> #   return(norm_data)
-> # }
-> # 
-> # rownames(sce_scran)[1:3]
-> # dim(rowData(sce_seurat))
-> # head(rowData(sce_seurat))
-> 
-> 
-> 
-> 
-> 
-> 
-> 
-> 
-> 
-> proc.time()
-    user   system  elapsed 
-2407.030  100.381 2588.489 

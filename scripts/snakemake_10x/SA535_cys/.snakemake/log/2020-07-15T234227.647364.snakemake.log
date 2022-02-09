@@ -1,5 +1,0 @@
-Building DAG of jobs...
-MissingInputException in line 19 of /home/htran/Projects/farhia_project/rscript/snakemake_10x/SA535_cys/download_Snakefile_human:
-Missing input files for rule all:
-/home/htran/storage/datasets/drug_resistance/dlp_results/SA535_rna_cys/clustering/SA535_cys_normalized_clusters.rds
-/home/htran/storage/datasets/drug_resistance/dlp_results/SA535_rna_cys/normalized/SA535_cys_normalized_output.rds
