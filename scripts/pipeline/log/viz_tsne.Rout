@@ -1,0 +1,75 @@
+
+R version 3.6.2 (2019-12-12) -- "Dark and Stormy Night"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> source(paste0("/home/htran/Projects/farhia_project/rscript/pipeline/utils/normalize_utils.R"))
+Warning message:
+replacing previous import ‘vctrs::data_frame’ by ‘tibble::data_frame’ when loading ‘dplyr’ 
+> input_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+> # output_dir <- paste0(input_dir,'rnaseq_v6/normalization_evaluation_v1/')
+> output_dir <- paste0(input_dir,'rnaseq_v6/normalization_evaluation/')
+> 
+> datatag <- 'SA609'
+> sce_scMerge <- readRDS(paste0(output_dir,'SA609_scMerge_correction_without_cosine.rds'))  #SA609_scMerge_correction.rds dim(sce_transform)
+> exprs <- 'scMerge_fast'
+> sce_scMerge$treatmentSt <- get_treatment_status(sce_scMerge$series)
+> 
+> 
+> 
+> metadata <- as.data.frame(colData(sce_scMerge))
+> metadata$cell_id <- colnames(sce_scMerge)
+> metadata <- metadata %>%
++   dplyr::select(cell_id, treatmentSt, clone, batch, series)
+> 
+> ext_cells <- downsampling_data(metadata, col_use='treatmentSt', downsample_ratio=0.3, thres_small_clone=600)
+[1] "Sampling cells, for each clone"
+[1] "Extract 274 from clone: U"
+[1] "Extract 1460 from clone: UU"
+[1] "Extract 968 from clone: UT"
+[1] "Extract 1545 from clone: UTU"
+[1] "Extract 725 from clone: UTT"
+[1] "Extract 831 from clone: UUU"
+[1] "Extract 553 from clone: UTTU"
+[1] "Extract 914 from clone: UTTT"
+[1] "Extract 735 from clone: UUUU"
+[1] "Extract 711 from clone: UTTTU"
+[1] "Extract 1113 from clone: UTTTT"
+[1] "Extract 522 from clone: UUUUU"
+[1] "Number of extracted cells: 10351"
+> sce_scMerge <- sce_scMerge[,ext_cells]
+> print(dim(sce_scMerge))
+[1]  7761 10351
+> metadata <- metadata %>%
++   dplyr::filter(cell_id %in% ext_cells)
+> print(dim(metadata))
+[1] 10351     5
+> plot_umap(sce_scMerge, exprs, metadata, output_dir, datatag, dims=1:15)
+[1] "Nb var genes: 2000"
+Computing nearest neighbor graph
+Computing SNN
+[1] "Run UMAP"
+Warning: The default method for RunUMAP has changed from calling Python UMAP via reticulate to the R-native UWOT using the cosine metric
+To use Python UMAP via reticulate, set umap.method to 'umap-learn' and metric to 'correlation'
+This message will be shown once per session
+null device 
+          1 
+> # plot_tsne(sce_scMerge, exprs, metadata, output_dir, npcs=20, tsne_perplex=90)
+> 
+> proc.time()
+   user  system elapsed 
+158.173  13.114 174.556 

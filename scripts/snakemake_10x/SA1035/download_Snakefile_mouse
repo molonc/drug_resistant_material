@@ -1,0 +1,45 @@
+import os
+
+## Tickets & Libraries for analysis
+library = config["library"]
+
+
+SOURCE_DIR = os.path.join(config['project_dir'], 'pipeline_Hoa','utils')
+
+rule all:
+    """
+    Launches full snakemake pipeline, cleans up junk files at the end.
+    """
+    input:
+        os.path.join(config['results_dir'], 'SA1035_log.csv')
+    
+        
+        
+
+rule download_data:
+    """
+    Runs a shell script that downloads all the data for corruptTree
+    """
+    params:
+        mouse_dir = os.path.join(config['download_dir'], 'mouse')
+    output:
+        directory(os.path.join(config['download_dir'],'mouse', '{library}'))
+    shell:
+        'python {SOURCE_DIR}/script_tenx_mouse.py '
+        '--library_id {wildcards.library} '
+        '--download_dir {params.mouse_dir}'
+
+
+## os.path.join(config['download_dir'], '{library}')
+
+
+rule merge_data:
+    """
+    merge all data sets together, change input filename to correct name
+    """
+    input:
+        expand(os.path.join(config['download_dir'],'mouse', '{library}'), library=library)
+    output:
+        os.path.join(config['results_dir'], 'SA1035_log.csv')
+    shell:
+        'python {SOURCE_DIR}/lib_info.py {input} {output}'

@@ -1,0 +1,3 @@
+KeyError in line 89 of /home/htran/Projects/farhia_project/rscript/snakemake_10x/SA535_cys/download_Snakefile_human:
+'cell_cycle_detection'
+  File "/home/htran/Projects/farhia_project/rscript/snakemake_10x/SA535_cys/download_Snakefile_human", line 89, in <module>

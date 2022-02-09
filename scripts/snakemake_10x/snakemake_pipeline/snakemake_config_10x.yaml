@@ -1,0 +1,57 @@
+###
+## Libraries and samples for analysis SA1035 10x
+######################################################
+library:
+  SCRNA10X_SA_CHIP0146_004:
+    passage: X7
+    mouse_id: SA535X7XB03305
+    library_id: SCRNA10X_SA_CHIP0146_004
+    treatmentSt: UTU
+    batch_info: CHIP0146
+    PDX: SA535
+
+
+
+# Snakemake parameters
+############################
+
+
+
+# Snakemake activated rules
+############################
+download_data: True
+merge_data: True
+cell_cycle_detection: True
+verification_qc: False
+filter_data: True
+merge_filter_data: True
+normalize_data: True
+clustering_data: True
+deg_analysis: False
+batch_effect_estimation: False
+normalized_samples: True
+
+# Snakemake filtering data params
+############################
+max_mito: 20
+max_ribo: 60
+#min_pc_detected: 100
+min_features: 1000
+#min_pc_sum: 500
+doublet_score: '0'
+# Snakemake clustering params
+############################
+resolution: 0.1
+
+# Snakemake DEG params
+############################
+p_adjust: 0.0125
+min_logfc: 0.25
+#cluster_rm: '2'
+
+# Directory parameters: Please update all fields
+# nextflow_dir: for corrupt-grow pipeline only
+############################################
+project_10x_dir: '/home/htran/Projects/farhia_project/rscript'
+download_10x_dir: '/home/htran/storage/datasets/drug_resistance_RNAseq/testing'
+results_10x_dir: '/home/htran/storage/datasets/metastasis_results/SA535_10x'

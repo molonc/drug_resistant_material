@@ -1,0 +1,333 @@
+
+R version 3.6.2 (2019-12-12) -- "Dark and Stormy Night"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+>     script_dir <- '/home/htran/Projects/farhia_project/rscript/genes_modeling/'
+>     source(paste0(script_dir, "gene_utils_2.R"))
+Warning message:
+replacing previous import ‘vctrs::data_frame’ by ‘tibble::data_frame’ when loading ‘dplyr’ 
+>     
+>     base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+>     save_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/SA609_rna/gene_regression/'
+>     datatag <- 'SA609'
+>     obs_clones <- c('R')
+>     # clone_aware <- FALSE
+>     clone_aware <- TRUE
+>     obs_treatment_st <- c('UT','UTT','UTTT','UTTTT','UTTTTT')
+>     # input_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results'
+>     dir.create(save_dir, recursive = T, showWarning=F)
+>     # Define clone R: R, clone S: H
+>     # Read csv files of DE genes
+>     de_x3 = read.csv(paste0(base_dir,'SA609_rna/deg_analysis/SA609-v6/SA609_UTTT_R_UUUU_H/signif_genes.csv'))
+>     de_x4 = read.csv(paste0(base_dir,'SA609_rna/deg_analysis/SA609-v6/SA609_UTTTT_R_UUUUU_H/signif_genes.csv'))
+>     
+>     
+>     
+>     # de_x3 <- get_top_up_genes(de_x3, ntop = 500)
+>     # de_x4 <- get_top_up_genes(de_x4, ntop = 500)
+>     # print(dim(de_x3))
+>     sce <- readRDS(paste0(base_dir,'rnaseq_v6/SA609-v6/total_sce_clones.rds'))
+>     print(dim(sce))
+[1] 12324 33817
+>     # Select only resistant genes 
+>     # For testing, get top genes first
+>     observed_genes <- intersect(de_x3$ensembl_gene_id, de_x4$ensembl_gene_id)
+>     observed_genes <- intersect(observed_genes, rownames(sce))
+>     length(observed_genes)
+[1] 4338
+>     # de_x3 <- de_x3[de_x3$ensembl_gene_id %in% observed_genes,]
+>     de_x3 <- de_x3 %>%
++              dplyr::filter(ensembl_gene_id %in% observed_genes)
+>     print(dim(de_x3))
+[1] 4338   15
+>     de_x3 <- get_top_up_genes(de_x3, ntop = 500)
+>     observed_genes <- as.character(de_x3$ensembl_gene_id)
+>     
+>     print(paste0("Number of observed genes: ", length(observed_genes)))
+[1] "Number of observed genes: 500"
+>     observed_sce <- sce[observed_genes,]
+>     
+>     # rownames(sce)[1:3]
+>     # unique(observed_sce$clone)
+>     # dim(observed_sce)
+>     # summary(as.factor(observed_sce$treatmentSt))
+>     
+>     
+>     
+>     meta_cells_df <- as.data.frame(colData(observed_sce))
+>     meta_cells_df$cell_id <- rownames(meta_cells_df)
+>     if(clone_aware){
++       print("With clone aware")
++       meta_cells_df <- meta_cells_df %>%
++         dplyr::filter(clone %in% obs_clones & treatmentSt %in% obs_treatment_st)
++       print(dim(meta_cells_df))
++     }else{
++       print("Without clone aware")
++       meta_cells_df <- meta_cells_df %>%
++         dplyr::filter(treatmentSt %in% obs_treatment_st)
++       print(dim(meta_cells_df))
++     }
+[1] "With clone aware"
+[1] 7765   79
+>     
+>     # meta_cells_df <- downsample_cells(meta_cells_df, downsample_ratio=0.3,
+>     #                              thres_small_clone=500)
+>     # colnames(meta_cells_df)
+>     dim(meta_cells_df)
+[1] 7765   79
+>     # meta_cells_df$timepoint[1:3]
+>     meta_cells_df <- meta_cells_df %>%
++       dplyr::select(cell_id, treatmentSt, timepoint, clone) %>%
++       dplyr::mutate(treatment_status=paste0(timepoint,'_',treatmentSt))
+>     
+>     observed_sce <- observed_sce[,meta_cells_df$cell_id]
+>     # View(rowData(observed_sce))
+>     norm_data <- logcounts(observed_sce)
+>     norm_data <- as.data.frame(as.matrix(norm_data))
+>     norm_data$gene <- rowData(observed_sce)$Symbol
+>     dim(norm_data)
+[1]  500 7766
+>     meta_genes <- data.frame(gene=rowData(observed_sce)$Symbol, ens_gene=rownames(observed_sce), stringsAsFactors=F)
+>     rownames(de_x3) <- de_x3$ensembl_gene_id
+>     de_x3 <- de_x3[meta_genes$ens_gene,c("logFC","ensembl_gene_id")]
+>     dim(de_x3)
+[1] 500   2
+>     rownames(de_x4) <- de_x4$ensembl_gene_id
+>     de_x4 <- de_x4[meta_genes$ens_gene,c("logFC","ensembl_gene_id")]
+>     dim(de_x4)
+[1] 500   2
+>     colnames(de_x3)[which(names(de_x3)=='logFC')] <- 'logFC_UTTT_R_UUUU_H'
+>     colnames(de_x4)[which(names(de_x4)=='logFC')] <- 'logFC_UTTTT_R_UUUUU_H'
+>     
+>     
+>     meta_genes <- meta_genes %>% left_join(de_x3, by=c('ens_gene'='ensembl_gene_id'))
+>     meta_genes <- meta_genes %>% left_join(de_x4, by=c('ens_gene'='ensembl_gene_id'))
+>     
+>     gene_clustering(meta_genes, norm_data, meta_cells_df, obs_clones, 
++                     save_dir, datatag, TRUE)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+-6.2363 -0.9345  0.1056  0.0000  0.7271  6.3195 
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+-6.2363 -0.9345  0.1056  0.0000  0.7271  6.3195 
+`summarise()` regrouping output by 'gene' (override with `.groups` argument)
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+-1.529775 -0.128809  0.004184 -0.026798  0.113247  1.046524 
+[1] "Compute distance matrix:"
+[1] "Gene Regression:"
+x being coerced from class: matrix to data.table
+  1   2   3   4   5   6 
+ 75 127  74  72 130  22 
+[1] "Plot gene clusters:"
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+-1.529775 -0.128809  0.004184 -0.026798  0.113247  1.046524 
+[1] 2000    8
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+-1.529775 -0.128809  0.004184 -0.026798  0.113247  1.046524 
+[1] "Gene Regression:"
+[1] "Observe clone: 4"
+
+Call:
+lm(formula = exp_scaled ~ treatment_status, data = tmp)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-5.0130 -0.8956  0.1087  0.7136  6.2588 
+
+Coefficients:
+                          Estimate Std. Error t value Pr(>|t|)    
+(Intercept)              -0.412845   0.005832  -70.79   <2e-16 ***
+treatment_statusX5_UTT    0.473567   0.006307   75.08   <2e-16 ***
+treatment_statusX6_UTTT   0.393363   0.006206   63.38   <2e-16 ***
+treatment_statusX7_UTTTT  0.455052   0.006412   70.97   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.9946 on 559076 degrees of freedom
+Multiple R-squared:  0.01059,	Adjusted R-squared:  0.01059 
+F-statistic:  1995 on 3 and 559076 DF,  p-value: < 2.2e-16
+
+[1] "mono_incrc"
+[1] "Cluster 4 and gene type is: mono_incrc"
+[1] " "
+[1] "Observe clone: 5"
+
+Call:
+lm(formula = exp_scaled ~ treatment_status, data = tmp)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-3.9215 -0.9395  0.0781  0.7369  6.1623 
+
+Coefficients:
+                          Estimate Std. Error t value Pr(>|t|)    
+(Intercept)              -0.110253   0.004333  -25.45   <2e-16 ***
+treatment_statusX5_UTT    0.258693   0.004686   55.20   <2e-16 ***
+treatment_statusX6_UTTT   0.111201   0.004611   24.11   <2e-16 ***
+treatment_statusX7_UTTTT -0.050881   0.004764  -10.68   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.993 on 1009446 degrees of freedom
+Multiple R-squared:  0.01385,	Adjusted R-squared:  0.01385 
+F-statistic:  4727 on 3 and 1009446 DF,  p-value: < 2.2e-16
+
+[1] "Cluster 5 and gene type is: undefined"
+[1] " "
+[1] "Observe clone: 3"
+
+Call:
+lm(formula = exp_scaled ~ treatment_status, data = tmp)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-6.4319 -0.5350  0.1190  0.6474  6.0703 
+
+Coefficients:
+                          Estimate Std. Error t value Pr(>|t|)    
+(Intercept)               0.045708   0.005518   8.284   <2e-16 ***
+treatment_statusX5_UTT    0.116359   0.005967  19.499   <2e-16 ***
+treatment_statusX6_UTTT   0.149829   0.005872  25.516   <2e-16 ***
+treatment_statusX7_UTTTT -0.562766   0.006067 -92.766   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.954 on 574606 degrees of freedom
+Multiple R-squared:  0.08976,	Adjusted R-squared:  0.08976 
+F-statistic: 1.889e+04 on 3 and 574606 DF,  p-value: < 2.2e-16
+
+[1] "Cluster 3 and gene type is: undefined"
+[1] " "
+[1] "Observe clone: 2"
+
+Call:
+lm(formula = exp_scaled ~ treatment_status, data = tmp)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-3.2012 -0.9089  0.0848  0.7267  6.1807 
+
+Coefficients:
+                          Estimate Std. Error t value Pr(>|t|)    
+(Intercept)               0.117933   0.004381  26.920  < 2e-16 ***
+treatment_statusX5_UTT    0.017299   0.004738   3.651 0.000261 ***
+treatment_statusX6_UTTT  -0.119510   0.004662 -25.634  < 2e-16 ***
+treatment_statusX7_UTTTT -0.306501   0.004817 -63.633  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.9923 on 986151 degrees of freedom
+Multiple R-squared:  0.01519,	Adjusted R-squared:  0.01519 
+F-statistic:  5070 on 3 and 986151 DF,  p-value: < 2.2e-16
+
+[1] "mono_decrc"
+[1] "Cluster 2 and gene type is: mono_decrc"
+[1] " "
+[1] "Observe clone: 1"
+
+Call:
+lm(formula = exp_scaled ~ treatment_status, data = tmp)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-4.0289 -0.9284  0.0784  0.7226  6.2472 
+
+Coefficients:
+                          Estimate Std. Error t value Pr(>|t|)    
+(Intercept)              -0.165197   0.005740  -28.78   <2e-16 ***
+treatment_statusX5_UTT    0.172895   0.006208   27.85   <2e-16 ***
+treatment_statusX6_UTTT   0.184657   0.006109   30.23   <2e-16 ***
+treatment_statusX7_UTTTT  0.159575   0.006311   25.29   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.9991 on 582371 degrees of freedom
+Multiple R-squared:  0.001595,	Adjusted R-squared:  0.00159 
+F-statistic: 310.1 on 3 and 582371 DF,  p-value: < 2.2e-16
+
+[1] "mono_incrc"
+[1] "Cluster 1 and gene type is: mono_incrc"
+[1] " "
+[1] "Observe clone: 6"
+
+Call:
+lm(formula = exp_scaled ~ treatment_status, data = tmp)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-5.5520 -0.8837  0.0195  0.7355  4.5259 
+
+Coefficients:
+                         Estimate Std. Error t value Pr(>|t|)    
+(Intercept)              -0.12924    0.01057 -12.233   <2e-16 ***
+treatment_statusX5_UTT    0.24026    0.01143  21.026   <2e-16 ***
+treatment_statusX6_UTTT   0.13076    0.01124  11.629   <2e-16 ***
+treatment_statusX7_UTTTT  0.01724    0.01162   1.484    0.138    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.9961 on 170826 degrees of freedom
+Multiple R-squared:  0.007773,	Adjusted R-squared:  0.007756 
+F-statistic: 446.1 on 3 and 170826 DF,  p-value: < 2.2e-16
+
+[1] "incrc"
+[1] "Cluster 6 and gene type is: incrc"
+[1] " "
+            
+               1   2   3   4   5   6
+  incrc        0   0   0   0   0  22
+  mono_decrc   0 127   0   0   0   0
+  mono_incrc  75   0   0  72   0   0
+  undefined    0   0  74   0 130   0
+>     
+>     # View(head(gexp_cls))
+>     # unique(gexp_cls1$treatment_status)
+>     # gexp_cls1 <- as.data.frame(gexp_cls[gexp_cls$cluster==1,])
+>     # gexp_cls1$mean_exp_scaled
+>     # p1 <- gexp_cls1 %>% 
+>     #   ggplot(aes(treatment_status, mean_exp_scaled)) +
+>     #   geom_line(aes(color=gene,group = gene), alpha = 0.3) #group = gene, 
+>     # p1
+>     # 
+>     # View(gexp_cls1)
+>     
+>     
+>     # linearMod <- lm(mean_exp_scaled ~ treatment_status, data=gexp_cls1)
+>     # gexp_cls1$slope <- linearMod$coefficients[2]  
+>     # mon <- (gexp_cls1[gexp_cls1$treatment_status=="X4_UT","mean_exp_scaled"]-gexp_cls1[gexp_cls1$treatment_status=="X5_UTT","mean_exp_scaled"]) * 
+>     #   (gexp_cls1[gexp_cls1$treatment_status=="X6_UTTT","mean_exp_scaled"]-gexp_cls1[gexp_cls1$treatment_status=="X5_UTT","mean_exp_scaled"])
+>     # if (mon > 0) {
+>     #   m <- TRUE
+>     # } else {
+>     #   m <- FALSE
+>     # }
+>     # genedf[genedf$name==gene,"monotonic"] <- m
+>     # 
+>     # gexp_cls1$treatment_status
+>     # p <- ggplot(gexp_cls1, aes(as.factor(treatment_status), mean_exp_scaled)) +
+>     #   geom_point()
+>     # # Ajouter une ligne de régression
+>     # p + geom_smooth(method = lm)
+>     
+>     
+>     
+>     
+>     
+> 
+> proc.time()
+    user   system  elapsed 
+1592.470    7.509 1606.799 

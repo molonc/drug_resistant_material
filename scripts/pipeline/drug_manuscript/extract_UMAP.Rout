@@ -1,0 +1,229 @@
+
+R version 4.1.1 (2021-08-10) -- "Kick Things"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> suppressPackageStartupMessages({
++   require("SingleCellExperiment")
++   # require("stringr")
++   require("tidyverse")
++   require("Seurat")
++   # require("sctransform")
++   require("dplyr")
++   # require("inlmisc")
++ })
+> 
+> 
+> get_umap <- function(sce, output_dir, nb_hvg=3000, datatag='SA', max_dim=30){
++   # if(file.exists(sce_fn)){
++   #   sce <- readRDS(sce_fn)  
++   #   reducedDims(sce) <- NULL
++   # }else{
++   #   stop('Check input sce file, exit!!!')
++   # }
++   print(nb_hvg)
++   print(datatag)
++   print(dim(sce))
++   if(datatag=='SA609'){
++     obs_samples <- c('SA609X3XB01584','SA609X4XB03080','SA609X5XB03223',
++                      'SA609X6XB03447','SA609X7XB03554','SA609X4XB003083',
++                      'SA609X5XB03230','SA609X6XB03404','SA609X7XB03505',
++                      'SA609X5XB03231','SA609X6XB03401','SA609X7XB03510')
++     sce <- sce[,sce$sample %in% obs_samples]
++     print('Replicates excluded!!!')
++     print(dim(sce))
++   }
++   
++   dims <-  1:max_dim
++   # dims <-  1:30, nb_hvg=3000 ## for trajectory analysis, take 30 PCs
++   
++   # logcounts(sce) <- as.matrix(logcounts(sce))
++   # counts(sce) <- as.matrix(counts(sce))
++   # library(Seurat)
++   # sce$library_id <- gsub('SCRNA10X_SA_CHIP','',sce$library_id)
++   srt <- Seurat::as.Seurat(sce, counts = "counts", data="logcounts") #set to NULL if only normalized data are present
++   print(dim(srt)) #, , assay = "RNA", project = "SingleCellExperiment"
++   srt[["originalexp"]]@scale.data <- as.matrix(logcounts(sce))
++   # srt[["SCT"]]@scale.data <- as.matrix(logcounts(sce))
++   srt <- Seurat::FindVariableFeatures(srt, selection.method = "vst", nfeatures = nb_hvg)
++   # srt <- ScaleData(srt, features = all.genes) # scale for all genes, can scale by hvg genes
++   srt <- Seurat::RunPCA(object = srt, verbose = FALSE, npcs = max_dim)
++   # srt <- JackStraw(srt, num.replicate = 100)
++   # srt <- ScoreJackStraw(srt, dims = 1:20)
++   # JackStrawPlot(srt, dims = 1:15)
++   # ElbowPlot(srt)
++   srt <- Seurat::FindNeighbors(srt, dims = dims)
++   # srt <- FindClusters(srt, resolution = res)
++   srt <- Seurat::RunUMAP(object = srt, dims = dims, verbose=FALSE, n.components=3) #umap.method = "umap-learn", metric='correlation'
++   
++   pca_df <- as.data.frame(Seurat::Embeddings(object = srt, reduction = "pca"))
++   umap_df <- as.data.frame(Seurat::Embeddings(object = srt, reduction = "umap"))
++   # library(dplyr)
++   meta_info <- srt@meta.data
++   meta_info$cell_id <- rownames(meta_info)
++   # meta_info <- meta_info %>%
++   #   dplyr::select(cell_id, Barcode, library_id, sample, treatmentSt, timepoint)
++   
++   umap_df$cell_id <- rownames(umap_df)
++   umap_df <- umap_df %>% inner_join(meta_info, by=c("cell_id"))
++   # umap_df$cell_id <- paste0(umap_df$library_id,'_',umap_df$Barcode)
++   
++   pca_df$cell_id <- rownames(pca_df)
++   pca_df <- pca_df %>% inner_join(meta_info, by=c("cell_id"))
++   # pca_df$cell_id <- paste0(pca_df$library_id,'_',pca_df$Barcode)
++   print(dim(umap_df))
++   print(dim(pca_df))
++   
++   # data.table::fwrite(pca_df, paste0(output_dir, datatag, "_norm_pca_",nb_hvg,".csv"))
++   data.table::fwrite(umap_df, paste0(output_dir, datatag, "_norm_umap_",nb_hvg,"_3UMAPS.csv"))
++ }
+> 
+> # datatag <- 'SA535'
+> # save_dir <- paste0('/home/htran/storage/datasets/drug_resistance/rna_results/',datatag,'_rna/slingshot_trajectory/')
+> # # base_dir <- ''
+> # sce_fn <- paste0(save_dir,'SA535_sctransform_normalized.rds')
+> # output_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/umap_figs/hvg_umaps/'
+> # if(file.exists(sce_fn)){
+> #   sce <- readRDS(sce_fn)
+> #   reducedDims(sce) <- NULL
+> # }else{
+> #   stop('Check input sce file, exit!!!')
+> # }
+> # get_umap(sce, output_dir, 10000, datatag, 30)
+> # get_umap(sce, output_dir, 5000, datatag, 30)
+> 
+> # datatag <- 'SA1035'
+> # base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+> # sce_fn <- paste0(base_dir,'rnaseq_v6/',datatag,'-v6/SA1035_sctransform_normalized.rds')
+> # output_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/umap_figs/'
+> # get_umap(sce_fn, output_dir, datatag)
+> 
+> 
+> datatag <- 'SA609'
+> base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+> sce_fn <- paste0(base_dir,'rnaseq_v6/',datatag,'-v6/',datatag,'_sctransform_normalized.rds')
+> output_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/umap_figs/hvg_umaps/'
+> # dir.create(output_dir, showWarnings = F)
+> if(file.exists(sce_fn)){
++   sce <- readRDS(sce_fn)
++   reducedDims(sce) <- NULL
++ }else{
++   stop('Check input sce file, exit!!!')
++ }
+> get_umap(sce, output_dir, 3000, datatag, 30)
+[1] 3000
+[1] "SA609"
+[1] 13941 33881
+[1] "Replicates excluded!!!"
+[1] 13941 26937
+[1] 13941 26937
+Calculating gene variances
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+Calculating feature variances of standardized and clipped values
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+Computing nearest neighbor graph
+Computing SNN
+Warning: The default method for RunUMAP has changed from calling Python UMAP via reticulate to the R-native UWOT using the cosine metric
+To use Python UMAP via reticulate, set umap.method to 'umap-learn' and metric to 'correlation'
+This message will be shown once per session
+[1] 26937    88
+[1] 26937   115
+> # get_umap(sce, output_dir, 5000, datatag)
+> # # get_umap(sce, output_dir, 10000, datatag)
+> # get_umap(sce, output_dir, 10000, datatag, 30)
+> # print('Completed')
+> 
+> 
+> # datatag <- 'SA604'
+> # base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+> # sce_fn <- paste0(base_dir,datatag,'_rna/normalized/',datatag,'_sctransform_normalized.rds')
+> # output_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/umap_figs/'
+> # get_umap(sce_fn, output_dir, datatag)
+> 
+> 
+> # datatag <- 'SA530'
+> # base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+> # sce_fn <- paste0(base_dir,datatag,'_rna/normalized/',datatag,'_sctransform_normalized.rds')
+> # save_dir <- paste0(base_dir,datatag,'_rna/normalized/')
+> # # dir.create(save_dir)
+> # sce <- readRDS(paste0(save_dir,'SA530X3XB03295.rdata'))
+> # clone_df <- data.table::fread(paste0(save_dir,'SA530X3XB03295.csv')) %>% as.data.frame()
+> # dim(sce)
+> # colnames(sce) <- paste0(sce$id,'_',sce$Barcode)
+> # rownames(sce) <- rowData(sce)$ID
+> # sce$treatmentSt <- sce$treat
+> # sce$clone <- 'None'
+> # colData(sce)[clone_df$cell_id,'clone'] <- clone_df$clone
+> # dim(clone_df)
+> # cut_off_overall <- 0.025
+> # zero_cbind <- DelayedArray::rowMeans(assay(sce, 'counts') == 0)
+> # sce <- sce[names(zero_cbind[zero_cbind <= (1 - cut_off_overall)]), ]
+> # dim(sce)
+> # summary(as.factor(sce$clone))
+> # saveRDS(sce, paste0(save_dir,'SA530X3XB03295_filtered_raw.rds'))
+> # normalize_SCTransform(sce, save_dir, datatag, return_data=F, output_fn=NULL)
+> #   
+> # output_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/umap_figs/'
+> # get_umap(sce_fn, output_dir, datatag)
+> # 
+> # 
+> # datatag <- 'SA609_samechip'
+> # base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/SA609_rna/SA609_same_chip/'
+> # sce_fn <- paste0(base_dir,datatag,'_sctransform_normalized.rds')
+> # output_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/umap_figs/'
+> # get_umap(sce_fn, output_dir, datatag)
+> # 
+> # 
+> # 
+> # datatag <- 'SA501'
+> # base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+> # sce_fn <- paste0(base_dir,datatag,'_rna/normalized/',datatag,'_sctransform_normalized.rds')
+> # save_dir <- paste0(base_dir,datatag,'_rna/normalized/')
+> # # dir.create(save_dir)
+> # sce <- readRDS(paste0(save_dir,'SA501X2XB00096.rdata'))
+> # clone_df <- data.table::fread(paste0(save_dir,'SA501X2XB00096.csv')) %>% as.data.frame()
+> # dim(sce)
+> # sce$id[1]
+> # sce$treatmentSt[1]
+> # colnames(sce) <- paste0(sce$id,'_',sce$Barcode)
+> # rownames(sce) <- rowData(sce)$ID
+> # sce$treatmentSt <- sce$treat
+> # sce$clone <- 'None'
+> # colData(sce)[clone_df$cell_id,'clone'] <- clone_df$clone
+> # summary(as.factor(sce$clone))
+> # dim(clone_df)
+> # cut_off_overall <- 0.025
+> # zero_cbind <- DelayedArray::rowMeans(assay(sce, 'counts') == 0)
+> # sce <- sce[names(zero_cbind[zero_cbind <= (1 - cut_off_overall)]), ]
+> # dim(sce)
+> # 
+> # saveRDS(sce, paste0(save_dir,'SA501X2XB00096_filtered_raw.rds'))
+> # reducedDims(sce) <- NULL
+> # normalize_SCTransform(sce, save_dir, datatag, return_data=F, output_fn=NULL)
+> # 
+> # output_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/umap_figs/'
+> # get_umap(sce_fn, output_dir, datatag)
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+166.951  17.470 282.142 

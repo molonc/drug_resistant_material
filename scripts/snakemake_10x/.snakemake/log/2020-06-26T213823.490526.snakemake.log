@@ -1,0 +1,4 @@
+Building DAG of jobs...
+MissingInputException in line 47 of /home/htran/Projects/farhia_project/rscript/snakemake_10x/download_Snakefile_human:
+Missing input files for rule filter_data:
+/home/htran/storage/datasets/drug_resistance_RNAseq/SCRNA10X_SA_CHIP0079_001/SCRNA10X_SA_CHIP0079_001.rdata

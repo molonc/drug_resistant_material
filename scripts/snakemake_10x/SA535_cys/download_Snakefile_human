@@ -1,0 +1,187 @@
+import os
+
+## Tickets & Libraries for analysis
+library = config["library"]
+MAX_MITO = config["max_mito"]
+MAX_RIBO = config["max_ribo"]
+MIN_PC_DETECTED = config["min_pc_detected"]
+MIN_FEATURES = config["min_features"]
+MIN_PC_SUM = config["min_pc_sum"]
+
+##PROBSEG = config["probIdx"]
+
+##P_ADJUST = config["p_adjust"]
+##MIN_LOGFC = config["min_logfc"]
+RES = config["resolution"]
+
+SOURCE_DIR = os.path.join(config['project_10x_dir'], 'pipeline')
+
+rule all:
+    """
+    Launches full snakemake pipeline, cleans up junk files at the end.
+    """
+    input:
+        os.path.join(config['results_10x_dir'], 'normalized', 'SA535_cys_normalized_output.rds'),
+        os.path.join(config['results_10x_dir'], 'clustering', 'SA535_cys_normalized_clusters.rds'),
+        os.path.join(config['results_10x_dir'], 'normalized', 'samples.rds')
+        
+        
+if config["download_data"]:
+    rule download_data:
+        """
+        Runs a shell script that downloads all the data for corruptTree
+        """
+        params:
+            download_dir = os.path.join(config['download_10x_dir'])
+        output:
+            directory(os.path.join(config['download_10x_dir'], '{library}'))
+        shell:
+            'python {SOURCE_DIR}/utils/script_tenx_human.py '
+            '--library_id {wildcards.library} '
+            '--download_dir {params.download_dir}'
+
+
+if config["merge_data"]:
+    rule merge_data:
+        """
+        do nothing, just keep it here to run snakemake
+        """
+        input:
+            expand(os.path.join(config['download_10x_dir'], '{library}'), library=library)
+        output:
+            os.path.join(config['results_10x_dir'], 'SA535_human_download_log.csv')
+        shell:
+            'python {SOURCE_DIR}/utils/lib_info.py {input} {output}'
+            
+        
+if config["filter_data"]:  
+    rule filter_data:
+        """
+        Filtering data, qualification control
+        """
+        params:
+            mouse_id=lambda wildcards: config['library'][wildcards.library]['mouse_id'],
+            treatmentSt=lambda wildcards: config['library'][wildcards.library]['treatmentSt'],
+            library_id=lambda wildcards: config['library'][wildcards.library]['library_id'],
+            batch_info=lambda wildcards: config['library'][wildcards.library]['batch_info'],
+            passage=lambda wildcards: config['library'][wildcards.library]['passage'],
+            pdxid=lambda wildcards: config['library'][wildcards.library]['PDX']
+        input:
+            os.path.join(config['download_10x_dir'],'{library}','{library}.rdata')
+        output:
+            os.path.join(config['results_10x_dir'], 'filtered','{library}_filtered.rds')
+        shell:
+            'Rscript {SOURCE_DIR}/qc_filtering.R '
+            '--inputfile {input} '
+            '--outputfile {output} '
+            '--library_id {params.library_id} '
+            '--mouse_id {params.mouse_id} '
+            '--treatmentSt {params.treatmentSt} '
+            '--batch_info {params.batch_info} '
+            '--pdxid {params.pdxid} '
+            '--passage {params.passage} '
+            '--max_mito {MAX_MITO} '
+            '--max_ribo {MAX_RIBO} '
+            '--min_pc_detected {MIN_PC_DETECTED} '
+            '--min_features {MIN_FEATURES} '
+            '--min_pc_sum {MIN_PC_SUM}'
+    
+
+   
+if config["cell_cycle_detection"]:  
+    rule cell_cycle_detection:
+        """
+        cell cycle detection
+        """
+        input:
+            os.path.join(config['results_10x_dir'],'filtered','{library}_filtered.rds')
+        output:
+            os.path.join(config['results_10x_dir'], 'cell_cycle','{library}_assignments.rds')
+        shell:
+            'Rscript {SOURCE_DIR}/cell_cycle_detection.R --sce {input} --output_file {output}'
+     
+     
+if config["merge_filter_data"]:  
+    rule merge_filter_data:
+        """
+        do nothing, just keep it here to run snakemake
+        """
+        input:
+            expand(os.path.join(config['results_10x_dir'],'cell_cycle','{library}_assignments.rds'), library=library)
+        output:
+            os.path.join(config['results_10x_dir'], 'SA535_10x_filtering_log.csv')
+        shell:
+            'python {SOURCE_DIR}/utils/lib_info.py {input} {output}'
+    
+    
+if config["verification_qc"]:        
+    rule verification:
+        """
+        Verifying the QC output for this project data series
+        """
+        params:
+            library_ids = ",".join(list(library.keys())),
+            input_dir = os.path.join(config['download_10x_dir'],'human')
+        output:
+            os.path.join(config['results_10x_dir'], 'filtered', 'summary_SA1035.csv')
+        shell:
+            'Rscript {SOURCE_DIR}/utils/qc_verification.R -l {params.library_ids} -i {params.input_dir} -o {output}'        
+   
+
+if config["normalize_data"]:        
+    rule normalization:
+        """
+        Twice scran normalization, for each library, normalize data first get normcounts matrix, then combine data together, and normalize it second time, get logcounts matrix
+        """
+        params:
+            library_ids = ",".join(list(library.keys())),
+            input_dir = os.path.join(config['results_10x_dir'],'filtered')
+        output:
+            os.path.join(config['results_10x_dir'], 'normalized', 'SA535_cys_normalized_output.rds')
+        shell:
+            'Rscript {SOURCE_DIR}/normalize.R -l {params.library_ids} -i {params.input_dir} -o {output}'
+            
+            
+if config["clustering_data"]:        
+    rule clustering:
+        """
+        Do clustering using method in Seurat package
+        """
+        params:
+            input_file = os.path.join(config['results_10x_dir'],'normalized','SA535_cys_normalized_output.rds')
+        input:
+            os.path.join(config['results_10x_dir'],'normalized','SA535_cys_normalized_output.rds')
+        output:
+            os.path.join(config['results_10x_dir'], 'clustering', 'SA535_cys_normalized_clusters.rds')
+        shell:
+            'Rscript {SOURCE_DIR}/clustering.R -i {input} -o {output} -r {RES}'
+        
+        
+if config["normalized_samples"]:        
+    rule normalized_samples:
+        """
+        Get normalized output for each sample_id
+        """
+        input:
+            os.path.join(config['results_10x_dir'], 'normalized', 'SA535_cys_normalized_output.rds')
+        output:
+            os.path.join(config['results_10x_dir'], 'normalized', 'samples.rds')
+        shell:
+            'Rscript {SOURCE_DIR}/divide_samples.R -i {input} -o {output}'
+     
+ 
+ if config["deg_analysis"]:        
+    rule deg_analysis:
+        """
+        Do DE analysis using Seurat DE function, wilcox test
+        """
+        params:
+            input_dir = config['results_dir']
+        input:
+            os.path.join(config['results_dir'],'clustering','SA919_sans_mito_ribo_genes.rds')
+        output:
+            os.path.join(config['results_dir'], 'deg_metastasis_vs_primary', 'SA919_deg_pathway.rds')
+        shell:
+            'Rscript {SOURCE_DIR}/deg_analysis.R -i {input} -o {output} -d {params.input_dir} -p {P_ADJUST} -m {MIN_LOGFC} -c {CLS_RM}'
+            
+            

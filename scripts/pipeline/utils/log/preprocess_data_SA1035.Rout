@@ -1,0 +1,291 @@
+
+R version 3.6.2 (2019-12-12) -- "Dark and Stormy Night"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> library(tidyverse)
+── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
+✔ ggplot2 3.3.2     ✔ purrr   0.3.4
+✔ tibble  3.0.4     ✔ dplyr   1.0.0
+✔ tidyr   1.1.0     ✔ stringr 1.4.0
+✔ readr   1.3.1     ✔ forcats 0.5.0
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+Warning message:
+replacing previous import ‘vctrs::data_frame’ by ‘tibble::data_frame’ when loading ‘dplyr’ 
+> library(stringr)
+> source(paste0("/home/htran/Projects/farhia_project/rscript/pipeline/utils/normalize_utils.R"))
+> 
+> 
+> load_sce <- function(metacells_fn, datatag, input_dir=NULL, return_data=T){
++   
++   sample_df <- read.csv(metacells_fn)
++   # head(sample_df)
++   print(dim(sample_df))
++   # sample_df <- sample_df %>%
++   #   dplyr::filter(treatmentSt %in% grep("*T$",sample_df$treatmentSt, value = T))
++   # View(sample_df)
++   sce_list <- list()
++   c <- 0
++   for(s in unique(sample_df$mouse_id)){
++     if(datatag=="SA609" & s=="SA609X4XB03083"){
++       s <- "SA609X4XB003083"
++     }
++     sce_fn <- paste0(input_dir,'rnaseq_v6/',datatag,'-v6/', s,'.rdata')
++     if(file.exists(sce_fn)){
++       sce <- readRDS(sce_fn)
++       print(s)
++       print(dim(sce))
++       if(nrow(sce)>0){
++         c <- c + 1
++         sce_list[c] <- sce
++       }
++     }else{
++       print(paste0('DEBUG: do not exist sample: ',s))
++     }
++   }
++   
++   print(length(sce_list))
++   # From 33538 to 13214 genes, remove genes with zeroes in 97.5% cells
++   sce_combine <- sce_cbind_func(sce_list, rowData(sce), cut_off_overall = 0.025, exprs = c("counts"), 
++                                 colData_names = colnames(colData(sce)), meta_data=NULL)
++   print(dim(sce_combine))
++   print("Removing mito, ribo genes: ")
++   mito_genes <- str_detect(rowData(sce_combine)$Symbol, "^MT\\-")
++   sum(mito_genes==TRUE)
++   
++   ribo_genes <- str_detect(rowData(sce_combine)$Symbol, "^RP(L|S)")  # or ^RP[L|S]
++   sum(ribo_genes==TRUE)
++   sce_combine <- sce_combine[(!mito_genes) & (!ribo_genes), ]
++   
++   print(dim(sce_combine))
++   rownames(sce_combine) <- rowData(sce_combine)$ID
++   
++   # saveRDS(sce_combine,paste0(input_dir,'rnaseq_v6/',datatag,'-v6/total_sce_treated.rds'))
++   clone_df <- load_metaclone(input_dir, sample_df)
++   
++   colnames(sce_combine) <- paste0(sce_combine$sample,'_',sce_combine$Barcode)
++   sce_combine$cell_id <- colnames(sce_combine)
++   cells_use <- intersect(colnames(sce_combine), clone_df$cell_id)
++   print(length(cells_use))
++   # sce_combine <- sce_combine[,cells_use]
++   sce_combine$clone <- 'None'
++   sce_combine$library_id <- NA
++   rownames(clone_df) <- clone_df$cell_id
++   colData(sce_combine)[cells_use,'library_id'] <- clone_df[cells_use,'library_id']
++   colData(sce_combine)[cells_use,'clone'] <- clone_df[cells_use,'clone']
++   print(summary(as.factor(sce_combine$clone)))
++   print(summary(as.factor(sce_combine$series)))
++   sce_combine$series <- gsub(paste0(datatag,'-'),'',sce_combine$series)
++   sce_combine$treatmentSt <- get_treatment_status(sce_combine$series)
++   
++   saveRDS(sce_combine,paste0(input_dir,'rnaseq_v6/',datatag,'-v6/total_sce_v3.rds'))
++   if(return_data){
++     return(sce_combine)
++   }
++ }
+> 
+> 
+> load_metaclone <- function(input_dir, sample_df){
++   clones_list <- list()
++   c <- 0
++   for(s in unique(sample_df$mouse_id)){
++     if(datatag=="SA609" & s=="SA609X4XB03083"){
++       s <- "SA609X4XB003083"
++     }
++     cls_fn <- paste0(input_dir,'rnaseq_v6/',datatag,'-v6/', s,'.csv')
++     if(file.exists(cls_fn)){
++       sclone_df <- read.csv(cls_fn, check.names = F, stringsAsFactors = F)
++       print(s)
++       print(dim(sclone_df))
++       if(nrow(sclone_df)>0){
++         c <- c + 1
++         clones_list[[c]] <- sclone_df
++       }
++     }else{
++       print(paste0('Do not exist sample: ',s))
++     }
++   }  
++   length(clones_list)
++   clone_df <- do.call(rbind, clones_list)
++   
++   clone_df$Sample <- gsub('(.cache/)','',clone_df$Sample)
++   clone_df$Sample <- gsub('(/filtered_feature_bc_matrix)','',clone_df$Sample)
++   colnames(clone_df)[which(names(clone_df) == "Sample")] <- "library_id"
++   colnames(clone_df)[which(names(clone_df) == "id")] <- "mouse_id"
++   # head(clone_df)
++   print(unique(clone_df$library_id))
++   print(dim(clone_df))
++   write.csv(clone_df, paste0(input_dir,'rnaseq_v6/',datatag,'-v6/total_clones.csv'), row.names = F, quote = F)
++   
++   # clone_df <- read.csv(paste0(input_dir,'rnaseq_v6/',datatag,'-v6/total_clones.csv'), check.names=F, stringsAsFactors=F)
++   # clone_df$clone
++   return(clone_df)
++   
++ }
+> 
+> 
+> # input_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+> # datatag <- 'SA609'
+> # metacells_fn <-  paste0(input_dir,'SA609_rna/snakemake_10x/SA609_10x.csv')
+> # sce <- load_sce(metacells_fn, datatag, input_dir, return_data=T)
+> # fs <- list.files(path=paste0(input_dir,'rnaseq_v6/',datatag,'-v6/'),pattern = '*.rdata',recursive = F)
+> # fs <- gsub('.rdata','',fs)
+> # fs[!fs %in% sample_df$mouse_id]
+> # 
+> # output_dir <- paste0(input_dir,'rnaseq_v6/',datatag, '-v6/')
+> # # dir.create(output_dir)
+> # print("SCTransform normalization")
+> # normalize_SCTransform(sce, output_dir, datatag, return_data=F)
+> 
+> 
+> input_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+> datatag <- 'SA1035'
+> metacells_fn <-  paste0(input_dir,'SA1035_rna/snakemake_10x_SA1035/metasample_SA1035.csv')
+> sce <- load_sce(metacells_fn, datatag, input_dir, return_data=T)
+[1] 12  7
+[1] "SA1035X4XB02879"
+[1] 33538   251
+[1] "SA1035X5XB03015"
+[1] 33538   738
+[1] "SA1035X5XB03021"
+[1] 33538  1076
+[1] "SA1035X6XB03216"
+[1] 33538  1355
+[1] "SA1035X6XB03211"
+[1] 33538   808
+[1] "DEBUG: do not exist sample: SA1035X6XB03209"
+[1] "SA1035X7XB03338"
+[1] 33538   844
+[1] "DEBUG: do not exist sample: SA1035X7XB03340"
+[1] "SA1035X7XB03502"
+[1] 33538   746
+[1] "SA1035X8XB03425"
+[1] 33538   401
+[1] "DEBUG: do not exist sample: SA1035X8XB03420"
+[1] "SA1035X8XB03631"
+[1] 33538   674
+[1] 9
+[1] "Dim sce combine: 13214" "Dim sce combine: 6893" 
+[1] "sce combine assay name: counts"
+[1] 13214  6893
+[1] "Removing mito, ribo genes: "
+[1] 13108  6893
+[1] "SA1035X4XB02879"
+[1] 81  5
+[1] "SA1035X5XB03015"
+[1] 317   5
+[1] "SA1035X5XB03021"
+[1] 441   5
+[1] "SA1035X6XB03216"
+[1] 1074    5
+[1] "SA1035X6XB03211"
+[1] 558   5
+[1] "Do not exist sample: SA1035X6XB03209"
+[1] "SA1035X7XB03338"
+[1] 841   5
+[1] "Do not exist sample: SA1035X7XB03340"
+[1] "SA1035X7XB03502"
+[1] 614   5
+[1] "SA1035X8XB03425"
+[1] 375   5
+[1] "Do not exist sample: SA1035X8XB03420"
+[1] "SA1035X8XB03631"
+[1] 674   5
+[1] "SCRNA10X_SA_CHIP0142_002" "SCRNA10X_SA_CHIP0071_000"
+[3] "TENX076"                  "SCRNA10X_SA_CHIP0079_001"
+[5] "SCRNA10X_SA_CHIP0079_002" "SCRNA10X_SA_CHIP0145_001"
+[7] "SCRNA10X_SA_CHIP0162_002" "SCRNA10X_SA_CHIP0151_001"
+[9] "SCRNA10X_SA_CHIP0175_002"
+[1] 4975    5
+[1] 4966
+         A        A_H        A_I          B          C          D          E 
+       177          2         22        733        547        387        831 
+         G          H        H_K          I          K       None unassigned 
+       749        829         96        255        176       1927        162 
+    SA1035-X4-U    SA1035-X5-UT    SA1035-X5-UU   SA1035-X6-UTT   SA1035-X6-UUU 
+            251             738            1076             808            1355 
+ SA1035-X7-UTTT  SA1035-X7-UUUU SA1035-X8-UTTTT SA1035-X8-UUUUU 
+            844             746             401             674 
+Warning messages:
+1: In `[<-`(`*tmp*`, c, value = sce) :
+  implicit list embedding of S4 objects is deprecated
+2: In `[<-`(`*tmp*`, c, value = sce) :
+  implicit list embedding of S4 objects is deprecated
+3: In `[<-`(`*tmp*`, c, value = sce) :
+  implicit list embedding of S4 objects is deprecated
+4: In `[<-`(`*tmp*`, c, value = sce) :
+  implicit list embedding of S4 objects is deprecated
+5: In `[<-`(`*tmp*`, c, value = sce) :
+  implicit list embedding of S4 objects is deprecated
+6: In `[<-`(`*tmp*`, c, value = sce) :
+  implicit list embedding of S4 objects is deprecated
+7: In `[<-`(`*tmp*`, c, value = sce) :
+  implicit list embedding of S4 objects is deprecated
+8: In `[<-`(`*tmp*`, c, value = sce) :
+  implicit list embedding of S4 objects is deprecated
+9: In `[<-`(`*tmp*`, c, value = sce) :
+  implicit list embedding of S4 objects is deprecated
+> # fs <- list.files(path=paste0(input_dir,'rnaseq_v6/',datatag,'-v6/'),pattern = '*.rdata',recursive = F)
+> # fs <- gsub('.rdata','',fs)
+> # fs[!fs %in% sample_df$mouse_id]
+> 
+> output_dir <- paste0(input_dir,'rnaseq_v6/',datatag, '-v6/')
+> dir.create(output_dir)
+Warning message:
+In dir.create(output_dir) :
+  '/home/htran/storage/datasets/drug_resistance/rna_results/rnaseq_v6/SA1035-v6' already exists
+> print("SCTransform normalization")
+[1] "SCTransform normalization"
+> normalize_SCTransform(sce, output_dir, datatag, return_data=F)
+[1] 13108  6893
+Calculating cell attributes from input UMI matrix: log_umi
+Variance stabilizing transformation of count matrix of size 13108 by 6893
+Model formula is y ~ log_umi
+Get Negative Binomial regression parameters per gene
+Using 2000 genes, 5000 cells
+  |                                                                              |                                                                      |   0%  |                                                                              |==================                                                    |  25%  |                                                                              |===================================                                   |  50%  |                                                                              |====================================================                  |  75%  |                                                                              |======================================================================| 100%
+Found 71 outliers - those will be ignored in fitting/regularization step
+
+Second step: Get residuals using fitted parameters for 13108 genes
+  |                                                                              |                                                                      |   0%  |                                                                              |===                                                                   |   4%  |                                                                              |=====                                                                 |   7%  |                                                                              |========                                                              |  11%  |                                                                              |==========                                                            |  15%  |                                                                              |=============                                                         |  19%  |                                                                              |================                                                      |  22%  |                                                                              |==================                                                    |  26%  |                                                                              |=====================                                                 |  30%  |                                                                              |=======================                                               |  33%  |                                                                              |==========================                                            |  37%  |                                                                              |=============================                                         |  41%  |                                                                              |===============================                                       |  44%  |                                                                              |==================================                                    |  48%  |                                                                              |====================================                                  |  52%  |                                                                              |=======================================                               |  56%  |                                                                              |=========================================                             |  59%  |                                                                              |============================================                          |  63%  |                                                                              |===============================================                       |  67%  |                                                                              |=================================================                     |  70%  |                                                                              |====================================================                  |  74%  |                                                                              |======================================================                |  78%  |                                                                              |=========================================================             |  81%  |                                                                              |============================================================          |  85%  |                                                                              |==============================================================        |  89%  |                                                                              |=================================================================     |  93%  |                                                                              |===================================================================   |  96%  |                                                                              |======================================================================| 100%
+Computing corrected count matrix for 13108 genes
+  |                                                                              |                                                                      |   0%  |                                                                              |===                                                                   |   4%  |                                                                              |=====                                                                 |   7%  |                                                                              |========                                                              |  11%  |                                                                              |==========                                                            |  15%  |                                                                              |=============                                                         |  19%  |                                                                              |================                                                      |  22%  |                                                                              |==================                                                    |  26%  |                                                                              |=====================                                                 |  30%  |                                                                              |=======================                                               |  33%  |                                                                              |==========================                                            |  37%  |                                                                              |=============================                                         |  41%  |                                                                              |===============================                                       |  44%  |                                                                              |==================================                                    |  48%  |                                                                              |====================================                                  |  52%  |                                                                              |=======================================                               |  56%  |                                                                              |=========================================                             |  59%  |                                                                              |============================================                          |  63%  |                                                                              |===============================================                       |  67%  |                                                                              |=================================================                     |  70%  |                                                                              |====================================================                  |  74%  |                                                                              |======================================================                |  78%  |                                                                              |=========================================================             |  81%  |                                                                              |============================================================          |  85%  |                                                                              |==============================================================        |  89%  |                                                                              |=================================================================     |  93%  |                                                                              |===================================================================   |  96%  |                                                                              |======================================================================| 100%
+Calculating gene attributes
+Wall clock passed: Time difference of 1.839475 mins
+Determine variable features
+Set 3000 variable features
+Place corrected count matrix in counts slot
+Centering and scaling data matrix
+  |                                                                              |                                                                      |   0%  |                                                                              |====                                                                  |   6%  |                                                                              |========                                                              |  11%  |                                                                              |============                                                          |  17%  |                                                                              |================                                                      |  22%  |                                                                              |===================                                                   |  28%  |                                                                              |=======================                                               |  33%  |                                                                              |===========================                                           |  39%  |                                                                              |===============================                                       |  44%  |                                                                              |===================================                                   |  50%  |                                                                              |=======================================                               |  56%  |                                                                              |===========================================                           |  61%  |                                                                              |===============================================                       |  67%  |                                                                              |===================================================                   |  72%  |                                                                              |======================================================                |  78%  |                                                                              |==========================================================            |  83%  |                                                                              |==============================================================        |  89%  |                                                                              |==================================================================    |  94%  |                                                                              |======================================================================| 100%
+Set default assay to SCT
+Warning: Invalid name supplied, making object name syntactically valid. New object name is Seurat..SCTransform.RNA; see ?make.names for more details on syntax validity
+[1] 13108  6893
+[1] 13108  6893
+[1] "counts"    "logcounts"
+[1] "counts"     "logcounts"  "normcounts"
+[1] 13108  6893
+[1] "Save normalized data..."
+There were 50 or more warnings (use warnings() to see the first 50)
+> 
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+270.272  11.999 288.993 
