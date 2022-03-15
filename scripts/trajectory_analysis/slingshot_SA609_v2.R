@@ -23,8 +23,12 @@ save_dir <- paste0('/home/htran/storage/datasets/drug_resistance/rna_results/',d
 #                              corrected_mtx_fn=NULL, datatag, 
 #                              return_sce=F, save_data=T)
 # sce <- readRDS(paste0(input_dir,'slingshot_trajectory/BE_mtx_v2/SA609_norm_BE_sce.rds'))
+# sce <- readRDS(paste0(input_dir,'slingshot_trajectory/withBE_SA609_v2/SA609_3000_rd_sce.rds'))
 print(dim(sce))
 assayNames(sce)
+df <- as.matrix(counts(sce))
+
+library(SingleCellExperiment)
 output_dir <- save_dir
 prepare_data_Seurat(sce, output_dir, datatag, save_srt=FALSE)
 sce <- readRDS(paste0(save_dir,'SA609_3000_rd_sce.rds'))
