@@ -1,0 +1,43 @@
+"","file_header","labels_detailed","labels_short","group","series"
+"1","scrande_SA609_1","X4 Rx:A vs. UnRx:H","Rx","Pt4
+X4","Pt4"
+"2","scrande_SA609_2","X5 Rx:A vs. UnRx:H","Rx","Pt4
+X5","Pt4"
+"3","scrande_SA609_22","X5 RxH:B vs. UnRx:H","RxH","Pt4
+X5","Pt4"
+"4","scrande_SA609_3","X6 Rx:A vs. UnRx:H","Rx","Pt4
+X6","Pt4"
+"5","scrande_SA609_23","X6 RxH:A vs. UnRx:H","RxH","Pt4
+X6","Pt4"
+"6","scrande_SA609_4","X7 Rx:A vs. UnRx:H","Rx","Pt4
+X7","Pt4"
+"7","scrande_SA609_24","X7 RxH:A vs. UnRx:H","RxH","Pt4
+X7","Pt4"
+"8","scrande_SA535_4","X6 Rx:AG vs. UnRx:G","Rx","Pt5
+X6","Pt5"
+"9","scrande_SA535_5","X7 Rx:AEJ vs. UnRx:G","Rx","Pt5
+X7","Pt5"
+"10","scrande_SA535_52","X7 RxH:AEJ vs. UnRx:G","RxH","Pt5
+X7","Pt5"
+"11","scrande_SA535_1","X8 Rx:A vs. UnRx:G","Rx","Pt5
+X8","Pt5"
+"12","scrande_SA535_16","X8 RxH:D vs. UnRx:G","RxH","Pt5
+X8","Pt5"
+"13","scrande_SA535_3","X10 Rx:A vs. UnRx:G","Rx","Pt5
+X10","Pt5"
+"14","scrande_SA535_36","X10 RxH:E vs. UnRx:G","RxH","Pt5
+X10","Pt5"
+"15","scran-nocl-SA1035-1","X5 Rx vs. UnRx","Rx","Pt6
+X5","Pt6"
+"16","scrande_SA1035_3","X6 Rx:G vs. UnRx:G","Rx","Pt6
+X6","Pt6"
+"17","scrande_SA1035_32","X6 RxH:B vs. UnRx:G","RxH","Pt6
+X6","Pt6"
+"18","scrande_SA1035_1","X7 Rx:H vs. UnRx:E","Rx","Pt6
+X7","Pt6"
+"19","scrande_SA1035_12","X7 RxH:G vs. UnRx:E","RxH","Pt6
+X7","Pt6"
+"20","scrande_SA1035_2","X8 Rx:H vs. UnRx:E","Rx","Pt6
+X8","Pt6"
+"21","scrande_SA1035_22","X8 RxH:G vs. UnRx:E","RxH","Pt6
+X8","Pt6"
