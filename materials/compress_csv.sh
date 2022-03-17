@@ -1,6 +1,6 @@
 #!/bin/sh
 
-search_dir=/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/testing/
+search_dir=/home/htran/Projects/farhia_project/drug_resistant_material/materials/biodatabase/
 
 input_csvs=$(find $search_dir -type f -name "*.csv")
 
