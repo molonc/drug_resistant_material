@@ -1,0 +1,50 @@
+result_fn,datatag,clone1,clone2,comp_type,file_header,labels_detailed,labels_short,group,series,passage,order
+scrande_SA1035_10_SA1035_UUUU_E_UUUU_B_logfc_results.csv,SA1035,E,B,untreated,scrande_SA1035_10,X7 Rx:E vs. UnRx:E,,Pt6,Pt6,,6
+scrande_SA501_1_extra-tnbc_U_D_U_A_logfc_results.csv,SA501,D,A,untreated,scrande_SA501_1,X6 UnRx:D vs. UnRx:A,,,Pt1,,1
+scrande_SA530_1_extra-tnbc_U_D_U_B_logfc_results.csv,SA530,D,B,untreated,scrande_SA530_1,X3 UnRx:D vs. UnRx:B,,,Pt2,,2
+scrande_SA609_10_SA609_UUUU_H_UUUU_C_logfc_results.csv,SA609,H,C,untreated,scrande_SA609_10,X6 UnRx:H vs. UnRx:C,,,Pt4,,4
+scrande_SA604_3_extra-tnbc_U_G_U_E_logfc_results.csv,SA604,G,E,untreated,scrande_SA604_3,X9 UnRx:G vs. UnRx:E,,,Pt3,,3
+scrande_SA535_10_SA535_UUUUU_G_UUUUU_B-C_logfc_results.csv,SA535,G,B,untreated,scrande_SA535_10,X8 UnRx:G vs. UnRx:B-C,,,Pt5,,5
+scran-nocl-SA1035-1_SA1035_UT_UU-SA1035-SA1035X5XB03015-SA1035X5XB03021_logfc_results.csv,SA1035,,,treated_vs_untreated,scran-nocl-SA1035-1,X5 Rx vs. UnRx,Rx,"Pt6
+X5",Pt6,X5,0
+scrande_SA1035_12_SA1035_UTTU_G_UUUU_E_logfc_results.csv,SA1035,G,E,treated_vs_untreated,scrande_SA1035_12,X7 RxH:G vs. UnRx:E,RxH,"Pt6
+X7",Pt6,X7,3
+scrande_SA1035_22_SA1035_UTTTU_G_UUUUU_E_logfc_results.csv,SA1035,G,E,treated_vs_untreated,scrande_SA1035_22,X8 RxH:G vs. UnRx:E,RxH,"Pt6
+X8",Pt6,X8,5
+scrande_SA1035_3_SA1035_UTT_G_UUU_G_logfc_results.csv,SA1035,G,G,treated_vs_untreated,scrande_SA1035_3,X6 Rx:G vs. UnRx:G,Rx,"Pt6
+X6",Pt6,X6,0
+scrande_SA1035_1_SA1035_UTTT_H_UUUU_E_logfc_results.csv,SA1035,H,E,treated_vs_untreated,scrande_SA1035_1,X7 Rx:H vs. UnRx:E,Rx,"Pt6
+X7",Pt6,X7,2
+scrande_SA1035_32_SA1035_UTU_B_UUU_G_logfc_results.csv,SA1035,B,G,treated_vs_untreated,scrande_SA1035_32,X6 RxH:B vs. UnRx:G,RxH,"Pt6
+X6",Pt6,X6,1
+scrande_SA1035_2_SA1035_UTTTT_H_UUUUU_E_logfc_results.csv,SA1035,H,E,treated_vs_untreated,scrande_SA1035_2,X8 Rx:H vs. UnRx:E,Rx,"Pt6
+X8",Pt6,X8,4
+scrande_SA535_1_SA535_UUTTT_A_UUUUU_G_logfc_results.csv,SA535,A,G,treated_vs_untreated,scrande_SA535_1,X8 Rx:A vs. UnRx:G,Rx,"Pt5
+X8",Pt5,X8,4
+scrande_SA535_16_SA535_UUTTU_D_UUUUU_G_logfc_results.csv,SA535,D,G,treated_vs_untreated,scrande_SA535_16,X8 RxH:D vs. UnRx:G,RxH,"Pt5
+X8",Pt5,X8,5
+scrande_SA535_36_SA535_UUTTTTU_E_UUUUUU_G_logfc_results.csv,SA535,E,G,treated_vs_untreated,scrande_SA535_36,X10 RxH:E vs. UnRx:G,RxH,"Pt5
+X10",Pt5,X1,7
+scrande_SA535_4_SA535_UUT_A_G_UUU_G_logfc_results.csv,SA535,A,G,treated_vs_untreated,scrande_SA535_4,X6 Rx:AG vs. UnRx:G,Rx,"Pt5
+X6",Pt5,X6,1
+scrande_SA535_2_SA535_UUTTTT_A_UUUUUU_G_logfc_results.csv,SA535,A,G,treated_vs_untreated,scrande_SA535_2,X9 Rx:A vs. UnRx:G,,,Pt5,,0
+scrande_SA535_5_SA535_UUTT_A_E_J_UUUU_G_logfc_results.csv,SA535,A,G,treated_vs_untreated,scrande_SA535_5,X7 Rx:AEJ vs. UnRx:G,Rx,"Pt5
+X7",Pt5,X7,2
+scrande_SA535_52_SA535_UUTU_A_E_J_UUUU_G_logfc_results.csv,SA535,A,G,treated_vs_untreated,scrande_SA535_52,X7 RxH:AEJ vs. UnRx:G,RxH,"Pt5
+X7",Pt5,X7,3
+scrande_SA535_3_SA535_UUTTTTT_A_UUUUUU_G_logfc_results.csv,SA535,A,G,treated_vs_untreated,scrande_SA535_3,X10 Rx:A vs. UnRx:G,Rx,"Pt5
+X10",Pt5,X1,6
+scrande_SA609_1_SA609_UT_R_UU_H_logfc_results.csv,SA609,R,H,treated_vs_untreated,scrande_SA609_1,X4 Rx:A vs. UnRx:H,Rx,"Pt4
+X4",Pt4,X4,1
+scrande_SA609_2_SA609_UTT_R_UUU_H_logfc_results.csv,SA609,R,H,treated_vs_untreated,scrande_SA609_2,X5 Rx:A vs. UnRx:H,Rx,"Pt4
+X5",Pt4,X5,2
+scrande_SA609_22_SA609_UTU_B_UUU_H_logfc_results.csv,SA609,B,H,treated_vs_untreated,scrande_SA609_22,X5 RxH:B vs. UnRx:H,RxH,"Pt4
+X5",Pt4,X5,3
+scrande_SA609_23_SA609_UTTU_R_UUUU_H_logfc_results.csv,SA609,R,H,treated_vs_untreated,scrande_SA609_23,X6 RxH:A vs. UnRx:H,RxH,"Pt4
+X6",Pt4,X6,5
+scrande_SA609_3_SA609_UTTT_R_UUUU_H_logfc_results.csv,SA609,R,H,treated_vs_untreated,scrande_SA609_3,X6 Rx:A vs. UnRx:H,Rx,"Pt4
+X6",Pt4,X6,4
+scrande_SA609_24_SA609_UTTTU_R_UUUUU_H_logfc_results.csv,SA609,R,H,treated_vs_untreated,scrande_SA609_24,X7 RxH:A vs. UnRx:H,RxH,"Pt4
+X7",Pt4,X7,7
+scrande_SA609_4_SA609_UTTTT_R_UUUUU_H_logfc_results.csv,SA609,R,H,treated_vs_untreated,scrande_SA609_4,X7 Rx:A vs. UnRx:H,Rx,"Pt4
+X7",Pt4,X7,6
