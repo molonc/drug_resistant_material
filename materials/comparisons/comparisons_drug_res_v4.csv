@@ -1,5 +1,5 @@
 result_fn,datatag,clone1,clone2,comp_type,file_header,labels_detailed,labels_short,group,series,passage,order
-scrande_SA1035_10_SA1035_UUUU_E_UUUU_B_logfc_results.csv,SA1035,E,B,untreated,scrande_SA1035_10,X7 Rx:E vs. UnRx:E,,Pt6,Pt6,,6
+scrande_SA1035_10_SA1035_UUUU_E_UUUU_B_logfc_results.csv,SA1035,E,B,untreated,scrande_SA1035_10,X7 UnRx:E vs. UnRx:B,,Pt6,Pt6,,6
 scrande_SA501_1_extra-tnbc_U_D_U_A_logfc_results.csv,SA501,D,A,untreated,scrande_SA501_1,X6 UnRx:D vs. UnRx:A,,,Pt1,,1
 scrande_SA530_1_extra-tnbc_U_D_U_B_logfc_results.csv,SA530,D,B,untreated,scrande_SA530_1,X3 UnRx:D vs. UnRx:B,,,Pt2,,2
 scrande_SA609_10_SA609_UUUU_H_UUUU_C_logfc_results.csv,SA609,H,C,untreated,scrande_SA609_10,X6 UnRx:H vs. UnRx:C,,,Pt4,,4
