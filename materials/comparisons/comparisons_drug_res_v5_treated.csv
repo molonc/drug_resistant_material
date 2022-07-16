@@ -1,0 +1,13 @@
+result_fn,labels_detailed,passage,series,file_header,datatag,clone1,clone2,comp_type,labels_short,order
+scrande_SA609_1_SA609_UT_R_UU_H_logfc_results.csv,X4 Rx:A vs. UnRx:H,X4,Pt4,scrande_SA609_1,SA609,R,H,treated_vs_untreated,Rx,1
+scrande_SA609_11_SA609_UT_B_UU_H_logfc_results.csv,X4 Rx:B vs. UnRx:H,X4,Pt4,scrande_SA609_11,SA609,B,H,treated_vs_untreated,Rx,2
+scrande_SA609_2_SA609_UTT_R_UUU_H_logfc_results.csv,X5 Rx:A vs. UnRx:H,X5,Pt4,scrande_SA609_2,SA609,R,H,treated_vs_untreated,Rx,3
+scrande_SA609_3_SA609_UTTT_R_UUUU_H_logfc_results.csv,X6 Rx:A vs. UnRx:H,X6,Pt4,scrande_SA609_3,SA609,R,H,treated_vs_untreated,Rx,4
+scrande_SA609_4_SA609_UTTTT_R_UUUUU_H_logfc_results.csv,X7 Rx:A vs. UnRx:H,X7,Pt4,scrande_SA609_4,SA609,R,H,treated_vs_untreated,Rx,5
+scrande_SA535_1_SA535_UUTTT_A_UUUUU_G_logfc_results.csv,X8 Rx:A vs. UnRx:G,X8,Pt5,scrande_SA535_1,SA535,A,G,treated_vs_untreated,Rx,6
+scrande_SA535_3_SA535_UUTTTTT_A_UUUUUU_G_logfc_results.csv,X10 Rx:A vs. UnRx:G,X10,Pt5,scrande_SA535_3,SA535,A,G,treated_vs_untreated,Rx,7
+scrande_SA1035_41_SA1035_UT_D_UU_A_logfc_results.csv,X5 Rx:D vs. UnRx:A,X5,Pt6,scrande_SA1035_41,SA1035,D,A,treated_vs_untreated,Rx,8
+scrande_SA1035_51_SA1035_UTTT_G_UUUU_E_logfc_results.csv,X7 Rx:G vs. UnRx:E,X7,Pt6,scrande_SA1035_51,SA1035,G,E,treated_vs_untreated,Rx,10
+scrande_SA1035_1_SA1035_UTTT_H_UUUU_E_logfc_results.csv,X7 Rx:H vs. UnRx:E,X7,Pt6,scrande_SA1035_1,SA1035,H,E,treated_vs_untreated,Rx,11
+scrande_SA1035_52_SA1035_UTTTT_G_UUUUU_E_logfc_results.csv,X8 Rx:G vs. UnRx:E,X8,Pt6,scrande_SA1035_52,SA1035,G,E,treated_vs_untreated,Rx,12
+scrande_SA1035_2_SA1035_UTTTT_H_UUUUU_E_logfc_results.csv,X8 Rx:H vs. UnRx:E,X8,Pt6,scrande_SA1035_2,SA1035,H,E,treated_vs_untreated,Rx,13
