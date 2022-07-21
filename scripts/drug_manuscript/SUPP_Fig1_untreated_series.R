@@ -157,7 +157,8 @@ plot_10x_UMAP <- function()
   saveRDS(res_prop10x_SA530, paste0(output_dir, datatag, "_prevalence_clone_clonealign10x.rds"))
   ##---------------------------------------------------------------------------------------
   ##-----------------------------------SA604 10x UMAP, barplot prevalence clonealign-------
-  
+  input_dir <- paste0(base_dir, 'materials/umap_figs/')
+  output_dir <- paste0(base_dir, 'materials/umap_figs/figs_rna/')
   datatag <- 'SA604'
   tag <- 'Pt3'
   basename <- datatag
@@ -203,11 +204,13 @@ plot_10x_UMAP <- function()
   ## Clone prevalence of inferred clones - output of clonealign
   
   umap_df <- umap_df %>% 
-    dplyr::filter(timepoint!='X6')
+    dplyr::filter(timepoint!='X6') ## exclude X6 from analysis
+  unique(umap_df$timepoint)
   res_prop10x_SA604 <- plot_fill_barplot_wholedataset_rnaseq(umap_df, cols_use, output_dir, 
                                                              datatag, plottitle=NULL, plotlegend=F)
   
   # dev.off()
+  # res_prop10x_SA604$p
   saveRDS(res_prop10x_SA604, paste0(output_dir, datatag, "_prevalence_clone_clonealign10x.rds"))
   
   
@@ -359,7 +362,7 @@ plot_SUPP_fig1 <- function(){
   res_prop10x_SA501 <- readRDS(paste0(output_dir, series[1], "_prevalence_clone_clonealign10x.rds"))
   res_prop10x_SA530 <- readRDS(paste0(output_dir, series[2], "_prevalence_clone_clonealign10x.rds"))
   res_prop10x_SA604 <- readRDS(paste0(output_dir, series[3], "_prevalence_clone_clonealign10x.rds"))
-  
+  # res_prop10x_SA604$p
   
   rna_umap_SA501 <- readRDS(paste0(output_dir, series[1], "_umap_plt.rds"))
   rna_umap_SA530<- readRDS(paste0(output_dir, series[2], "_umap_plt.rds"))
