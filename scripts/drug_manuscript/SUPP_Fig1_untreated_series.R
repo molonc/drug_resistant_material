@@ -322,10 +322,9 @@ plot_SUPP_fig1 <- function(){
   dlp_heatmap_ls[['SA604']] <- res_604
   
   
-  
   supp_fig1_leftside <- cowplot::plot_grid(dlp_heatmap_ls$SA501$cnv_plot, dlp_heatmap_ls$SA530$cnv_plot, 
-                                  dlp_heatmap_ls$SA604$cnv_plot, 
-                                  align = 'v', ncol = 1, rel_heights = c(1,1,1)) + #labels = c('SA501','SA530','SA604','SA609','SA535','SA1035')
+                                  dlp_heatmap_ls$SA604$cnv_plot, res_501$plg,
+                                  ncol = 1, rel_heights = c(1,1,1, 0.2)) + #align = 'v', labels = c('SA501','SA530','SA604','SA609','SA535','SA1035')
     theme(plot.background = element_rect(fill = "white", colour = "white"))
   
   
