@@ -285,8 +285,9 @@ plot_fill_barplot_wholedataset_rnaseq <- function(umap_df, cols_use,
   unassign_clones <- c('unassigned','Unassigned','Un','un','None')
   umap_df <- umap_df %>% 
     dplyr::rename(clone_id=!!sym(cid)) %>%
-    dplyr::filter(!is.na(clone_id)) %>% 
+    # dplyr::filter(!is.na(clone_id)) %>% 
     dplyr::mutate(clone_id = case_when(clone_id %in% unassign_clones ~ 'None',
+                                       is.na(clone_id) ~ 'None',
                                       TRUE  ~ clone_id))%>% 
     dplyr::mutate(treatment_desc = case_when(grepl('TU$',!!sym(tid)) ~ 'RxH',
                                              grepl('T$',!!sym(tid)) ~ 'Rx',
@@ -390,7 +391,7 @@ plot_clone_color_legend <- function(datatag, base_dir, ncols_grid=5){
     theme(legend.text=element_text(color="black",size=10, hjust = 0.5, family=my_font),
           legend.title=element_blank())
   lg <- cowplot::get_legend(p + guides(fill = guide_legend("Clone ",ncol=ncols_grid, title.position = "left", 
-                                                           override.aes = list(shape = 0, size=0.1)))) #nrow=1
+                                                           override.aes = list(shape = 0, size=0.05)))) #nrow=1
   plg <- cowplot::ggdraw() + cowplot::draw_plot(lg)
   # plg
   return(plg)

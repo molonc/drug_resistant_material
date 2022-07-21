@@ -104,8 +104,8 @@ plot_10x_UMAP <- function()
   ## Clone prevalence of inferred clones - output of clonealign
   res_prop10x_SA501 <- plot_fill_barplot_wholedataset_rnaseq(umap_df, cols_use, output_dir, 
                                                              datatag, plottitle=NULL, plotlegend=F)
-  res_prop10x_SA501$p
-  res_prop10x_SA501$plg
+  # res_prop10x_SA501$p
+  # res_prop10x_SA501$plg
   saveRDS(res_prop10x_SA501, paste0(output_dir, datatag, "_prevalence_clone_clonealign10x.rds"))
   
   ##---------------------------------------------------------------------------------------
@@ -313,6 +313,9 @@ plot_SUPP_fig1 <- function(){
   res_501 <- readRDS(paste0(input_dir, series[1],'_DLP_heatmap.rds')) # contain main plots and legends
   res_530 <- readRDS(paste0(input_dir, series[2],'_DLP_heatmap.rds'))
   res_604 <- readRDS(paste0(input_dir, series[3],'_DLP_heatmap.rds'))
+  
+  ## if you have dlp_heatmap_ls from above script, or you can reload it here. 
+  dlp_heatmap_ls <- list()
   dlp_heatmap_ls[['SA501']] <- res_501
   dlp_heatmap_ls[['SA530']] <- res_530
   dlp_heatmap_ls[['SA604']] <- res_604
@@ -346,11 +349,6 @@ plot_SUPP_fig1 <- function(){
   
   
   ## SUPP Fig 1, Eric
-  
-  rna_umap_SA501
-  res_prop10x_SA501
-  rna_umap_SA530
-  res_prop10x_SA530
   res_barDLP_501 <- readRDS(paste0(output_dir, series[1], "_barplot_DLP.rds"))
   res_barDLP_530 <- readRDS(paste0(output_dir, series[2], "_barplot_DLP.rds"))
   res_barDLP_604 <- readRDS(paste0(output_dir, series[3], "_barplot_DLP.rds"))
@@ -358,6 +356,11 @@ plot_SUPP_fig1 <- function(){
   res_prop10x_SA501 <- readRDS(paste0(output_dir, series[1], "_prevalence_clone_clonealign10x.rds"))
   res_prop10x_SA530 <- readRDS(paste0(output_dir, series[2], "_prevalence_clone_clonealign10x.rds"))
   res_prop10x_SA604 <- readRDS(paste0(output_dir, series[3], "_prevalence_clone_clonealign10x.rds"))
+  
+  
+  rna_umap_SA501 <- readRDS(paste0(output_dir, series[1], "_umap_plt.rds"))
+  rna_umap_SA530<- readRDS(paste0(output_dir, series[2], "_umap_plt.rds"))
+  rna_umap_SA604 <- readRDS(paste0(output_dir, series[3], "_umap_plt.rds"))
   
   clone_plg_501 <- plot_clone_color_legend('SA501', base_dir, ncols_grid=1)
   p501_total <- cowplot::plot_grid(res_barDLP_501$p, res_prop10x_SA501$p, clone_plg_501, rna_umap_SA501$UnRx_X2$p, 
@@ -368,16 +371,10 @@ plot_SUPP_fig1 <- function(){
   p530_total <- cowplot::plot_grid(res_barDLP_530$p, res_prop10x_SA530$p, clone_plg_530, rna_umap_SA530$UnRx_X3$p, 
                                    nrow=1, rel_widths = c(1,1,1,2)) + 
     theme(plot.background = element_rect(fill = "white", colour = "white"))
-  p530_total
+  # p530_total
   
   clone_plg_604 <- plot_clone_color_legend('SA604', base_dir, ncols_grid=3)
   ##rna_umap_SA604$UnRx_X6 ## noted exclude X6 - 10x data from analysis
-  p604_part1 <- cowplot::plot_grid(res_barDLP_604$p, res_prop10x_SA604$p)
-  p604_part2 <- cowplot::plot_grid(p604_part1, rna_umap_SA604$UnRx_X7$p,
-                                  rna_umap_SA604$UnRx_X8$p, rna_umap_SA604$UnRx_X9$p, ncol=2) + 
-    theme(plot.background = element_rect(fill = "white", colour = "white"))
-  p604_total <- cowplot::plot_grid(p604_part2, clone_plg_604, rel_widths = c(6,1))+ 
-    theme(plot.background = element_rect(fill = "white", colour = "white"))
   
   p604_part1 <- cowplot::plot_grid(res_barDLP_604$p, res_prop10x_SA604$p, clone_plg_604, rel_heights = c(1,1, 1), ncol=1)
   p604_part2 <- cowplot::plot_grid(rna_umap_SA604$UnRx_X7$p, rna_umap_SA604$UnRx_X8$p, 
