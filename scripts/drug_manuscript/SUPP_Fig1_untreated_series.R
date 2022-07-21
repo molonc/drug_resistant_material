@@ -321,7 +321,7 @@ plot_SUPP_fig1 <- function(){
   
   supp_fig1_leftside <- cowplot::plot_grid(dlp_heatmap_ls$SA501$cnv_plot, dlp_heatmap_ls$SA530$cnv_plot, 
                                   dlp_heatmap_ls$SA604$cnv_plot, 
-                                  align = 'v', ncol = 1, rel_heights = c(1,1,2)) + #labels = c('SA501','SA530','SA604','SA609','SA535','SA1035')
+                                  align = 'v', ncol = 1, rel_heights = c(1,1,1)) + #labels = c('SA501','SA530','SA604','SA609','SA535','SA1035')
     theme(plot.background = element_rect(fill = "white", colour = "white"))
   
   
@@ -379,10 +379,11 @@ plot_SUPP_fig1 <- function(){
   p604_total <- cowplot::plot_grid(p604_part2, clone_plg_604, rel_widths = c(6,1))+ 
     theme(plot.background = element_rect(fill = "white", colour = "white"))
   
-  p604_part1 <- cowplot::plot_grid(res_barDLP_604$p, res_prop10x_SA604$p, clone_plg_604, rel_heights = c(1,1,1), ncol=1)
-  p604_part2 <- cowplot::plot_grid(rna_umap_SA604$UnRx_X7$p, rna_umap_SA604$UnRx_X8$p, rna_umap_SA604$UnRx_X9$p, ncol=1) + 
-    theme(plot.background = element_rect(fill = "white", colour = "white"))
-  p604_total <- cowplot::plot_grid(p604_part1, p604_part2, rel_widths = c(3,2))+ 
+  p604_part1 <- cowplot::plot_grid(res_barDLP_604$p, res_prop10x_SA604$p, clone_plg_604, rel_heights = c(1,1, 1), ncol=1)
+  p604_part2 <- cowplot::plot_grid(rna_umap_SA604$UnRx_X7$p, rna_umap_SA604$UnRx_X8$p, 
+                                   rna_umap_SA604$UnRx_X9$p, ncol=2) + 
+    theme(plot.background = element_rect(fill = "white", colour = "white")) 
+  p604_total <- cowplot::plot_grid(p604_part1, p604_part2, rel_widths = c(1,1))+ 
     theme(plot.background = element_rect(fill = "white", colour = "white"))
 
     
@@ -396,7 +397,7 @@ plot_SUPP_fig1 <- function(){
   ggsave(paste0(output_dir,"SUPPFig1_3untreated_series.pdf"),
          plot = supp_fig1,
          height = 11,
-         width = 10,
+         width = 13,
          useDingbats=F, # from Sam's suggestion
          dpi = 150
   )
@@ -404,7 +405,7 @@ plot_SUPP_fig1 <- function(){
   ggsave(paste0(output_dir,"SUPPFig1_3untreated_series.png"),
          plot = supp_fig1,
          height = 11,
-         width = 10,
+         width = 13,
          type = "cairo-png",
          dpi=150
   )
