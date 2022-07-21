@@ -170,7 +170,7 @@ plot_10x_UMAP <- function()
     dplyr::rename(clone=unique_clone)
   colnames(clonealign_stat)
   
-  rm(umap_df)
+  # rm(umap_df)
   umap_df <- data.table::fread(paste0(input_dir,datatag,'_norm_umap.csv.gz')) %>% as.data.frame()
   dim(umap_df)
   umap_df$cell_id[1]
@@ -201,6 +201,9 @@ plot_10x_UMAP <- function()
   # rna_umap_SA604$UnRx_X6$p # please exclude X6 from analysis
   saveRDS(rna_umap_SA604, paste0(output_dir, datatag, "_umap_plt.rds"))
   ## Clone prevalence of inferred clones - output of clonealign
+  
+  umap_df <- umap_df %>% 
+    dplyr::filter(timepoint!='X6')
   res_prop10x_SA604 <- plot_fill_barplot_wholedataset_rnaseq(umap_df, cols_use, output_dir, 
                                                              datatag, plottitle=NULL, plotlegend=F)
   
@@ -330,21 +333,21 @@ plot_SUPP_fig1 <- function(){
   
   # supp_fig1_leftside
   
-  ggsave(paste0(save_dir,"SUPPFig1_3untreated_series_medianCNV.pdf"),
-         plot = supp_fig1_leftside,
-         height = 10,
-         width = 6,
-         useDingbats=F, # from Sam's suggestion
-         dpi = 150
-  )
-  
-  ggsave(paste0(save_dir,"SUPPFig1_3untreated_series.png"),
-         plot = supp_fig1_leftside,
-         height = 10,
-         width = 6,
-         type = "cairo-png",
-         dpi=150
-  )
+  # ggsave(paste0(save_dir,"SUPPFig1_3untreated_series_medianCNV.pdf"),
+  #        plot = supp_fig1_leftside,
+  #        height = 10,
+  #        width = 6,
+  #        useDingbats=F, # from Sam's suggestion
+  #        dpi = 150
+  # )
+  # 
+  # ggsave(paste0(save_dir,"SUPPFig1_3untreated_series.png"),
+  #        plot = supp_fig1_leftside,
+  #        height = 10,
+  #        width = 6,
+  #        type = "cairo-png",
+  #        dpi=150
+  # )
   
   
   
