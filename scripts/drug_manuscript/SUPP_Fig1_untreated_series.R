@@ -321,7 +321,7 @@ plot_SUPP_fig1 <- function(){
   
   supp_fig1_leftside <- cowplot::plot_grid(dlp_heatmap_ls$SA501$cnv_plot, dlp_heatmap_ls$SA530$cnv_plot, 
                                   dlp_heatmap_ls$SA604$cnv_plot, 
-                                  align = 'v', ncol = 1) + #labels = c('SA501','SA530','SA604','SA609','SA535','SA1035')
+                                  align = 'v', ncol = 1, rel_heights = c(1,1,2)) + #labels = c('SA501','SA530','SA604','SA609','SA535','SA1035')
     theme(plot.background = element_rect(fill = "white", colour = "white"))
   
   
@@ -395,18 +395,18 @@ plot_SUPP_fig1 <- function(){
   
   ggsave(paste0(output_dir,"SUPPFig1_3untreated_series.pdf"),
          plot = supp_fig1,
-         height = 9,
+         height = 11,
          width = 10,
          useDingbats=F, # from Sam's suggestion
-         dpi = 200
+         dpi = 150
   )
   
   ggsave(paste0(output_dir,"SUPPFig1_3untreated_series.png"),
          plot = supp_fig1,
-         height = 9,
+         height = 11,
          width = 10,
          type = "cairo-png",
-         dpi=200
+         dpi=150
   )
   
   
