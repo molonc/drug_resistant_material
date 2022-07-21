@@ -22,6 +22,10 @@ get_gprofiler_pathways_obsgenes <- function(obs_genes_symb, save_dir, datatag,
   }
   
   ref_set <- fgsea::gmtPathways(pathway_fn)
+  # for(s in names(ref_set)){ ## just quick check the size of each set
+  #   print(s)
+  #   print(length(ref_set[[s]]))
+  # }
   if(is.null(custom_id)){
     custom_id <- gprofiler2::upload_GMT_file(pathway_fn)  
   }
@@ -41,7 +45,7 @@ get_gprofiler_pathways_obsgenes <- function(obs_genes_symb, save_dir, datatag,
       pw_set <- stat$reference_set[i]
       ref_genes <- ref_set[[pw_set]]
       # obs_genes <- deg_df$gene_symbol
-      intersect_genes <- intersect(genes_use, ref_genes)
+      intersect_genes <- intersect(obs_genes_symb, ref_genes)
       stat$signif_genes[i] <- paste(intersect_genes, collapse=',')
     }
     if(save_data){
@@ -56,7 +60,7 @@ get_gprofiler_pathways <- function(genes_df, save_dir, datatag,
                                    custom_id=NULL, pathway_fn=NULL, save_data=F){
   library(gprofiler2)
   if(is.null(pathway_fn)){
-    pathway_fn = '/home/htran/storage/datasets/drug_resistance/rna_results/biodatabase/pathway_set/h.all.v7.0.symbols.gmt'  
+    pathway_fn = '/home/htran/storage/datasets/drug_resistance/rna_results/biodatabase/pathway_set/c2.cp.kegg.v7.1.symbols.gmt'  
   }
   
   ref_set <- fgsea::gmtPathways(pathway_fn)
@@ -249,7 +253,7 @@ get_custom_pathway_results <- function(deg_df,                      # named vect
     #   filter(padj<0.05)
     
     gsea_out <- gsea_out %>%
-      filter(pval<0.05)
+      dplyr::filter(pval<0.05)
     # rownames(gsea_out) <- gsea_out$pathway
     # gsea_out$nb_signf_genes <- 0 
     # for(pw in gsea_out$pathway){
@@ -822,6 +826,106 @@ viz_pathways_stat <- function(pathway_stat, save_dir){
   dev.off()
   return(p)
 }  
+viz_chromatin_barplot <- function(df, datatag, save_dir){
+  my_font <- "Helvetica"
+  df$analysis <- 'Chromatin Status'
+  cols_use <- c('red','green','blue')
+  names(cols_use) <- c("Active","Bivalent","Repressed")
+  df$gene_type_module <- df$Module
+  p <- ggplot(df, aes(x=gene_type_module, y=1, fill=chromatin_status)) + #, color=-log10(padj)
+    geom_bar(stat="identity", alpha=0.6) +#4.5
+    # viridis::scale_color_viridis(discrete=F, alpha=0.8)  + 
+    scale_fill_manual(values = cols_use) + 
+    facet_grid(~ patient,
+               # strip.position = "bottom",
+               switch = "x", space='free',scales = "free_x"
+               # nrow = 1
+    ) +
+    theme_bw()+
+    theme(strip.text.x = element_blank(), #element_text(size=11, color="black", family=my_font)
+          strip.background = element_blank(),
+          legend.position = "bottom",
+          legend.box="vertical", 
+          legend.margin=margin(),
+          legend.text = element_text(size=9, hjust = 0.5, family=my_font),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.title.y = element_text(size=11, hjust = 0.5, family=my_font, color="black"),
+          axis.text.y = element_blank(),
+          panel.border = element_blank(),
+          # axis.text.y = element_text(size=9, hjust = 0.5, family=my_font, angle = 90),
+          # text = element_text(size = 7, hjust = 0.5, family=my_font),
+          axis.text.x = element_text(size=12, hjust = 0.5, family=my_font, color="black"),  #, angle = 90
+          # axis.text.y = element_text(size=9, hjust = 0.5, family=my_font),
+          plot.title = element_text(size=13, hjust=0.5, family=my_font))# face="bold") 
+  p <- p + labs(title=NULL, y=NULL, x=NULL) #, x='Chromatin status of gene modules'
+  p <- p + guides(fill=guide_legend(title="Chromatin St", nrow = 3, override.aes = list(size=0.06)))
+  plg <- cowplot::get_legend(p)
+  p <- p + theme(legend.position = "none")
+  # p <- p + geom_text_repel(data = pathway_stat, aes(label = pathway), size = 3.7)
+  # p <- p + annotate("text", x = pathway_stat$datatag, y = pathway_stat$nb_signf_genes+2, 
+  #                   label = pathway_stat$pathway, size=3.5)
+  # png(paste0(save_dir, datatag, "_trajectory_pathways.png"), height = 2*500, width=2*400, res = 2*72)
+  # print(p)
+  # dev.off()
+  
+  # saveRDS(p, paste0(save_dir, datatag, "_chromatin_plt.rds"))
+  # saveRDS(plg, paste0(save_dir, datatag, "_chromatin_plt_lg.rds"))
+  return(list(p=p, plg=plg))
+  
+}
+
+viz_pathways_combined_dotplot <- function(pathway_stat, datatag, save_dir){
+  
+  patient_names <- c('Pt4','Pt5','Pt6')
+  names(patient_names) <- c('SA609','SA535','SA1035')
+  pathway_stat$patient <- patient_names[pathway_stat$datatag]
+  # pathway_stat$pathway <- ifelse(pathway_stat$pathway=='epithelial_mesenchymal_transition','epithelial_mesenchymal_trans',pathway_stat$pathway)
+  # pathway_stat$pathway <- gsub('response','res',pathway_stat$pathway)
+  my_font <- "Helvetica"
+  p <- ggplot(pathway_stat, aes(x=gene_type_module, y=pathway)) + #, color=-log10(padj)
+    geom_point(aes(size=log2(nb_signf_genes)+0.2), color='red', alpha=0.7) +#4.5
+    # viridis::scale_color_viridis(discrete=F, alpha=0.8)  + 
+    facet_grid(~ patient,
+               # strip.position = "bottom", #switch = "x", 
+               space='free',scales = "free_x", drop = F 
+               # nrow = 1
+    ) +
+    theme_bw()+
+    theme(strip.text = element_text(size=11, color="black", family=my_font, face='bold'),
+          strip.background = element_blank(),
+          legend.position = "bottom",
+          legend.box="vertical", 
+          legend.margin=margin(),
+          legend.text = element_text(size=8, hjust = 0.5, family=my_font),
+          # panel.grid.major.x = element_blank(),
+          # panel.grid.minor.x = element_blank(),
+          # axis.ticks.y = element_blank(),
+          axis.title.y = element_text(size=10, hjust = 0.5, family=my_font),
+          axis.text.y = element_text(size=11, hjust = 0.5, family=my_font, color="black"),
+          # axis.text.y = element_text(size=9, hjust = 0.5, family=my_font, angle = 90),
+          # text = element_text(size = 7, hjust = 0.5, family=my_font),
+          # axis.text.x = element_text(size=12, hjust = 0.5, family=my_font, color="black"),  #, angle = 90
+          axis.text.x = element_blank(),
+          # axis.text.y = element_text(size=9, hjust = 0.5, family=my_font),
+          plot.title = element_text(size=13, hjust=0.5, family=my_font))# face="bold") 
+  p <- p + labs(title=NULL, y=NULL, x=NULL) #x='Gene modules'
+  p <- p + guides(size=guide_legend(title="log2\n(#hallmark genes)", nrow = 3))
+  plg <- cowplot::get_legend(p)
+  p <- p + theme(legend.position = "none")
+  
+  # p <- p + geom_text_repel(data = pathway_stat, aes(label = pathway), size = 3.7)
+  # p <- p + annotate("text", x = pathway_stat$datatag, y = pathway_stat$nb_signf_genes+2, 
+  #                   label = pathway_stat$pathway, size=3.5)
+  # png(paste0(save_dir, datatag, "_trajectory_pathways.png"), height = 2*500, width=2*400, res = 2*72)
+  # print(p)
+  # dev.off()
+  # saveRDS(p, paste0(save_dir, datatag, "_trajectory_pathways.rds"))
+  return(list(p=p, plg=plg))
+  
+}
+
 # pathway_stat <- pathway_stat1
 # nb genes in col, genes modules in rows, pathway as annotated labels
 viz_pathways_dotplot <- function(pathway_stat, datatag, save_dir){
@@ -851,7 +955,7 @@ viz_pathways_dotplot <- function(pathway_stat, datatag, save_dir){
           plot.title = element_text(size=13, hjust=0.5, family=my_font))# face="bold") 
   p <- p + labs(title=NULL, y=NULL, x='Gene modules') 
   p <- p + guides(size=guide_legend(title="log2 (#hallmark genes)"))
-  p  
+  # p  
   
   # p <- p + geom_text_repel(data = pathway_stat, aes(label = pathway), size = 3.7)
   # p <- p + annotate("text", x = pathway_stat$datatag, y = pathway_stat$nb_signf_genes+2, 
@@ -939,7 +1043,29 @@ viz_vennDiagram_ggplot <- function(genes_set, save_dir, datatag,
   return(p)
 }
 
-
+viz_pathways_barplot <- function(df, xplt='pathway', yplt='nb_signf_genes'){
+  df$pathway <- ifelse(df$pathway=='epithelial_mesenchymal_transition','EMT',df$pathway)
+  df$pathway <- gsub('response','res',df$pathway)
+  
+  colnames(df)
+  my_font <- "Helvetica"
+  p <- ggplot(df) + 
+    geom_bar(stat="identity", aes_string(x=xplt, y=yplt),width=0.4, color='grey', fill='grey') + 
+    coord_flip() + 
+    facet_grid(rows = vars(gene_type_module), scales = "free", space = "free") + 
+    theme_bw() + 
+    theme(#strip.text.y = element_text(angle = 0),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.border = element_blank(),
+      panel.background = element_blank(),
+      strip.background = element_rect(color='white', fill='white'),
+      axis.text.x = element_text(color="black", size=10, family=my_font),
+      axis.text.y = element_text(color="black", size=10, family=my_font)) + 
+    labs(x=NULL, y='#signf genes', title = NULL)
+  # p
+  return(p)
+}
 
 # It's not a parameter from the original GSEA paper. It was developed by request for one-tailed tests, when you are interested in either only positive enrichment ("pos") or negateive ("neg"). You can check out discussion here: #27
 # 

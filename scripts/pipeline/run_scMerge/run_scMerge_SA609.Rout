@@ -1,0 +1,277 @@
+
+R version 3.6.2 (2019-12-12) -- "Dark and Stormy Night"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> source(paste0("/home/htran/Projects/farhia_project/rscript/pipeline/utils/normalize_utils.R"))
+Warning message:
+replacing previous import ‘vctrs::data_frame’ by ‘tibble::data_frame’ when loading ‘dplyr’ 
+> # BiocManager::install("batchelor")
+> library(batchelor)
+> library(BiocSingular)
+> library(dplyr)
+> library(Matrix)
+
+Attaching package: ‘Matrix’
+
+The following objects are masked from ‘package:tidyr’:
+
+    expand, pack, unpack
+
+The following object is masked from ‘package:S4Vectors’:
+
+    expand
+
+> library(DelayedArray)
+> 
+> ## SEG list in ensemblGene ID
+> # data("segList_ensemblGeneID", package = "scMerge") 
+> datatag <- 'SA609'
+> input_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+> output_dir <- paste0(input_dir,'rnaseq_v6/',datatag, '-v6/')
+> # dir.create(output_dir)
+> # output_dir <- paste0(input_dir,'rnaseq_v6/normalization_evaluation/')
+> # dir.create(output_dir)
+> 
+> # sce_fn <- paste0(input_dir,'rnaseq_v6/',datatag,'-v6/total_sce_treated.rds')
+> ref_dif <- '/home/htran/storage/datasets/drug_resistance/rna_results/biodatabase/'
+> cancer_ref_genes_fn <- paste0(ref_dif,'Behan_CFgenes.csv')
+> cancer_ref_genes_df <- read.csv(cancer_ref_genes_fn, stringsAsFactors=F, check.names = F)
+> base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+> cosmic_genes <- read.table(paste0(base_dir, 'biodatabase/oncogene_cosmic.txt'),sep='\t',header = T, check.names = F, stringsAsFactors = F)
+> ref_cis_genes <- read.table(paste0(base_dir, 'biodatabase/cisplatin_resistance_genes.txt'),sep='\t',header = T, check.names = F, stringsAsFactors = F)
+> dim(cosmic_genes)
+[1] 125   1
+> dim(ref_cis_genes)
+[1] 96  1
+> dim(cancer_ref_genes_df)
+[1] 553   2
+> 
+> 
+> 
+> 
+> sce_fn <- paste0(input_dir,'rnaseq_v6/',datatag,'-v6/','subset_total_sce_v3.rds')
+> # sce_fn <- paste0(input_dir,'rnaseq_v6/',datatag,'-v6/total_sce.rds')
+> sce <- readRDS(sce_fn)
+> dim(sce)
+[1] 13941 18786
+> rowData(sce)$ID[1]
+[1] "ENSG00000238009"
+> rowData(sce)$Symbol[1]
+[1] "AL627309.1"
+> 
+> meta_genes <- data.frame(ens_gene=rowData(sce)$ID, gene_symb=rowData(sce)$Symbol,
++                          row.names = rowData(sce)$ID, stringsAsFactors = F)
+> cosmic_genes_ls <- meta_genes[meta_genes$gene_symb %in% cosmic_genes$Gene_Symbol,'ens_gene']
+> ref_cis_genes_ls <- meta_genes[meta_genes$gene_symb %in% ref_cis_genes$gene_symbol,'ens_gene']
+> 
+> 
+> 
+> # scSEG_df <- read.csv(paste0(output_dir,'segIndx_filtered_80.csv'),check.names = F, stringsAsFactors = F)
+> # dim(scSEG_df)
+> # colnames(scSEG_df)
+> # # View(head(scSEG_df))
+> # summary(scSEG_df$segIdx)
+> # scSEG_df <- scSEG_df %>%
+> #   dplyr::filter(segIdx >= median(segIdx))
+> # scSEG_df <- scSEG_df[order(scSEG_df$segIdx,decreasing = T),]  
+> # ntop <- 300
+> # if(ntop>nrow(scSEG_df)){
+> #   ntop <- nrow(scSEG_df)
+> # }
+> # scSEG_df <- scSEG_df[1:ntop,]
+> # dim(scSEG_df)
+> # View(head(scSEG_df))
+> save_dir <- paste0(input_dir,'rnaseq_v6/normalization_evaluation/',datatag,'/')
+> ref_scSEG <- read.csv(paste0(save_dir,'filtered_scSEG_genes.csv'),check.names = F, stringsAsFactors = F)
+> custom_scSEG <- read.csv(paste0(save_dir,'filtered_ours_scSEG_genes.csv'),check.names = F, stringsAsFactors = F)
+> 
+> ref_scSEG <- ref_scSEG %>%
++   dplyr::filter(abs(log_var)<0.4)
+> custom_scSEG <- custom_scSEG %>%
++   dplyr::filter(abs(log_var)<0.4)
+> 
+> dim(ref_scSEG)
+[1] 470   9
+> # head(ref_scSEG)
+> dim(custom_scSEG)
+[1] 506   9
+> 
+> stable_genes <- intersect(union(ref_scSEG$gene_id,custom_scSEG$gene_id), rownames(sce))
+> print(length(stable_genes))
+[1] 940
+> # Get number of highly variable features
+> sce_sctransform <- readRDS(paste0(output_dir, datatag,'_sctransform_normalized.rds')) #seurat_normalized.rds
+> # zero_cbind1 <- DelayedArray::rowMeans(assay(sce_seurat, 'counts') == 0)
+> # cut_off_overall <- 0.025
+> # print(max(zero_cbind1))
+> # print(min(zero_cbind1))
+> # sce_seurat <- sce_seurat[names(zero_cbind1[zero_cbind1 <= (1 - cut_off_overall)]), ]
+> # print(dim(sce_seurat))
+> sce_sctransform <- sce_sctransform[,colnames(sce)]
+> dim(sce_sctransform)
+[1] 13941 18786
+> srt <- Seurat::as.Seurat(sce_sctransform, counts = "counts", data = "logcounts")
+> srt <- FindVariableFeatures(object = srt, verbose = FALSE, selection.method = "vst", nfeatures = 6000)
+> var_genes <- VariableFeatures(object = srt)
+> print(paste0('Nb var genes: ',length(var_genes)))
+[1] "Nb var genes: 6000"
+> 
+> # var_genes <- union(segList_ensemblGeneID$human$human_scSEG, var_genes)
+> var_genes <- union(stable_genes, var_genes)
+> var_genes <- union(cosmic_genes_ls, var_genes)
+> var_genes <- union(ref_cis_genes_ls, var_genes)
+> var_genes <- union(cancer_ref_genes_df$ensemble_id, var_genes)
+> var_genes <- intersect(var_genes, rownames(sce))
+> print(length(var_genes))
+[1] 6996
+> rm(sce_sctransform)
+> rm(srt)
+> sce <- sce[var_genes,]
+> print(dim(sce))
+[1]  6996 18786
+> # print("Cosine normalization as logcounts input")
+> # cosdata <- cosineNorm(as.matrix(log2(counts(sce)+1)), BPPARAM = SerialParam())
+> # colnames(cosdata) <- colnames(sce)
+> # rownames(cosdata) <- rownames(sce)
+> # logcounts(sce) <- as.matrix(cosdata)
+> 
+> print("Simple logcounts input")
+[1] "Simple logcounts input"
+> logcounts(sce) <- as.matrix(log2(counts(sce)+1))
+> print(dim(sce))
+[1]  6996 18786
+> 
+> metacells_fn <-  paste0(input_dir,'SA609_rna/snakemake_10x/SA609_10x.csv')
+> sample_df <- read.csv(metacells_fn, stringsAsFactors = F, check.names = F)
+> # sample_df$batch_info <- get_batch_infos(as.character(sample_df$library_id))
+> # write.csv(sample_df, file=metacells_fn, quote = F, row.names = F)
+> # head(sample_df)
+> 
+> print(dim(sample_df))
+[1] 15 11
+> sample_df <- sample_df %>%
++   dplyr::select(mouse_id, batch_info) %>%
++   dplyr::rename(batch=batch_info)
+> 
+> rownames(sample_df) <- sample_df$mouse_id
+> sce$batch <- 'None'
+> # metacells <- as.data.frame(colData(sce))
+> # metacells <- metacells %>% left_join(sample_df, by=c("sample"="mouse_id"))
+> # colData(sce) <- as.matrix(metacells)
+> # sapply(sample_df$mouse_id, function(s) {
+> #   sce[,sce$sample==s]$batch <- sample_df[s,'batch']
+> # })
+> sce$batch <- sample_df[sce$sample,'batch']
+> summary(as.factor(sce$batch))
+CHIP0068_SA CHIP0069_SA    CHIP0146    CHIP0150    CHIP0152    CHIP0172 
+       4869         600        2773        2419        3047        2450 
+   CHIP0181 
+       2628 
+> summary(as.factor(sce$clone))
+         B          C        C_D          D          G          H       None 
+      2205       2047       3977       1142          1       2425         16 
+         R         R1 unassigned 
+      5831       1081         61 
+> kmeansK_params <- c()
+> for(b in unique(sce$batch)){
++   # sce_tmp <- sce[,sce$batch==b]
++   # length(unique(sce_tmp$clone))
++   kmeansK_params <- c(kmeansK_params, length(unique(sce[,sce$batch==b]$clone)))
++ }
+> 
+> print(kmeansK_params)
+[1] 5 4 2 4 1 4 5
+> 
+> assay(sce, "counts") = as(counts(sce), "dgeMatrix")
+> assay(sce, "logcounts") = as(logcounts(sce), "dgeMatrix")
+> 
+> t1 = Sys.time()
+> #segList_ensemblGeneID$human$human_scSEG,
+> scMerge_res <- scMerge::scMerge(
++   sce_combine = sce, 
++   ctl = stable_genes,  
++   assay_name = "scMerge_fast",
++   replicate_prop = 0.4,
++   cell_type = NULL, # unsupervised
++   kmeansK = kmeansK_params,
++   verbose=T,
++   BSPARAM = IrlbaParam(), 
++   svd_k = 20)
+Performing unsupervised scMerge with: 
+ 1. No cell type information 
+ 2. Cell type indices not relevant here 
+ 3. Mutual nearest neighbour matching 
+ 4. No supplied marker and no supplied marker_list for MNN clustering 
+    Finding Highly Variable Genes for clustering 
+    834 HVG were found 
+ 5. PCA and Kmeans clustering will be performed on each batch 
+ 6. Create Mutual Nearest Clusters. Preview cells-cell_type matching output matrix: 
+   group batch cluster
+1      1     1       1
+2      4     1       2
+3      2     1       3
+4      5     1       4
+5      3     1       5
+6      2     2       1
+7      6     2       2
+8      1     2       3
+9      3     2       4
+10     3     3       1
+11     1     3       2
+12     7     4       1
+13     8     4       2
+14     3     4       3
+15     1     4       4
+16     2     5       1
+17     1     6       1
+18     9     6       2
+19    10     6       3
+20     3     6       4
+21    11     7       1
+22     1     7       2
+23    12     7       3
+24     3     7       4
+25     2     7       5
+Dimension of the replicates mapping matrix: 
+[1] 18786 11292
+Step 2: Performing RUV normalisation. This will take minutes to hours. 
+
+scMerge complete!
+> 
+> t2 = Sys.time()
+> print(t2-t1)
+Time difference of 35.04832 mins
+> 
+> assay(scMerge_res, "counts") = as.matrix(assay(scMerge_res, "counts"))
+> assay(scMerge_res, "scMerge_fast") = as.matrix(assay(scMerge_res, "scMerge_fast"))
+> saveRDS(scMerge_res, file=paste0(output_dir,datatag,"_corrected_scMerge.rds"))
+> 
+> 
+> t <- assay(scMerge_res, "scMerge_fast")
+> print(max(t))
+[1] 10.25186
+> print(min(t))
+[1] -6.259119
+> 
+> 
+> 
+> 
+> 
+> proc.time()
+    user   system  elapsed 
+2294.904   56.383 2352.152 

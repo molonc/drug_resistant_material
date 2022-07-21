@@ -1,0 +1,9 @@
+Font change ggplot2
+
+sudo apt install ttf-mscorefonts-installer
+
+library(remotes)remotes::install_version("Rttf2pt1", version = "1.3.8") # to correct load fonts issuelibrary(extrafont)font_import(prompt=F, paths ='/usr/share/fonts/truetype/myfonts/') # import Helvetica font only
+
+#loadfonts(device = "win")
+
+fonts()

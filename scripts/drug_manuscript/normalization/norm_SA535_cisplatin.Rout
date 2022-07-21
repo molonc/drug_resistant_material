@@ -1,0 +1,384 @@
+
+R version 3.6.2 (2019-12-12) -- "Dark and Stormy Night"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> # Rscript compute_scSEG_stable_genes.R 
+> # -i /home/htran/storage/datasets/drug_resistance/rna_results/rnaseq_v6/SA535-v6/SA535_cisplatin_total_sce_v3.rds 
+> # -o /home/htran/storage/datasets/drug_resistance/rna_results/rnaseq_v6/normalization_evaluation/SA535_cisplatin/segIndx_total.csv
+> # source(paste0("/home/htran/Projects/farhia_project/rscript/pipeline/utils/preprocess_data.R"))
+> 
+> # metacells_fn <-  paste0(input_dir,'SA535_total_rna_v2/snakemake/metasample_SA535.csv')
+> # sce <- load_sce(metacells_fn, datatag, input_dir, return_data=T, tag)
+> 
+> source(paste0("/home/htran/Projects/farhia_project/rscript/pipeline/utils/normalize_utils.R"))
+Registering fonts with R
+Scanning ttf files in /usr/share/fonts/ ...
+Extracting .afm files from .ttf files...
+/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf : DejaVuSans-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf : DejaVuSans already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf : DejaVuSansMono-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf : DejaVuSansMono already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf : DejaVuSerif-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf : DejaVuSerif already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf : DroidSansFallback already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/font-awesome/fontawesome-webfont.ttf : FontAwesome already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf : LiberationMono-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationMono-BoldItalic.ttf : LiberationMono-BoldItalic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationMono-Italic.ttf : LiberationMono-Italic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf : LiberationMono already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf : LiberationSans-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationSans-BoldItalic.ttf : LiberationSans-BoldItalic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf : LiberationSans-Italic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf : LiberationSans already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Bold.ttf : LiberationSansNarrow-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationSansNarrow-BoldItalic.ttf : LiberationSansNarrow-BoldItalic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Italic.ttf : LiberationSansNarrow-Italic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Regular.ttf : LiberationSansNarrow already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf : LiberationSerif-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationSerif-BoldItalic.ttf : LiberationSerif-BoldItalic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationSerif-Italic.ttf : LiberationSerif-Italic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf : LiberationSerif already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Andale_Mono.ttf : AndaleMono already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Andale_Mono.ttf : AndaleMono already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Arial_Black.ttf : Arial-Black already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Arial_Bold_Italic.ttf : Arial-BoldItalicMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Arial_Bold.ttf : Arial-BoldMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Arial_Italic.ttf : Arial-ItalicMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Arial.ttf : ArialMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Arial.ttf : ArialMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Arial_Bold.ttf : Arial-BoldMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Arial_Bold_Italic.ttf : Arial-BoldItalicMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Arial_Italic.ttf : Arial-ItalicMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Arial_Black.ttf : Arial-Black already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Comic_Sans_MS_Bold.ttf : ComicSansMS-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Comic_Sans_MS.ttf : ComicSansMS already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Comic_Sans_MS.ttf : ComicSansMS already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Comic_Sans_MS_Bold.ttf : ComicSansMS-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Courier_New.ttf : CourierNewPSMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Courier_New_Bold.ttf : CourierNewPS-BoldMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Courier_New_Bold_Italic.ttf : CourierNewPS-BoldItalicMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Courier_New_Italic.ttf : CourierNewPS-ItalicMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Courier_New_Bold_Italic.ttf : CourierNewPS-BoldItalicMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Courier_New_Bold.ttf : CourierNewPS-BoldMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Courier_New_Italic.ttf : CourierNewPS-ItalicMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Courier_New.ttf : CourierNewPSMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Georgia_Bold_Italic.ttf : Georgia-BoldItalic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Georgia_Bold.ttf : Georgia-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Georgia_Italic.ttf : Georgia-Italic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Georgia.ttf : Georgia already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Georgia.ttf : Georgia already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Georgia_Bold.ttf : Georgia-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Georgia_Italic.ttf : Georgia-Italic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Georgia_Bold_Italic.ttf : Georgia-BoldItalic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Impact.ttf : Impact already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Impact.ttf : Impact already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman_Bold_Italic.ttf : TimesNewRomanPS-BoldItalicMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman_Bold.ttf : TimesNewRomanPS-BoldMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman_Italic.ttf : TimesNewRomanPS-ItalicMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman.ttf : TimesNewRomanPSMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman.ttf : TimesNewRomanPSMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman_Bold.ttf : TimesNewRomanPS-BoldMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman_Bold_Italic.ttf : TimesNewRomanPS-BoldItalicMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman_Italic.ttf : TimesNewRomanPS-ItalicMT already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Trebuchet_MS.ttf : TrebuchetMS already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Trebuchet_MS_Bold.ttf : TrebuchetMS-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Trebuchet_MS_Bold_Italic.ttf : Trebuchet-BoldItalic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Trebuchet_MS_Bold_Italic.ttf : Trebuchet-BoldItalic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Trebuchet_MS_Bold.ttf : TrebuchetMS-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Trebuchet_MS_Italic.ttf : TrebuchetMS-Italic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Trebuchet_MS.ttf : TrebuchetMS already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Trebuchet_MS_Italic.ttf : TrebuchetMS-Italic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Verdana_Bold_Italic.ttf : Verdana-BoldItalic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Verdana_Bold.ttf : Verdana-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Verdana_Italic.ttf : Verdana-Italic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Verdana.ttf : Verdana already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Verdana.ttf : Verdana already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Verdana_Bold.ttf : Verdana-Bold already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Verdana_Italic.ttf : Verdana-Italic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Verdana_Bold_Italic.ttf : Verdana-BoldItalic already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Webdings.ttf : Webdings already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/msttcorefonts/Webdings.ttf : Webdings already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/myfonts/Helvetica.ttf : Helvetica already registered in fonts database. Skipping.
+/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf : NotoMono already registered in fonts database. Skipping.
+Found FontName for 0 fonts.
+Scanning afm files in /home/htran/R/x86_64-pc-linux-gnu-library/3.6/extrafontdb/metrics
+There were 50 or more warnings (use warnings() to see the first 50)
+> input_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+> # input_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/others_dataset/SA535_cisplatin/'
+> datatag <- 'SA535'
+> tag <- 'cisplatin'
+> save_dir <- paste0(input_dir,'rnaseq_v6/normalization_evaluation/SA535_cisplatin/')
+> # dir.create(save_dir)
+> # if(tag!=''){
+> #   tag <- paste0(tag,'_')
+> # }
+> output_dir <- paste0(input_dir,'rnaseq_v6/',datatag, '-v6/')
+> # sce_fn <- paste0(paste0(input_dir,'rnaseq_v6/',datatag,'-v6/',datatag, '_',tag, '_total_sce_v3.rds'))
+> sce_fn <- paste0(input_dir,'rnaseq_v6/',datatag,'-v6/',datatag, '_CIS_CX_untreated_total_sce_v3.rds') # _total_total_sce_v3.rds
+> sce_raw <- readRDS(sce_fn)
+> dim(sce_raw)
+[1] 14708 20084
+> 
+> metacells_fn <-  paste0(input_dir,'SA535_total_rna_v2/snakemake/metasample_SA535.csv')
+> # metacells_fn <-  paste0(input_dir,'SA609_rna/snakemake_10x/SA609_10x.csv')
+> sample_df <- read.csv(metacells_fn, stringsAsFactors = F, check.names = F)
+> # sample_df$batch_info <- get_batch_infos(as.character(sample_df$library_id))
+> # write.csv(sample_df, file=metacells_fn, quote = F, row.names = F)
+> # head(sample_df)
+> if(tag=='cisplatin' & datatag=='SA535'){
++   print(tag)
++   sample_df <- sample_df %>%
++     dplyr::filter(PDX %in% c('SA535_untreated','SA535_CY'))
++ }
+[1] "cisplatin"
+> print(dim(sample_df))
+[1] 17  6
+> sample_df$mouse_id
+ [1] "SA535X4XB02498"  "SA535X5XB02895"  "SA535X6XB03099"  "SA535X6XB03101" 
+ [5] "SA535X7XB03304"  "SA535X7XB03448"  "SA535X7XB03305"  "SA535X7XB03305" 
+ [9] "SA535X8XB03663"  "SA535X8XB03431"  "SA535X8XB03434"  "SA535X9XB03617" 
+[13] "SA535X9XB03616"  "SA535X8XB03664"  "SA535X10XB03696" "SA535X10XB03693"
+[17] "SA535X9XB03776" 
+> # View(sample_df)
+> sample_df <- sample_df %>%
++   dplyr::select(library_id, mouse_id, batch_info) %>%
++   dplyr::rename(batch=batch_info)
+> 
+> sce_raw$library_id[1]
+[1] "SCRNA10X_SA_CHIP0148_001"
+> summary(as.factor(sce_raw$library_id))
+SCRNA10X_SA_CHIP0146_004 SCRNA10X_SA_CHIP0146_006 SCRNA10X_SA_CHIP0148_001 
+                     557                     1318                      367 
+SCRNA10X_SA_CHIP0148_002 SCRNA10X_SA_CHIP0157_001 SCRNA10X_SA_CHIP0157_002 
+                     337                     1891                      657 
+SCRNA10X_SA_CHIP0173_001 SCRNA10X_SA_CHIP0173_002 SCRNA10X_SA_CHIP0175_001 
+                    1173                      595                     1103 
+SCRNA10X_SA_CHIP0182_001 SCRNA10X_SA_CHIP0182_002 SCRNA10X_SA_CHIP0184_001 
+                     659                      968                      323 
+SCRNA10X_SA_CHIP0184_002 SCRNA10X_SA_CHIP0189_001 SCRNA10X_SA_CHIP0189_002 
+                     505                      748                      553 
+SCRNA10X_SA_CHIP0192_001 SCRNA10X_SA_CHIP0192_002 SCRNA10X_SA_CHIP0195_001 
+                     878                     1607                     1109 
+SCRNA10X_SA_CHIP0202_002 SCRNA10X_SA_CHIP0203_001 SCRNA10X_SA_CHIP0206_001 
+                    1504                      334                      899 
+SCRNA10X_SA_CHIP0206_002 SCRNA10X_SA_CHIP0208_002                  TENX047 
+                     586                      588                      212 
+                 TENX048 
+                     613 
+> summary(as.factor(sce_raw$batch))
+ CHIP001  CHIP003  CHIP004 CHIP0048 CHIP0146 CHIP0148 CHIP0157 CHIP0173 
+     212     1607      878      613     1875      704     2548     1768 
+CHIP0175 CHIP0182 CHIP0184 CHIP0189 CHIP0195 CHIP0202 CHIP0203 CHIP0206 
+    1103     1627      828     1301     1109     1504      334     1485 
+CHIP0208 
+     588 
+> length(sample_df$library_id)
+[1] 17
+> dim(sce_raw)
+[1] 14708 20084
+> # sce_raw_origin <- sce_raw
+> sce_raw <- sce_raw[ ,sce_raw$library_id %in% sample_df$library_id]
+> dim(sce_raw)
+[1] 14708 12664
+> res <- plot_raw_variance(sce_raw, save_dir, paste0(datatag,' ',tag))
+[1] "Output exist in folder, reloading..."
+> # p535_cis_raw <- plot_rawdata_qc(sce_raw, save_dir, paste0(datatag,' ',tag))
+> 
+> 
+> # dir.create(output_dir)
+> 
+> 
+> # print("Twice scran normalization")
+> # source(paste0("/home/htran/Projects/farhia_project/rscript/pipeline/utils/twice_scran_normalization_corrected.R"))
+> # sce_scran <- twice_scran_normalize_v2(sce_raw, input_dir, output_dir, paste0(datatag,'_',tag), return_data=T)
+> sce_scran <- readRDS(paste0(output_dir, datatag,'_total_twice_scran_normalized_v3.rds'))
+> dim(sce_scran)
+[1] 14708 20084
+> sce_scran <- sce_scran[ ,sce_scran$library_id %in% sample_df$library_id]
+> dim(sce_scran)
+[1] 14708 12664
+> print("Seurat normalization")
+[1] "Seurat normalization"
+> # sce_seurat <- normalize_Seurat(sce_raw, input_dir, output_dir, paste0(datatag,'_',tag), return_data=T)
+> sce_seurat <- readRDS(paste0(output_dir, datatag,'_total_seurat_normalized_v3.rds'))
+> dim(sce_seurat)
+[1] 14708 20084
+> sce_seurat <- sce_seurat[ ,sce_seurat$library_id %in% sample_df$library_id]
+> dim(sce_seurat)
+[1] 14708 12664
+> print("SCTransform normalization")
+[1] "SCTransform normalization"
+> # sce_transform <- normalize_SCTransform(sce_raw, output_dir, paste0(datatag,'_',tag), return_data=F)
+> 
+> sce_transform <- readRDS(paste0(output_dir, datatag,'_total_sctransform_normalized.rds'))
+> 
+> dim(sce_transform)
+[1] 14708 20084
+> sce_transform <- sce_transform[ ,sce_transform$library_id %in% sample_df$library_id]
+> dim(sce_transform)
+[1] 14708 12664
+> 
+> # cond <- sce_transform$treatmentSt %in% c('UUTTTT', 'UUUUUU') & sce_transform$clone %in% c('T', 'J')
+> # sce <- sce_transform[,cond]
+> # dim(sce)
+> # de_desc <- 'SA535 cisplatin: UUTTTT-T vs UUUUUU-J'
+> # # plttitle <-'SA535 cisplatin: UUTTTT-T vs UUUUUU-J'
+> # treatmentSts <- c('UUTTTT', 'UUUUUU')
+> # clones <- c('T', 'J')
+> # desc <- '(X10-Rx T - X9-UnRx J)'
+> # base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+> # de_genes <- read.csv(paste0(base_dir,'SA535_total_rna_v2/SA535-v6/SA535_UUTTTT_T_UUUUUU_J/signif_genes.csv'), check.names = F, stringsAsFactors = F)
+> # dim(de_genes)
+> # # c_535_cis <- eval_edgeR_v2(sce, de_genes, treatmentSts, clones, de_desc, desc, paste0(datatag,' ',tag), save_dir)
+> # rc_535_cis <- eval_edgeR_counts(sce_raw, de_genes, treatmentSts, clones, paste0('raw data ',de_desc), 
+> #                                 desc, paste0(datatag,' ',tag), save_dir)
+> 
+> # rm(de_genes)
+> 
+> # 
+> # p535_cis <- eval_edgeR(sce, de_genes, de_desc, datatag, save_dir)
+> # eval_edgeR(sce, vol_535_cis, de_genes, de_desc, datatag, save_dir)
+> 
+> 
+> 
+> # sce_scMerge <- readRDS(paste0(output_dir, datatag,'_',tag,'corrected_scMerge.rds'))
+> # dim(sce_scMerge)
+> # sce_scMerge$treatmentSt <- get_treatment_status(sce_scMerge$series)
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> # s <- unique(sce_raw$library_id)
+> # sce_raw_1 <- sce_raw[,is.na(sce_raw$library_id)]
+> # dim(sce_raw_1)
+> # colnames(sce_raw_1)[1:3]
+> # unique(sce_raw_1$sample)
+> 
+> # rownames(sample_df) <- sample_df$library_id
+> # sce_raw$batch <- 'None'
+> # metacells <- as.data.frame(colData(sce))
+> # metacells <- metacells %>% left_join(sample_df, by=c("sample"="mouse_id"))
+> # colData(sce) <- as.matrix(metacells)
+> # sapply(sample_df$mouse_id, function(s) {
+> #   sce[,sce$sample==s]$batch <- sample_df[s,'batch']
+> # })
+> # sce_raw$library_id <- get_lib_info(sce_raw)
+> # sce_raw$batch <- sample_df[sce_raw$library_id,'batch']
+> # # sce_raw$batch <- ifelse(is.na(sce_raw$batch),'CHIP0000',sce_raw$batch)
+> # summary(as.factor(sce_raw$batch))
+> # 
+> # table(sce_raw$batch, sce_raw$library_id)
+> # 
+> # unique(sce_transform$library_id)
+> # sce_transform$library_id <- get_lib_info(sce_transform)
+> # sce_transform$batch <- sample_df[sce_transform$library_id,'batch']
+> # # sce_transform$batch <- ifelse(is.na(sce_transform$batch),'CHIP0000',sce_transform$batch)
+> # sce_scran$Sample[1]
+> # sce_scran$library_id <- get_lib_info(sce_scran)
+> # sce_scran$batch <- sample_df[sce_scran$library_id,'batch']
+> # # sce_scran$batch <- ifelse(is.na(sce_scran$batch),'CHIP0000',sce_scran$batch)
+> # 
+> # sce_seurat$Sample[1]
+> # sce_seurat$library_id <- get_lib_info(sce_seurat)
+> # sce_seurat$batch <- sample_df[sce_seurat$library_id,'batch']
+> # # sce_seurat$batch <- ifelse(is.na(sce_seurat$batch),'CHIP0000',sce_seurat$batch)
+> 
+> 
+> hk_ref <- res$filtered_gene_attr_HK
+> hk_ref <- hk_ref %>%
++   dplyr::filter(abs(log_var)<0.2)
+> stable_genes <- hk_ref$gene_id
+> length(stable_genes)
+[1] 362
+> # length(intersect(stable_genes,rownames(sce_scMerge)))
+> 
+> # p_hk <- plot_batch_estimation(sce_raw, sce_scran, sce_seurat, sce_transform, stable_genes, save_dir, datatag, 'HK', T)
+> # sce_raw$series <- paste0(sce_raw$series,'_',gsub("CHIP0","C",sce_raw$batch))
+> # sce_transform$series <- paste0(sce_transform$series,'_',gsub("CHIP0","C",sce_transform$batch))
+> # sce_seurat$series <- paste0(sce_seurat$series,'_',gsub("CHIP0","C",sce_seurat$batch))
+> # sce_scran$series <- paste0(sce_scran$series,'_',gsub("CHIP0","C",sce_scran$batch))
+> metacells <- plot_batch_estimation(sce_raw, sce_scran, sce_seurat, sce_transform, 
++                               stable_genes, save_dir, paste0(datatag,':Cisplatin'), 'HK', T, c(0,1.5))
+[1] 362
+[1]   362 12664
+[1] 362
+[1]   362 12664
+[1] 362
+[1]   362 12664
+[1] 362
+[1]   362 12664
+[1] 50656    10
+> 
+> dim(metacells)
+[1] 50656    10
+> p_hk <- plot_batch_effects(metacells, xstring="series", ystring="mean_exp", 
++                            plottype="batch_label", plottitle=paste0(datatag,":Cisplatin\nNormalization Evaluation"),
++                            xlabel=NULL, ylabel=paste0(length(stable_genes),' housekeeping genes average expression'),
++                            lg_pos="bottom", save_dir)
+> 
+> summary(as.factor(p_hk$tag))
+integer(0)
+> 
+> 
+> # p_hk <- plot_batch_estimation_v2(sce_scMerge, sce_raw, sce_scran, sce_seurat, sce_transform, stable_genes, save_dir, datatag, 'HK', T)
+> # 
+> # ref <- res$filtered_gene_attr_scSEG
+> # ref <- ref %>%
+> #   dplyr::filter(abs(log_var)<0.2)
+> # stable_genes <- ref$gene_id
+> # length(stable_genes)
+> # p_ref_scSEG <- plot_batch_estimation_v2(sce_scMerge, sce_raw, sce_scran, sce_seurat, sce_transform, stable_genes, save_dir, datatag, 'ref scSEG', T)
+> # 
+> # ref <- res$filtered_our_gene_attr_scSEG
+> # ref <- ref %>%
+> #   dplyr::filter(abs(log_var)<0.2)
+> # stable_genes <- ref$gene_id
+> # length(stable_genes)
+> # 
+> # p_custom_scSEG <- plot_batch_estimation_v2(sce_scMerge, sce_raw, sce_scran, sce_seurat, sce_transform, stable_genes, save_dir, datatag, 'custom scSEG', T)
+> # 
+> # p_total <- cowplot::plot_grid(p_hk, p_ref_scSEG, p_custom_scSEG, ncol = 3, align='hv', rel_widths = c(1.45,1.2,1.2))
+> # png(paste0(save_dir,datatag,"_total_eval.png"), height = 2*970, width=2*1200,res = 2*72)
+> # print(p_total)
+> # dev.off()
+> # 
+> # 
+> # sce_scMerge = scater::runPCA(sce_scMerge,
+> #                              exprs_values = "scMerge_fast")
+> # p1 <- scater::plotPCA(
+> #   sce_scMerge, 
+> #   colour_by = "clone")
+> # p2 <- scater::plotPCA(
+> #   sce_scMerge, 
+> #   colour_by = "treatmentSt")
+> # p <- cowplot::plot_grid(p1, p2, ncol = 2, align='h')
+> # png(paste0(save_dir,datatag,"_corrected_PCA.png"), height = 2*450, width=2*1000,res = 2*72)
+> # print(p)
+> # dev.off()
+> # 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+194.782  30.769 250.687 

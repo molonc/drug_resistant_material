@@ -1,0 +1,150 @@
+
+R version 3.6.2 (2019-12-12) -- "Dark and Stormy Night"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> # Rscript compute_scSEG_stable_genes.R 
+> # -i /home/htran/storage/datasets/drug_resistance/rna_results/rnaseq_v6/SA1035-v6/total_sce_v3.rds 
+> # -o /home/htran/storage/datasets/drug_resistance/rna_results/rnaseq_v6/normalization_evaluation/SA1035/segIndx_total.csv
+> 
+> source(paste0("/home/htran/Projects/farhia_project/rscript/pipeline/utils/normalize_utils.R"))
+> input_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+> datatag <- 'SA1035'
+> save_dir <- paste0(input_dir,'rnaseq_v6/normalization_evaluation/',datatag,'/')
+> # dir.create(save_dir)
+> output_dir <- paste0(input_dir,'rnaseq_v6/',datatag, '-v6/')
+> dir.create(output_dir)
+Warning message:
+In dir.create(output_dir) :
+  '/home/htran/storage/datasets/drug_resistance/rna_results/rnaseq_v6/SA1035-v6' already exists
+> 
+> sce_fn <- paste0(input_dir,'rnaseq_v6/',datatag,'-v6/',datatag, '_total_sce_v3.rds')
+> sce_raw <- readRDS(sce_fn)
+> dim(sce_raw)
+[1] 15086  9226
+> rowData(sce_raw)$ID[1]
+[1] "ENSG00000237491"
+> rowData(sce_raw)$Symbol[1]
+[1] "AL669831.5"
+> res <- plot_raw_variance(sce_raw, save_dir, datatag)
+[1] "Output exist in folder, reloading..."
+>  
+> p1035_raw <- plot_rawdata_qc(sce_raw, save_dir, datatag)
+[1] "X4-U_C142"
+>   
+> 
+> 
+> 
+> print("Twice scran normalization")
+[1] "Twice scran normalization"
+> # source(paste0("/home/htran/Projects/farhia_project/rscript/pipeline/utils/twice_scran_normalization_corrected.R"))
+> # sce_scran <- twice_scran_normalize_v2(sce_raw, input_dir, output_dir, datatag, return_data=T)
+> sce_scran <- readRDS(paste0(output_dir, 'SA1035__twice_scran_normalized_v3.rds'))  #twice_scran_normalized_v3.rds
+> dim(sce_scran)
+[1] 15086  9226
+> print("Seurat normalization")
+[1] "Seurat normalization"
+> # sce_seurat <- normalize_Seurat(sce_raw, input_dir, output_dir, return_data=T)
+> sce_seurat <- readRDS(paste0(output_dir, 'SA1035__seurat_normalized_v3.rds')) #seurat_normalized_v3.rds
+> dim(sce_seurat)
+[1] 15086  9226
+> 
+> print("SCTransform normalization")
+[1] "SCTransform normalization"
+> # normalize_SCTransform(sce_raw, output_dir, datatag, return_data=F)
+> sce_transform <- readRDS(paste0(output_dir, datatag,'_sctransform_normalized.rds'))
+> dim(sce_transform)
+[1] 15086  9226
+> 
+> 
+> # treatmentSts <- c('UTTTT', 'UUUUU')
+> # clones <- c('H', 'E')
+> # cond <- sce_transform$treatmentSt %in% treatmentSts & sce_transform$clone %in% clones
+> # sce <- sce_transform[,cond]
+> # dim(sce)
+> # de_desc <- 'SA1035: UTTTT-H vs UUUUU-E'
+> # eval_edgeR(sce, vol_1035, de_genes, de_desc, datatag, save_dir)
+> 
+> 
+> # de_genes <- read.csv(paste0(base_dir,'SA1035_rna/deg_analysis/SA1035-v6/SA1035_UTTTT_H_UUUUU_E/signif_genes.csv'), check.names = F, stringsAsFactors = F)
+> # p1035 <- eval_edgeR(sce, de_genes, de_desc, datatag, save_dir)
+> # eval_edgeR_v2(sce, markers_ls, treatmentSts, clones, de_desc, datatag, output_dir)
+> 
+> 
+> 
+> # sce_scMerge <- readRDS(paste0(output_dir, datatag,'_corrected_scMerge.rds'))
+> # dim(sce_scMerge)
+> 
+> metacells_fn <-  paste0(input_dir,'SA1035_rna/snakemake_10x_SA1035/metasample_SA1035.csv')
+> # metacells_fn <-  paste0(input_dir,'SA609_rna/snakemake_10x/SA609_10x.csv')
+> sample_df <- read.csv(metacells_fn, stringsAsFactors = F, check.names = F)
+> 
+> print(dim(sample_df))
+[1] 12  8
+> sample_df <- sample_df %>%
++   dplyr::select(mouse_id, batch_info) %>%
++   dplyr::rename(batch=batch_info)
+> 
+> rownames(sample_df) <- sample_df$mouse_id
+> sce_raw$batch[1]
+[1] "CHIP0142"
+> # sce_raw$batch <- 'None'
+> # sce_raw$batch <- as.character(sample_df[sce_raw$sample,]$batch)
+> sce_raw$series <- paste0(sce_raw$series,'_',gsub("CHIP0","C",sce_raw$batch))
+> summary(as.factor(sce_raw$series))
+    X4-U_C142    X5-UT_C071    X5-UU_C076   X6-UTT_C079   X6-UTU_C142 
+          251           738          1076           808           412 
+  X6-UUU_C079  X7-UTTT_C145  X7-UTTU_C145  X7-UUUU_C162 X8-UTTTT_C151 
+         1355           844          1318           746           401 
+X8-UTTTU_C162 X8-UUUUU_C175 
+          603           674 
+> 
+> # sce_transform$batch <- as.character(sample_df[sce_transform$sample,]$batch)
+> sce_transform$series <- paste0(sce_transform$series,'_',gsub("CHIP0","C",sce_transform$batch))
+> 
+> # sce_scran$batch <- as.character(sample_df[sce_scran$sample,]$batch)
+> sce_scran$series <- paste0(sce_scran$series,'_',gsub("CHIP0","C",sce_scran$batch))
+> 
+> # sce_seurat$batch <- as.character(sample_df[sce_seurat$sample,]$batch)
+> sce_seurat$series <- paste0(sce_seurat$series,'_',gsub("CHIP0","C",sce_seurat$batch))
+> 
+> hk_ref <- res$filtered_gene_attr_HK
+> hk_ref <- hk_ref %>%
++   dplyr::filter(abs(log_var)<0.2)
+> stable_genes <- hk_ref$gene_id
+> length(stable_genes)
+[1] 456
+> # length(intersect(stable_genes,rownames(sce_scMerge)))
+> summary(res$filtered_gene_attr_HK$log_var)
+    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+-0.49847 -0.17187  0.05927  0.04393  0.25389  0.49927 
+> 
+> 
+> 
+> p1035_hk <- plot_batch_estimation(sce_raw, sce_scran, sce_seurat, sce_transform, 
++                                   stable_genes, save_dir, datatag, 'HK', T, c(0,1.4))
+[1] 456
+[1]  456 9226
+[1] 456
+[1]  456 9226
+[1] 456
+[1]  456 9226
+[1] 456
+[1]  456 9226
+Error in FUN(left, right) : non-numeric argument to binary operator
+Calls: plot_batch_estimation -> Ops.data.frame -> eval -> eval
+Execution halted
