@@ -31,7 +31,8 @@ plot_medianCNV_heatmap <- function(){
     df_cnv <- get_median_genotype_v3(copynumber_fn, datatag, save_dir,
                                      cellclone_fn, library_grouping_fn) 
     print(dim(df_cnv))
-    res <- plot_CNV_profile(df_cnv, clones= levels(df_cnv$clone),plttitle=as.character(pts_lb[datatag]))
+    res <- plot_CNV_profile(df_cnv, clones= levels(df_cnv$clone),
+                            plttitle=paste0(pts_lb[datatag],' DLP - median copy number profile'))
     dlp_heatmap_ls[[datatag]] <- res
     saveRDS(res, paste0(output_dir, datatag, '_DLP_heatmap.rds'))
     # res$cnv_plot # main plot
@@ -88,7 +89,7 @@ plot_10x_UMAP <- function()
   rna_umap_SA501 <- list()
   obs_treatment <- 'UnRx'
   for(obs_passage in tps){
-    plottitle= paste0(obs_treatment,'-',obs_passage)
+    plottitle= paste0('10x - ',obs_treatment,': ',obs_passage)
     res <- viz_umap_obs_clones(umap_df, cols_use, datatag, 
                                output_dir, obs_treatment, obs_passage, 
                                plottitle, F)
@@ -138,15 +139,15 @@ plot_10x_UMAP <- function()
   obs_treatment <- 'UnRx'
   
   for(obs_passage in tps){
-    plottitle= paste0(obs_treatment,': ',obs_passage)
+    plottitle= paste0('10x - ',obs_treatment,': ',obs_passage)
     res <- viz_umap_obs_clones(umap_df, cols_use, datatag, 
                                output_dir, obs_treatment, obs_passage, 
                                plottitle, F)
     rna_umap_SA530[[paste0(obs_treatment,'_',obs_passage)]] <- res
   }
-  rna_umap_SA530$UnRx_X3$p
+  # rna_umap_SA530$UnRx_X3$p
   saveRDS(rna_umap_SA530, paste0(output_dir, datatag, "_umap_plt.rds"))
-
+  
     ## Clone prevalence of inferred clones - output of clonealign
   res_prop10x_SA530 <- plot_fill_barplot_wholedataset_rnaseq(umap_df, cols_use, output_dir, 
                                                              datatag, plottitle=NULL, plotlegend=F)
@@ -191,7 +192,7 @@ plot_10x_UMAP <- function()
   rna_umap_SA604 <- list()
   obs_treatment <- 'UnRx'
   for(obs_passage in tps){
-    plottitle= paste0(obs_treatment,': ',obs_passage)
+    plottitle= paste0('10x - ',obs_treatment,': ',obs_passage)
     res <- viz_umap_obs_clones(umap_df, cols_use, datatag, 
                                output_dir, obs_treatment, obs_passage, 
                                plottitle, F)

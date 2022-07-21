@@ -9,9 +9,9 @@ suppressPackageStartupMessages({
   require("inlmisc")
 })
 
-library(extrafont)
-font_import(prompt=F, paths ='/usr/share/fonts/truetype/myfonts/') # import Helvetica font
-fonts()
+# library(extrafont)
+# font_import(prompt=F, paths ='/usr/share/fonts/truetype/myfonts/') # import Helvetica font
+# fonts()
 my_font <- "Helvetica"
 # Just modify function for predefined clone colors. 
 
