@@ -190,7 +190,7 @@ viz_umap_obs_clones <- function(umap_df, cols_use, datatag, output_dir,
   umap_df$clone <- factor(umap_df$clone, levels = sort(unique(umap_df$clone)))
   p <- ggplot(umap_df, aes(UMAP_1, UMAP_2)) + 
     geom_point(color='#e0e0e0') +  # grey color for all cells landscape displaying in background
-    geom_point(data=tmp, aes(color=clone), size=0.7) + 
+    geom_point(data=tmp, aes(color=clone), size=0.5, shape=1) + 
     scale_color_manual(values=cols_use, name='') + 
     labs(title = plottitle, x=' ') +
     xlim(xl[1], xl[2]) + 
@@ -268,7 +268,7 @@ get_umap <- function(sce_fn, output_dir, datatag='SA'){
 
 plot_fill_barplot_wholedataset_rnaseq <- function(umap_df, cols_use, 
                                               output_dir, datatag='SA', 
-                                              plottitle=NULL, plotlegend=F){
+                                              plottitle=NULL, plotlegend=F, facet_order='horizontal'){
   
   cns <- colnames(umap_df)
   tid <- cns[grepl('treatment',cns)]
@@ -316,9 +316,15 @@ plot_fill_barplot_wholedataset_rnaseq <- function(umap_df, cols_use,
   cls_df$treatment_desc <- factor(cls_df$treatment_desc, levels=paste0('10x-',c(ts1, ts3, ts2)))
   my_font <- "Helvetica"
   p <- ggplot(cls_df, aes(fill=clone_id, y=Freq, x=timepoint)) + 
-    geom_bar(position="fill", stat="identity",width=0.4) + 
-    facet_grid(. ~ treatment_desc) + #, space='free', drop=F, scales="free".   . ~ treatment_desc
-    scale_y_continuous(breaks = scales::pretty_breaks(n = 3)) + 
+    geom_bar(position="fill", stat="identity",width=0.4) 
+  
+  if(facet_order=='horizontal'){
+    p <- p + facet_grid(. ~ treatment_desc)  #, space='free', drop=F, scales="free".   . ~ treatment_desc
+  }else{ # vertical
+    p <- p + facet_grid(treatment_desc ~ .)  #, space='free', drop=F, scales="free".   . ~ treatment_desc
+  }
+    
+  p <- p + scale_y_continuous(breaks = scales::pretty_breaks(n = 3)) + 
     scale_fill_manual(values = cols_use)#name='Clone '
   p <- p + labs(title=plottitle, x=NULL, y=NULL) #x=xlabel, y=ylabel, y='Clonal fraction'
   
@@ -382,6 +388,8 @@ plot_clone_color_legend <- function(datatag, base_dir, ncols_grid=5){
   color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
   cols_use <- get_color_clones(datatag, color_fn) # predefined clone color code for DLP and 10x inferred clones clonealign
   cols_use <- cols_use[gtools::mixedorder(cols_use)]
+  
+  # gtools::mixedsort(c('1X','3X','2X'))
   cls_df <- data.frame(clone_id=names(cols_use))
   cls_df$Freq <- 1
   
@@ -397,7 +405,7 @@ plot_clone_color_legend <- function(datatag, base_dir, ncols_grid=5){
   return(plg)
 }
 plot_fill_barplot_wholedataset_v2 <- function(cell_clones, cols_use, 
-                                           output_dir, datatag='SA', plottitle=NULL, plotlegend=F){
+                                           output_dir, datatag='SA', plottitle=NULL, plotlegend=F, facet_order='horizontal'){
   
   # fa='clone_id', xa='timepoint'
   cols_use <- cols_use[unique(cell_clones$clone_id)]
@@ -417,9 +425,14 @@ plot_fill_barplot_wholedataset_v2 <- function(cell_clones, cols_use,
   cls_df$treatment_desc <- factor(cls_df$treatment_desc, levels=c(ts1, ts3, ts2))
   my_font <- "Helvetica"
   p <- ggplot(cls_df, aes(fill=clone_id, y=Freq, x=timepoint)) + 
-    geom_bar(position="fill", stat="identity",width=0.4) + 
-    facet_grid(. ~ treatment_desc) + #, space='free', drop=F, scales="free".   . ~ treatment_desc
-    scale_y_continuous(breaks = scales::pretty_breaks(n = 3)) + 
+    geom_bar(position="fill", stat="identity",width=0.4) #+ 
+    # facet_grid(. ~ treatment_desc) + #, space='free', drop=F, scales="free".   . ~ treatment_desc
+    if(facet_order=='horizontal'){
+      p <- p + facet_grid(. ~ treatment_desc)  #, space='free', drop=F, scales="free".   . ~ treatment_desc
+    }else{ # vertical
+      p <- p + facet_grid(treatment_desc ~ .)  #, space='free', drop=F, scales="free".   . ~ treatment_desc
+    }
+  p <- p + scale_y_continuous(breaks = scales::pretty_breaks(n = 3)) + 
     scale_fill_manual(values = cols_use)#name='Clone '
   p <- p + labs(title=plottitle, x=NULL, y=NULL) #x=xlabel, y=ylabel, y='Clonal fraction'
   
@@ -742,6 +755,7 @@ get_meta_data <- function(cell_clones_fn, library_grouping_fn, datatag=''){
   print(dim(cell_clones))
   # unique(cell_clones$treatmentSt)
   cell_clones <- cell_clones %>% left_join(grouping_df, by = c("library_id","sample_id"))
+  unique(cell_clones$treatmentSt)
   if(datatag=='SA609'){
     obs_samples <- c('SA609X3XB01584','SA609X4XB03080','SA609X5XB03223',
                      'SA609X6XB03447','SA609X7XB03554','SA609X4XB003083',
@@ -760,20 +774,21 @@ get_meta_data <- function(cell_clones_fn, library_grouping_fn, datatag=''){
     # })
     # unique(cell_clones$sample)
     cell_clones <- cell_clones %>%
-      dplyr::filter(sample_id %in% obs_samples)
+      dplyr::filter(sample_id %in% obs_samples & treatmentSt!='M')
     
     # cell_clones2 <- cell_clones %>%
     #   dplyr::filter(clone_id=='E' & treatmentstr!='M')
     # dim(cell_clones2)
     # cell_clones <- dplyr::bind_rows(cell_clones1, cell_clones2)
     print('Replicates excluded!!!')
-    # unique(cell_clones$treatmentstr)
-    cell_clones <- cell_clones %>% 
-      dplyr::filter(clone_id!='A') %>% 
+    # unique(cell_clones$clone_id)
+    cell_clones <- cell_clones %>%
+      dplyr::filter(clone_id!='A') %>%
       dplyr::mutate(clone_id=replace(clone_id, clone_id=='R', 'A'))
-    treatment_desc <- paste0(meta_pts[datatag],' ', c("Rx","RxH","UnRx"))
+    # treatment_desc <- paste0(meta_pts[datatag],' ', c("Rx","RxH","UnRx"))
+    treatment_desc <- c("Rx","RxH","UnRx")
     names(treatment_desc) <- c("R","H","U")
-    cell_clones$treatment_desc <- treatment_desc[cell_clones$treatmentstr]
+    cell_clones$treatment_desc <- treatment_desc[cell_clones$treatmentSt]
     # unique(cell_clones$treatment_desc)
   }else{
     # unique(cell_clones$treatmentSt)
@@ -790,7 +805,7 @@ get_meta_data <- function(cell_clones_fn, library_grouping_fn, datatag=''){
   if(datatag=='SA530'){
     cell_clones$timepoint <- 'X3'
   }
-  print(unique(cell_clones$treatment_desc))
+  print(unique(cell_clones$treatmentSt))
   # print(unique(cell_clones$timepoint))
   print(summary(as.factor(cell_clones$clone_id)))
   print(dim(cell_clones))

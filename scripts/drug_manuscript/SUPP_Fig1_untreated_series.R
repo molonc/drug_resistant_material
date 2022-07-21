@@ -309,7 +309,8 @@ plot_SUPP_fig1 <- function(){
   ## You can use plot_grid or save each patient data into 1 image and paste into svg file, up to you
   ## 
   base_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/'
-  source(paste0(base_dir, 'scripts/drug_manuscript/cnv_viz_utils.R'))
+  # source(paste0(base_dir, 'scripts/drug_manuscript/cnv_viz_utils.R'))
+  source(paste0(base_dir, 'scripts/drug_manuscript/viz_umap_figs/viz_umaps.R'))
   input_dir <- paste0(base_dir, 'materials/umap_figs/figs_rna/')
 
   
@@ -389,6 +390,7 @@ plot_SUPP_fig1 <- function(){
   p604_total <- cowplot::plot_grid(p604_part1, p604_part2, rel_widths = c(1,1))+ 
     theme(plot.background = element_rect(fill = "white", colour = "white"))
 
+  
     
   supp_fig1_rightside <- cowplot::plot_grid(p501_total,p530_total, p604_total, rel_heights = c(1,1,3), ncol=1)+ #labels=pts_lb, 
     theme(plot.background = element_rect(fill = "white", colour = "white"))
@@ -412,6 +414,9 @@ plot_SUPP_fig1 <- function(){
          type = "cairo-png",
          dpi=150
   )
+  # If you have an issue with cairo-png, you can install: 
+  #   https://cran.r-project.org/web/packages/Cairo/index.html
+  # Download source packages and then R CMD INSTALL yourdir/Cairo_1.6-0.tar.gz
   
   
 } 
