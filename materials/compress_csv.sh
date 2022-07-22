@@ -1,6 +1,6 @@
 #!/bin/sh
 
-search_dir=/home/htran/Projects/farhia_project/drug_resistant_material/materials/cell_clones/
+search_dir=/home/htran/Projects/farhia_project/drug_resistant_material/materials/fitness_paper_DLP/
 
 input_csvs=$(find $search_dir -type f -name "*.csv")
 
