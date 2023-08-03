@@ -4,21 +4,32 @@ In preparing for publication...
 
 This repo contains all materials and scripts used in manuscript: 
 ```
+Farhia Kabeer, Hoa Tran, Mirela Andronescu, Gurdeep Singh, Hakwoo Lee, Sohrab Salehi, Beixi Wang, Justina Biele, Jazmine Brimhall, David Gee, Viviana Cerda, Ciara O'Flanagan, Teresa Algara, Takako Kono, Sean Beatty, Elena Zaikova, Daniel Lai, Eric Lee, Richard Moore, Andrew J. Mungall, IMAXT Consortium,  Marc William, Andrew Roth, Kieran R. Campbell, Sohrab P. Shah, Samuel Aparicio.
+
 Longitudinal tracking of drug induced transcriptomic reprogramming in triple negative breast cancers
-Aparicio Lab 2023 
+Aparicio Lab August 2023. 
+
 ```
 
 - [Overview](#overview)
 - [Materials](#materials)
-  - [scRNAseq meta data](#scRNAseq-meta-data)
   - [Uploaded data link](#uploaded-data-link)
+  - [Meta data](#meta-data)
   - [Fitness results](#fitness-coefficient-results)
-  - [Phylogenetic tree results](#Phylogenetic-tree-results)
+  - [Phylogenetic tree results](#phylogenetic-tree-results)
   - [Reference gene sets](#reference-gene-sets)
+  - [Clone alignment results](#clone-alignment-results)
+  - [Tissue screening](#tissue-screening)
+  - [Cis trans genes](#cis-trans-genes)
+  - [Supplementary tables manuscript](#supplementary-tables-manuscript)
+  - [Pseudotime analysis results](#pseudotime-analysis-results)
  
 - [Scripts](#scripts)
-  - [Dataset preview](#dataset-preview)
-  - [Full run](#full-run)
+  - [Preprocessing functions](#preprocessing-functions)
+  - [Clonealign execution script](#clonealign-execution-script)
+  - [Differential expression analysis](#differential-expression-analysis)
+  - [Gene type identification](#gene-type-identification)
+  - [Pseudotime analysis script](#pseudotime-analysis-script)
 - [Citation](#citation)
 
 
@@ -36,7 +47,7 @@ Here are all materials that are used in this manuscript.
 - scRNA-seq cellranger alignment libraries are at: [Uploaded Data URL](https://ega-archive.org/studies/EGAS00001007242)
 
 
-### scRNAseq meta data
+### Meta data
 Noted: patient ID: Pt1, Pt2, Pt3, Pt4, Pt5, Pt6 correponding to the series id SA501, SA530, SA604, SA609, SA535, SA1035 in fitness previously published paper. 
 - Library infos, drug treatment status and time series - passages are noted at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/metadata_drug_resistance/). 
 - Add SA501, SA530, SA604 here TODO
@@ -51,9 +62,10 @@ Noted: patient ID: Pt1, Pt2, Pt3, Pt4, Pt5, Pt6 correponding to the series id SA
 
 
 ### Phylogenetic tree results
-- Patient 4 - Pt4 (SA609)[file](https://github.com/molonc/drug_resistant_material/tree/main/materials/fitness_paper_DLP/) data is from previous [published paper](http://dx.doi.org/10.1038/s41586-021-03648-3)
-- Patient 5 - Pt5 (SA535)[file](https://github.com/molonc/drug_resistant_material/tree/main/materials/fitness_paper_DLP/master_file_fitness_materials_373358_2_data_set_3595534_qnqbt5_results.xlsx) data is from previous [published paper](http://dx.doi.org/10.1038/s41586-021-03648-3)
-- Cell clone assignment
+
+- The inferred sitka phylogeny trees for patient Pt4, Pt5, Pt6 (corresponding to SA609, SA535, SA1035) are downloaded from previously [published paper](http://dx.doi.org/10.1038/s41586-021-03648-3). [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/fitness_paper_DLP/)
+- The inferred sitka phylogeny trees for patient Pt1, Pt2, Pt3 (corresponding to SA501, SA530, SA604) are generated in this manuscript using sitka Bayesian inference algorithm from [sitka published paper](https://peercommunityjournal.org/articles/10.24072/pcjournal.292/), [sitka git repo](https://github.com/UBC-Stat-ML/sitkatree/) and results newick tree are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/fitness_paper_DLP/)
+
 
 ### Reference gene sets
 Reference genes sets are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/biodatabase/)
@@ -61,33 +73,43 @@ Reference genes sets are at [directory](https://github.com/molonc/drug_resistant
 - Curated cisplatin reference gene set 
 
 
-### CloneAlign results
+### Clone alignment results
+Cell clone assignment results
 - Clone align results for each sample are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/clonealign_results/clonealign/)
 - Input data for Main Figure 2 are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/clonealign_plot)
 
-### TMA microarray tissue screening data
-- TMA score results at [file](https://github.com/molonc/drug_resistant_material/blob/main/materials/metadata_drug_resistance/TMA20-001%20TMA_FK3%20with%20scores.xls) and from previous [published paper](http://dx.doi.org/10.1038/s41586-021-03648-3)
+### Tissue screening
+- TMA score results for TMA microarray tissue screening are at [file](https://github.com/molonc/drug_resistant_material/blob/main/materials/metadata_drug_resistance/TMA20-001%20TMA_FK3%20with%20scores.xls) and from previous [published paper](http://dx.doi.org/10.1038/s41586-021-03648-3)
 
 
 ### Cis trans genes 
 - DE analysis are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/cis_trans/) 
-- Pathway analysis results are at [directory]https://github.com/molonc/drug_resistant_material/tree/main/materials/pathway
+- Pathway analysis results are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/pathway)
+
+### Supplementary tables manuscript
+- All tables in manuscript are uploaded into [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/umap_figs/) 
 
 ### Main Figure 1, 2, 3 
 - UMAP files at at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/umap_figs/) 
 
 
 ### Pseudotime analysis results
-- Significant genes across pseudotime analysis are at [directory] (https://github.com/molonc/drug_resistant_material/tree/main/materials/trajectory_genes/)
+- Significant genes across pseudotime analysis are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/trajectory_genes/)
 
 
 ## Scripts
 
+### Preprocessing functions
+- Scripts are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/pipeline/utils/)
 
 ### Clonealign execution script 
-### DE analysis
-### Cis, trans gene identification
+- Scripts are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/)
+### Differential expression analysis
+- Scripts are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/de_edgeR/)
+### Gene type identification
+- Scripts are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/cis_trans/)
 ### Pseudotime analysis script
+- Scripts are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/trajectory_analysis/)
 
 
 
