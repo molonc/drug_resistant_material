@@ -36,7 +36,7 @@ Aparicio Lab August 2023.
 ## Overview
 
 The encoding of resistance states in cancer reflects the contributions of genomic and non-genomic variation, however identifying the potential contributions of each has remained problematic. Here we show that **clonal and non-clonal transcriptional dynamics** of TNBC tumours serially exposed to platinum can separate different clonal responses. Pathway analysis shows that cis and trans transcripts converge on EMT and cytokine signaling states associated with resistance. We observe that copy number clones with strong genotype associated fitness under platinum may become fixed in their states, resulting in minimal transcriptional reversion on **drug withdrawal**. In contrast clones with weaker fitness undergo non-genomic transcriptional plasticity. Together the data show that copy number mediated and copy number independent processes contribute to chemotherapeutic drug resistance.
-The details of the method are described in the [pre-print](https://www.biorxiv.org/content/uploadme) 
+The details of the method are described in the [pre-print](https://www.biorxiv.org/content/uploadme_TODO) 
 
 
 
