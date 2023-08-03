@@ -10,10 +10,13 @@ suppressPackageStartupMessages({
   options(dplyr.summarise.inform = FALSE)
   options(tidyverse.quiet = TRUE)
 })
-library(extrafont)
-font_import(prompt=F, paths ='/usr/share/fonts/truetype/myfonts/') # import Helvetica font
-fonts()
+# library(extrafont)
+# font_import(prompt=F, paths ='/usr/share/fonts/truetype/myfonts/') # import Helvetica font
+# fonts()
 # devtools::install_github("stephenturner/annotables")
+
+my_font <- "Helvetica"
+
 
 plot_DE_genes_ggplot_Fig3 <- function(df, topGenes=NULL, capstr='', FDRcutoff=0.01, logFCcutoff=0.25, pValuecutoff=0.05,
                                  plttitle="A versus B", save_dir="",legendVisible=F,
@@ -399,8 +402,8 @@ plot_cis_trans_prop <- function(deg_fn, lg_pos="top"){
                                axis.ticks.x = element_blank(),
                                axis.title.x = element_blank(),
                                strip.text.x = element_blank(),
-                               axis.text.y = element_text(color="black",size=9, hjust = 0.5, family=my_font),
-                               axis.title.y = element_text(color="black",size=11, hjust = 0.5, family=my_font),
+                               axis.text.y = element_text(color="black",size=8, hjust = 0.5, family=my_font),
+                               axis.title.y = element_text(color="black",size=9, hjust = 0.5, family=my_font),
                                axis.line = element_line(colour = "black"),
                                strip.placement = "outside",
                                legend.position = lg_pos,
@@ -595,18 +598,17 @@ plot_gex_cnv_v2 <- function(deg_fn,
     thesis_theme <- ggplot2::theme(
       text = element_text(color="black",size = 8, hjust = 0.5, family=my_font),
       # axis.title.x = element_text(color="black",size=8, hjust = 0.5, family=my_font),
-      axis.title.y = element_text(color="black",size=11, hjust = 0.5, family=my_font),
-      axis.text.y = element_text(color="black",size=9, hjust = 0.5, family=my_font),
+      axis.title.y = element_text(color="black",size=9, hjust = 0.5, family=my_font),
+      axis.text.y = element_text(color="black",size=8, hjust = 0.5, family=my_font),
       # axis.text.x = element_text(color="black",size=7, hjust = 0.5, family=my_font, angle = 90),
       axis.text.x = element_blank(),
       axis.ticks.x = element_blank(),
       strip.placement = "outside",
       axis.line = element_line(colour = "black"),
       
-      plot.title = element_text(color="black",size=10, face="bold", hjust=0, family=my_font),
+      plot.title = element_text(color="black",size=12, face="bold", hjust=0, family=my_font),
       legend.title=element_text(color="black",size=7, hjust = 0.5, family=my_font),
       legend.text=element_text(color="black",size=7, hjust = 0.5, family=my_font),
-      # strip.text.x = element_text(color="black",size=9, family=my_font),
       strip.text.y = element_text(color="black",size=9, family=my_font),
       legend.spacing.x = unit(0.1, 'mm'),
       legend.spacing.y = unit(0.1, 'mm'),
@@ -619,7 +621,7 @@ plot_gex_cnv_v2 <- function(deg_fn,
       panel.background = element_blank(), 
       panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
       axis.title.x = element_blank(),
-      strip.text.x = element_blank()#,
+      strip.text.x = element_blank()
       #legend.position = 'none'
     )
    track_plot <- track_plot + thesis_theme
@@ -1036,8 +1038,11 @@ plot_DE_genes_chr_logFC <- function(save_dir, cnv_mat, input_deg_fn, obs_clones=
 # df_cnv has column names: ensembl_gene_id
 plot_CNV <- function(df_cnv_fn, clones, meta_genes=NULL){
   df_cnv <- data.table::fread(df_cnv_fn) %>% as.data.frame()
-  # df_cnv <- df_cnv %>%
-  #   dplyr::rename(ensembl_gene_id=V1)
+  if('V1' %in% colnames(df_cnv)){
+    df_cnv <- df_cnv %>%
+      dplyr::rename(ensembl_gene_id=V1)
+  }
+  
   print(dim(df_cnv))
   # annots <- annotables::grch38 %>%
   #   dplyr::select(ensembl_gene_id = ensgene, chr) 
@@ -1230,25 +1235,25 @@ plot_CNV <- function(df_cnv_fn, clones, meta_genes=NULL){
     #                    # panel.background = element_rect(fill = "#F8F8F8", colour = NA),
     #                    panel.spacing = unit(c(0.1), 'cm'))
     cnv_plot <- cnv_plot + theme(strip.background = element_rect(fill = 'white', colour = 'white'),
-                                 strip.text = element_text(color="black",size=11, hjust = 0.5, family=my_font)
-                       text = element_text(color="black",size = 11, hjust = 0.5, family=my_font),
-                      axis.text.x = element_blank(),
-                      axis.ticks.x = element_blank(),
-                      axis.text.y = element_text(color="black",size=9, hjust = 0.5, family=my_font),
-                      axis.title.y = element_text(color="black",size=11, hjust = 0.5, family=my_font),
-                      axis.title.x = element_text(color="black",size=11, hjust = 0.5, family=my_font),
-                      axis.line = element_line(colour = "black"),
-                      strip.placement = "outside",
-                      legend.position = "bottom",
-                      legend.text=element_text(color="black",size=9, hjust = 0.5, family=my_font),
-                      legend.title=element_text(color="black",size=9, hjust = 0.5, family=my_font),
-                      legend.key.size=unit(0.3,"cm"),
-                      panel.grid.major = element_blank(),
-                      panel.grid.minor = element_blank(),
-                      # panel.background = element_rect(fill = "#F8F8F8", colour = NA),
-                      panel.spacing = unit(c(0.1), 'cm'),
-                      legend.margin=margin(0,0,0,0),
-                      legend.box.margin=margin(-2,-2,-2,-2))    # MA: was 0.2
+                                 strip.text = element_text(color="black",size=11, hjust = 0.5, family=my_font),
+                                  text = element_text(color="black",size = 11, hjust = 0.5, family=my_font),
+                                  axis.text.x = element_blank(),
+                                  axis.ticks.x = element_blank(),
+                                  axis.text.y = element_text(color="black",size=9, hjust = 0.5, family=my_font),
+                                  axis.title.y = element_text(color="black",size=9, hjust = 0.5, family=my_font),
+                                  axis.title.x = element_text(color="black",size=11, hjust = 0.5, family=my_font),
+                                  axis.line = element_line(colour = "black"),
+                                  strip.placement = "outside",
+                                  legend.position = "bottom",
+                                  legend.text=element_text(color="black",size=9, hjust = 0.5, family=my_font),
+                                  legend.title=element_text(color="black",size=9, hjust = 0.5, family=my_font),
+                                  legend.key.size=unit(0.3,"cm"),
+                                  panel.grid.major = element_blank(),
+                                  panel.grid.minor = element_blank(),
+                                  # panel.background = element_rect(fill = "#F8F8F8", colour = NA),
+                                  panel.spacing = unit(c(0.1), 'cm'),
+                                  legend.margin=margin(0,0,0,0),
+                                  legend.box.margin=margin(-2,-2,-2,-2))    # MA: was 0.2
 
     cnv_plot <- cnv_plot + guides(fill = guide_legend(nrow = 1, override.aes = list(size=0.1))) +  #, override.aes = list(size=1.1)
                            scale_x_continuous(expand = c(0,0))
@@ -1257,7 +1262,7 @@ plot_CNV <- function(df_cnv_fn, clones, meta_genes=NULL){
   lg <- cowplot::get_legend(cnv_plot)
   plg <- cowplot::ggdraw() + cowplot::draw_plot(lg)
     
-  results <- list(df_cnv=df_cnv, plg=plg, cnv_plot=cnv_plot)
+  results <- list(df_cnv=df_cnv, cnv_plot=cnv_plot, plg=plg)#
   return(results)
 }
 

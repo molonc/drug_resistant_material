@@ -77,10 +77,11 @@ plot_SA535 <- function(output_dir){
   
   #rna_SA535$UnRx_X5$p,
   ## res_SA535_UnRx$p,res_SA535_Rx$p,res_SA535_RxH$p,res_dlp_SA535_lg$plg, 
+  # rna_SA535$Rx_X9$p,rna_SA535$RxH_X9$p,
   p535_total <- cowplot::plot_grid(rna_SA535$UnRx_X6$p, rna_SA535$UnRx_X7$p,rna_SA535$UnRx_X8$p, rna_SA535$UnRx_X9$p,NULL,
-                                   rna_SA535$Rx_X6$p,rna_SA535$Rx_X7$p, rna_SA535$Rx_X8$p,rna_SA535$Rx_X9$p,rna_SA535$Rx_X10$p,
-                                   NULL, rna_SA535$RxH_X7$p, rna_SA535$RxH_X8$p,rna_SA535$RxH_X9$p,rna_SA535$RxH_X10$p,
-                                   ncol=5, align = 'hv')
+                                   rna_SA535$Rx_X6$p,rna_SA535$Rx_X7$p, rna_SA535$Rx_X8$p,rna_SA535$Rx_X10$p,
+                                   NULL, rna_SA535$RxH_X7$p, rna_SA535$RxH_X8$p,rna_SA535$RxH_X10$p,
+                                   ncol=4, align = 'hv')
   # p535_total1 <- cowplot::plot_grid(res_SA535_UnRx$plg, p535_total, ncol=1, rel_heights = c(1,10), labels = c('SA535',''))
   png(paste0(output_dir,datatag,".png"), height = 2*800, width=2*1100,res = 2*72)
   print(p535_total)
@@ -117,7 +118,7 @@ plot_SA609 <- function(output_dir){
     dplyr::rename(clone=unique_clone)
   colnames(clonealign_stat)
   # rm(umap_df)
-  umap_df <- data.table::fread(paste0(input_dir,datatag,'_norm_umap.csv')) %>% as.data.frame()
+  umap_df <- data.table::fread(paste0(input_dir,datatag,'_norm_umap.csv.gz')) %>% as.data.frame()
   dim(umap_df)
   
   # umap_df$scell_id <- paste0(umap_df$id,'_',umap_df$Barcode)
@@ -180,7 +181,7 @@ plot_SA1035 <- function(output_dir){
     dplyr::rename(clone=unique_clone)
   # colnames(clonealign_stat)
   # rm(umap_df)
-  umap_df <- data.table::fread(paste0(input_dir,datatag,'_norm_umap.csv')) %>% as.data.frame()
+  umap_df <- data.table::fread(paste0(input_dir,datatag,'_norm_umap.csv.gz')) %>% as.data.frame()
   dim(umap_df)
   # umap_df$cell_id[1]
   # umap_df$scell_id <- paste0(umap_df$id,'_',umap_df$Barcode)
@@ -253,7 +254,7 @@ plot_SA609_same_chips <- function(output_dir){
   input_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/umap_figs/'
   output_dir <- paste0(input_dir,'figs/')
   datatag <- 'SA609'
-  pca_df <- data.table::fread(paste0(input_dir,datatag,'_norm_pca.csv')) %>% as.data.frame()
+  pca_df <- data.table::fread(paste0(input_dir,datatag,'_norm_pca.csv.gz')) %>% as.data.frame()
   head(pca_df)
   pca_df$PC_1
   pca_df$clone <- factor(pca_df$clone, levels = sort(unique(pca_df$clone)))
@@ -269,7 +270,7 @@ plot_SA609_same_chips <- function(output_dir){
   
   
   datatag <- 'SA609_samechip'
-  umap_df <- data.table::fread(paste0(input_dir,datatag,'_norm_umap.csv')) %>% as.data.frame()
+  umap_df <- data.table::fread(paste0(input_dir,datatag,'_norm_umap.csv.gz')) %>% as.data.frame()
   head(umap_df)
   cols_use <- make_clone_palette(unique(umap_df$clone))
   unique(umap_df$timepoint)

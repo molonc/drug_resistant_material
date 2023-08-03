@@ -1,5 +1,4 @@
 # tradeSeq 
-
 suppressPackageStartupMessages({
   library(SingleCellExperiment)
   library(slingshot, quietly = TRUE)
@@ -20,6 +19,7 @@ base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
 input_dir <- paste0('/home/htran/storage/datasets/drug_resistance/rna_results/',datatag,'_rna/')
 save_dir <- paste0('/home/htran/storage/datasets/drug_resistance/rna_results/',datatag,'_rna/slingshot_trajectory/')
 output_dir <- paste0(save_dir,'tradeseq_v2/')
+
 if(!file.exists(output_dir)) dir.create(output_dir)
 nfeatures_use <- 3000
 norm_sce <- readRDS(paste0(save_dir, datatag,'_',nfeatures_use,'_rd_sce_v2.rds'))
@@ -41,40 +41,15 @@ set.seed(5)
 # icMat <- evaluateK(counts = counts, sds = crv, k = 3:10, 
 #                    nGenes = 200, verbose = T)
 
-ts_sce <- tradeSeq::fitGAM(counts = counts,
-                           pseudotime = pseudotime, cellWeights = cellWeights,
-                           nknots = 12, verbose = FALSE,
-                           parallel=T,
-                           BPPARAM = BiocParallel::MulticoreParam(workers = 5))
-saveRDS(ts_sce, paste0(output_dir, "fitGAM_out.rds"))
-ts_sce <- readRDS(paste0(output_dir, "fitGAM_out.rds"))
+run_tradeSeq(counts, pseudotime, cellWeights, output_dir)
 
-
-# assoRes <- associationTest(ts_sce)
-# saveRDS(assoRes, paste0(output_dir, "assoRes_out.rds"))
-# assoRes <- readRDS(paste0(output_dir, "assoRes_out.rds"))
-
-startRes <- startVsEndTest(ts_sce, lineages=TRUE)
-saveRDS(startRes, paste0(output_dir, "startRes_out.rds"))
-# print(head(startRes))
-startRes <- readRDS(paste0(output_dir, "startRes_out.rds"))
-
-endRes <- diffEndTest(ts_sce, pairwise=TRUE)
-# print(head(endRes))
-saveRDS(endRes, paste0(output_dir, "endRes_out.rds"))
-endRes <- readRDS(paste0(output_dir, "endRes_out.rds"))
-
-
-patternRes <- patternTest(ts_sce)
-# oPat <- order(patternRes$waldStat, decreasing = TRUE)
-# print(head(rownames(patternRes)[oPat]))
-saveRDS(patternRes, paste0(output_dir, "patternRes_out.rds"))
-patternRes <- readRDS(paste0(output_dir, "patternRes_out.rds"))
-
-earlyDERes <- tradeSeq::earlyDETest(ts_sce, l2fc = 0.5, pairwise=TRUE)
-saveRDS(earlyDERes, paste0(output_dir, "earlyDERes_out.rds"))
-earlyDERes <- readRDS(paste0(output_dir, "earlyDERes_out.rds"))
-dim(earlyDERes)
+load_tradeSeq_results <- function(){
+  ts_sce <- readRDS(paste0(output_dir, "fitGAM_out.rds"))
+  startRes <- readRDS(paste0(output_dir, "startRes_out.rds"))
+  endRes <- readRDS(paste0(output_dir, "endRes_out.rds"))
+  patternRes <- readRDS(paste0(output_dir, "patternRes_out.rds"))
+  earlyDERes <- readRDS(paste0(output_dir, "earlyDERes_out.rds"))
+}
 
 datatag <- 'SA1035'
 base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
@@ -332,6 +307,8 @@ gsea_out <- get_pathway_trajectory_genes(patternRes1, save_dir_pw, desc='total_g
 gsea_out <- get_pathway_trajectory_genes(patternRes1, save_dir_pw, desc='total_genes_modules', base_name = datatag, pathway_name='kegg')
 dim(gsea_out)
 gsea_out$pathway
+paste0(save_dir, pathway_name, "_signf_pathways_",base_name,"_",desc,".csv")
+gsea_out <- data.table::fread(paste0(save_dir, 'pathway_results/')) %>% as.data.frame()
 
 
 
@@ -347,6 +324,9 @@ ts_sce <- readRDS(paste0(input_dir,'tradeseq_v2/', "fitGAM_out.rds"))
 dim(ts_sce)
 output_fn <- paste0(input_dir,'tradeseq_v2/','sigf_gene_exp.csv.gz')
 avg_gene_exp <- get_average_gene_exp_per_lineage(datatag, ts_sce, obs_genes_ls, output_fn, nEstimatedPoints=100, save_data=T)
+
+## Loading from file
+avg_gene_exp <- data.table::fread(output_fn) %>% as.data.frame()
 # save_dir <- paste0('/home/htran/storage/datasets/drug_resistance/rna_results/',datatag,'_rna/slingshot_trajectory/withBE_SA609_v2/')
 dim(avg_gene_exp)
 obs_genes_ls <- c('S100A6','CST3','NFKBIA','CSTB')
@@ -368,6 +348,7 @@ viz_given_gene_exp_lineages(obs_genes_ls, meta_genes, avg_gene_exp, figs_dir, da
 ## Heatmap average expression plot
 ## Extracting heatmap of average genes expression x lineages 
 save_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/trajectory_genes/'
+datatag <- 'SA1035'
 genes_df <- data.table::fread(paste0(save_dir, datatag,'_total_genes_modules_act_repr_trans_08_Dec.csv.gz')) %>% as.data.frame()
 dim(genes_df)
 colnames(genes_df)
@@ -381,7 +362,7 @@ plttitle <- 'Activated Repressed Transient genes'
 save_dir <- "/home/htran/storage/datasets/drug_resistance/rna_results/SA1035_rna/slingshot_trajectory/"
 # ts_sce <- readRDS(paste0(save_dir,'tradeSeq_v2/', "fitGAM_out.rds"))
 dim(ts_sce)
-obs_lineages <- c(1,2,3,4)
+obs_lineages <- c(1,2,3,4) ## lineages list that you want to display
 phm <- viz_heatmap(ts_sce, genes_df, save_dir, datatag, plttitle, obs_lineages)
 output_dir <- save_dir
 exp_mtx <- data.table::fread(paste0(output_dir,"mtx_hm.csv.gz")) %>% as.data.frame()
@@ -400,6 +381,7 @@ dim(cistrans_anno)
 # head(cistrans_anno)
 rownames(cistrans_anno) <- NULL
 cistrans_anno$gene_type <- paste0("in ",cistrans_anno$gene_type)
+summary(as.factor(cistrans_anno$gene_type)). ## To Do: check input data here
 meta_clone_lg <- data.table::fread(paste0(input_dir,datatag,'_meta_clone_lineages.csv')) %>% as.data.frame()
 meta_clone_lg <- meta_clone_lg[!duplicated(meta_clone_lg$lineage),]
 meta_clone_lg

@@ -8,13 +8,30 @@ suppressPackageStartupMessages({
   require("dplyr")
   require("inlmisc")
 })
+options(dplyr.summarise.inform = FALSE)
+options(tidyverse.quiet = TRUE)
 
 # library(extrafont)
 # font_import(prompt=F, paths ='/usr/share/fonts/truetype/myfonts/') # import Helvetica font
 # fonts()
 my_font <- "Helvetica"
 # Just modify function for predefined clone colors. 
-
+get_unique_clone_id <- function(clone_labels){
+  set.seed(42) 
+  cls <- sapply(strsplit(clone_labels,'_'), function(x){
+    if(length(x)==1){
+      return(x[1])
+    }else if(length(x)==2){
+      idx <- sample(c(1,2),1)
+      return(x[idx])
+    }else{
+      idx <- sample(c(1,2,3),1)
+      return(x[idx])
+    }
+    
+  })
+  return(as.character(cls))
+}
 make_clone_palette <- function(levels) {
   # install.packages("inlmisc", dependencies = TRUE)  # TO DO: check this package
   clone_names <- sort(levels)
@@ -90,30 +107,7 @@ get_color_clones <- function(tag, color_fn){
   return(cols_use)
 }
 
-thesis_theme <- ggplot2::theme(
-  text = element_text(color="black",size = 8, hjust = 0.5, family=my_font),
-  # axis.title.x = element_text(color="black",size=8, hjust = 0.5, family=my_font),
-  # axis.title.y = element_text(color="black",size=8, hjust = 0.5, family=my_font),
-  # axis.text.x = element_text(color="black",size=7, hjust = 0.5, family=my_font, angle = 90),
-  # axis.text.x = element_blank(),
-  axis.ticks = element_blank(),
-  strip.placement = "outside",
-  # axis.line = element_line(colour = "black"),
-  axis.line = element_blank(),
-  axis.text = element_blank(),
-  axis.title = element_blank(),
-  plot.title = element_text(color="black",size=11, face="bold",family=my_font, hjust = 0.5),
-  # legend.title=element_text(color="black",size=7, hjust = 0.5, family=my_font),
-  # legend.text=element_text(color="black",size=7, hjust = 0.5, family=my_font),
-  strip.text.x = element_text(color="black",size=11, family=my_font),
-  strip.text.y = element_text(color="black",size=11, family=my_font),
-  # legend.position = lg_pos,
-  legend.margin=margin(0,0,0,0),
-  legend.box.margin=margin(-2,-2,-2,-2),
-  panel.background = element_blank(),
-  panel.border = element_rect(colour = "grey50", fill=NA, size=0.5),
-  panel.grid.major = element_blank(), panel.grid.minor = element_blank()
-)
+
 
 viz_umap_obs_clones <- function(umap_df, cols_use, datatag, output_dir, 
                                 obs_treatment, obs_passage=NULL, plottitle='', plotlegend=F){
@@ -125,7 +119,11 @@ viz_umap_obs_clones <- function(umap_df, cols_use, datatag, output_dir,
     if('treat' %in% colnames(umap_df)){
       umap_df <- umap_df %>%
         dplyr::rename(treatmentSt=treat)
-    }else{
+    }else if('treatmentst' %in% colnames(umap_df)){
+      umap_df <- umap_df %>%
+        dplyr::rename(treatmentSt=treatmentst)
+    }
+    else{
       stop('Please check input treatmentSt')
     }
   }
@@ -190,12 +188,37 @@ viz_umap_obs_clones <- function(umap_df, cols_use, datatag, output_dir,
   umap_df$clone <- factor(umap_df$clone, levels = sort(unique(umap_df$clone)))
   p <- ggplot(umap_df, aes(UMAP_1, UMAP_2)) + 
     geom_point(color='#e0e0e0') +  # grey color for all cells landscape displaying in background
-    geom_point(data=tmp, aes(color=clone), size=0.5, shape=1) + 
+    geom_point(data=tmp, aes(color=clone), size=0.7, shape=1) + 
     scale_color_manual(values=cols_use, name='') + 
     labs(title = plottitle, x=' ') +
     xlim(xl[1], xl[2]) + 
     ylim(yl[1], yl[2])
     
+  thesis_theme <- ggplot2::theme(
+    text = element_text(color="black",size = 8, hjust = 0.5, family=my_font),
+    # axis.title.x = element_text(color="black",size=8, hjust = 0.5, family=my_font),
+    # axis.title.y = element_text(color="black",size=8, hjust = 0.5, family=my_font),
+    # axis.text.x = element_text(color="black",size=7, hjust = 0.5, family=my_font, angle = 90),
+    # axis.text.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.placement = "outside",
+    # axis.line = element_line(colour = "black"),
+    axis.line = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    plot.title = element_text(color="black",size=11, face="bold",family=my_font, hjust = 0.5),
+    # legend.title=element_text(color="black",size=7, hjust = 0.5, family=my_font),
+    # legend.text=element_text(color="black",size=7, hjust = 0.5, family=my_font),
+    strip.text.x = element_text(color="black",size=11, family=my_font),
+    strip.text.y = element_text(color="black",size=11, family=my_font),
+    # legend.position = lg_pos,
+    legend.margin=margin(0,0,0,0),
+    legend.box.margin=margin(-2,-2,-2,-2),
+    panel.background = element_blank(),
+    panel.border = element_rect(colour = "grey50", fill=NA, size=0.5),
+    panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+    plot.margin = unit(c(0, 0, 0, 0), "null")
+  )
   p <- p + thesis_theme
   # lg <- cowplot::get_legend(p + guides(color = guide_legend(nrow = 1, 
   #                                                           title.position = "left", 
@@ -209,7 +232,7 @@ viz_umap_obs_clones <- function(umap_df, cols_use, datatag, output_dir,
     p <- p + ggplot2::theme(legend.position = lg_pos)  
   }
   
-  results <- list(p=p, cols_use=cols_use, df=tmp)
+  results <- list(p=p, cols_use=cols_use)
   # basename <- paste0(datatag,"_", gsub(' ','',plottitle))
   # saveRDS(results, paste0(output_dir, basename, ".rds"))
   # 
@@ -313,10 +336,18 @@ plot_fill_barplot_wholedataset_rnaseq <- function(umap_df, cols_use,
   ts3 <- ts[!ts %in% c(ts1, ts2)]
   # cls_df$treatment_desc <- factor(cls_df$treatment_desc, levels=c(ts1, ts3, ts2))
   cls_df$treatment_desc <- paste0('10x-',cls_df$treatment_desc)
-  cls_df$treatment_desc <- factor(cls_df$treatment_desc, levels=paste0('10x-',c(ts1, ts3, ts2)))
+  untreated_series <- c('SA501','SA530','SA604')
+  pts_lb <- c('Pt1','Pt2','Pt3') 
+  names(pts_lb) <- untreated_series
+  if(datatag %in% untreated_series){
+    cls_df$treatment_desc <- paste0(pts_lb[datatag],':',cls_df$treatment_desc)
+    cls_df$treatment_desc <- factor(cls_df$treatment_desc, levels=paste0(pts_lb[datatag],':','10x-',c(ts1, ts3, ts2)))
+  }
+  unique(cls_df$treatment_desc)
+  cls_df$treatment_desc <- factor(cls_df$treatment_desc, levels=paste0(pts_lb[datatag],':','10x-',c(ts1, ts3, ts2)))
   my_font <- "Helvetica"
   p <- ggplot(cls_df, aes(fill=clone_id, y=Freq, x=timepoint)) + 
-    geom_bar(position="fill", stat="identity",width=0.4) 
+    geom_bar(position="fill", stat="identity",width=0.55) 
   
   if(facet_order=='horizontal'){
     p <- p + facet_grid(. ~ treatment_desc)  #, space='free', drop=F, scales="free".   . ~ treatment_desc
@@ -332,10 +363,11 @@ plot_fill_barplot_wholedataset_rnaseq <- function(umap_df, cols_use,
     # text = element_text(color="black",size = 8, hjust = 0.5, family=my_font),
     # axis.title.x = element_text(color="black",size=8, hjust = 0.5, family=my_font),
     # axis.title.y = element_text(color="black",size=8, hjust = 0.5, family=my_font),
-    axis.text.x = element_text(color="black",size=10, hjust = 0.5, family=my_font), #, angle = 90
-    axis.text.y = element_text(color="black",size=8, hjust = 0.5, family=my_font), #, angle = 90
+    axis.text.x = element_text(color="black",size=12, hjust = 0.5, family=my_font, angle = 90), #, angle = 90
+    # axis.text.y = element_text(color="black",size=7, hjust = 0.5, family=my_font), #, angle = 90
+    axis.text.y = element_text(color="black",size=9, hjust = 0.5, family=my_font),
     # axis.text.x = element_blank(),
-    # axis.ticks.y = element_blank(),
+    axis.ticks.y = element_blank(),
     strip.placement = "outside",
     # axis.line = element_line(colour = "black"),
     # axis.line.x = element_line(colour = "black"),
@@ -348,13 +380,14 @@ plot_fill_barplot_wholedataset_rnaseq <- function(umap_df, cols_use,
     legend.text=element_text(color="black",size=9, hjust = 0.5, family=my_font),
     legend.key.height= unit(0.2, 'cm'),
     legend.key.width= unit(0.5, 'cm'),
-    strip.text.x = element_text(color="black",size=11, family=my_font, face="bold"),
-    strip.text.y = element_text(color="black",size=11, family=my_font),
+    strip.text.x = element_text(color="black",size=10, family=my_font, face="bold"),
+    strip.text.y = element_text(color="black",size=10, family=my_font),
     strip.background = element_blank(),
     # legend.position = 'none',
     # panel.background = element_blank(),
     # panel.border = element_blank(),
-    panel.grid.major = element_blank(), panel.grid.minor = element_blank()
+    panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+    plot.margin = unit(c(0, 0, 0, 0), "null")
   )
   p <- p + theme_bw() +  thesis_theme
   lg <- cowplot::get_legend(p + guides(fill = guide_legend(nrow=3, title.position = "left", 
@@ -369,7 +402,7 @@ plot_fill_barplot_wholedataset_rnaseq <- function(umap_df, cols_use,
     p <- p + ggplot2::theme(legend.position = lg_pos)  
   }
   
-  results <- list(plg=plg, p=p, cols_use=cols_use, df=cls_df, umap_df=umap_df)
+  results <- list(plg=plg, p=p, cols_use=cols_use) #, df=cls_df, umap_df=umap_df
   # saveRDS(results, paste0(output_dir, datatag, '_',plottitle,"_dlp_prevalence.rds"))
   # nrow <- length(unique(cls_df$timepoint))
   # png(paste0(output_dir,datatag, "_",plottitle, ".png"), height = 2*250, width=2*(50*nrow+20),res = 2*72)
@@ -384,17 +417,23 @@ plot_fill_barplot_wholedataset_rnaseq <- function(umap_df, cols_use,
   return(results)
 }
 
-plot_clone_color_legend <- function(datatag, base_dir, ncols_grid=5){
-  color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
+plot_clone_color_legend <- function(datatag, base_dir, ncols_grid=5, color_fn=NULL){
+  # color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
+  if(is.null(color_fn)){
+    color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v4.csv.gz')  
+  }
+  
   cols_use <- get_color_clones(datatag, color_fn) # predefined clone color code for DLP and 10x inferred clones clonealign
-  cols_use <- cols_use[gtools::mixedorder(cols_use)]
+  # cols_use <- cols_use[gtools::mixedorder(cols_use)]
   
   # gtools::mixedsort(c('1X','3X','2X'))
   cls_df <- data.frame(clone_id=names(cols_use))
   cls_df$Freq <- 1
-  
-  p <- ggplot(cls_df, aes(fill=clone_id, y=Freq, x=clone_id)) + 
-    geom_bar(position="fill", stat="identity",width=0.4) + 
+  # cls_df <- cls_df[order(cls_df$clone_id),]
+  cls_df$clone_id <- factor(cls_df$clone_id, levels = sort(cls_df$clone_id)) #, ordered = T
+  # cls_df$clone_id <- factor(cls_df$clone_id, levels = sort(cls_df$clone_id)) #, ordered = T
+  p <- ggplot(cls_df, aes(fill=sort(clone_id), y=Freq, x=clone_id)) + 
+    geom_bar(position="fill", stat="identity",width=0.1) + 
     scale_fill_manual(values = cols_use)+
     theme(legend.text=element_text(color="black",size=10, hjust = 0.5, family=my_font),
           legend.title=element_blank())
@@ -404,9 +443,15 @@ plot_clone_color_legend <- function(datatag, base_dir, ncols_grid=5){
   # plg
   return(plg)
 }
+
+
 plot_fill_barplot_wholedataset_v2 <- function(cell_clones, cols_use, 
-                                           output_dir, datatag='SA', plottitle=NULL, plotlegend=F, facet_order='horizontal'){
+                                           output_dir, datatag='SA', plottitle=NULL, 
+                                           plotlegend=F, facet_order='horizontal', plot_yaxis=FALSE, yaxis_title=""){
   
+  if(!dir.exists(output_dir)){
+    dir.create(output_dir)
+  }
   # fa='clone_id', xa='timepoint'
   cols_use <- cols_use[unique(cell_clones$clone_id)]
   cls_df <- cell_clones %>%
@@ -425,7 +470,7 @@ plot_fill_barplot_wholedataset_v2 <- function(cell_clones, cols_use,
   cls_df$treatment_desc <- factor(cls_df$treatment_desc, levels=c(ts1, ts3, ts2))
   my_font <- "Helvetica"
   p <- ggplot(cls_df, aes(fill=clone_id, y=Freq, x=timepoint)) + 
-    geom_bar(position="fill", stat="identity",width=0.4) #+ 
+    geom_bar(position="fill", stat="identity",width=0.35) #+ 
     # facet_grid(. ~ treatment_desc) + #, space='free', drop=F, scales="free".   . ~ treatment_desc
     if(facet_order=='horizontal'){
       p <- p + facet_grid(. ~ treatment_desc)  #, space='free', drop=F, scales="free".   . ~ treatment_desc
@@ -434,16 +479,22 @@ plot_fill_barplot_wholedataset_v2 <- function(cell_clones, cols_use,
     }
   p <- p + scale_y_continuous(breaks = scales::pretty_breaks(n = 3)) + 
     scale_fill_manual(values = cols_use)#name='Clone '
-  p <- p + labs(title=plottitle, x=NULL, y=NULL) #x=xlabel, y=ylabel, y='Clonal fraction'
+  p <- p + labs(title=plottitle, x=NULL, y=yaxis_title) #x=xlabel, y=ylabel, y='Clonal fraction'
   
+  if(plot_yaxis){
+    st <- element_text(size=8, family=my_font, hjust = 0.5)
+  }else{
+    st <- element_blank()
+  }
   thesis_theme <- ggplot2::theme(
     # text = element_text(color="black",size = 8, hjust = 0.5, family=my_font),
     # axis.title.x = element_text(color="black",size=8, hjust = 0.5, family=my_font),
     # axis.title.y = element_text(color="black",size=8, hjust = 0.5, family=my_font),
-    axis.text.x = element_text(color="black",size=10, hjust = 0.5, family=my_font), #, angle = 90
-    axis.text.y = element_text(color="black",size=8, hjust = 0.5, family=my_font), #, angle = 90
+    axis.text.x = element_text(color="black",size=12, hjust = 0.5, family=my_font), #, angle = 90
+    # axis.text.y = element_text(color="black",size=7, hjust = 0.5, family=my_font), #, angle = 90
     # axis.text.x = element_blank(),
-    # axis.ticks.y = element_blank(),
+    axis.text.y = st,
+    axis.ticks.y = element_blank(),
     strip.placement = "outside",
     # axis.line = element_line(colour = "black"),
     # axis.line.x = element_line(colour = "black"),
@@ -456,13 +507,15 @@ plot_fill_barplot_wholedataset_v2 <- function(cell_clones, cols_use,
     legend.text=element_text(color="black",size=9, hjust = 0.5, family=my_font),
     legend.key.height= unit(0.2, 'cm'),
     legend.key.width= unit(0.5, 'cm'),
-    strip.text.x = element_text(color="black",size=11, family=my_font, face="bold"),
-    strip.text.y = element_text(color="black",size=11, family=my_font),
+    strip.text.x = element_text(color="black",size=10, family=my_font, face="bold"),
+    strip.text.y = element_text(color="black",size=10, family=my_font),
     strip.background = element_blank(),
     # legend.position = 'none',
     # panel.background = element_blank(),
     # panel.border = element_blank(),
-    panel.grid.major = element_blank(), panel.grid.minor = element_blank()
+    panel.spacing = unit(0,'lines'),
+    panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+    plot.margin = unit(c(0, 0, 0, 0), "null")
   )
   p <- p + theme_bw() +  thesis_theme
   lg <- cowplot::get_legend(p + guides(fill = guide_legend(nrow=3, title.position = "left", 
@@ -477,7 +530,7 @@ plot_fill_barplot_wholedataset_v2 <- function(cell_clones, cols_use,
     p <- p + ggplot2::theme(legend.position = lg_pos)  
   }
   
-  results <- list(plg=plg, p=p, cols_use=cols_use, df=cls_df, cell_clones=cell_clones)
+  results <- list(plg=plg, p=p, cols_use=cols_use) #, df=cls_df, cell_clones=cell_clones
   # saveRDS(results, paste0(output_dir, datatag, '_',plottitle,"_dlp_prevalence.rds"))
   # nrow <- length(unique(cls_df$timepoint))
   # png(paste0(output_dir,datatag, "_",plottitle, ".png"), height = 2*250, width=2*(50*nrow+20),res = 2*72)
@@ -709,6 +762,7 @@ get_meta_data <- function(cell_clones_fn, library_grouping_fn, datatag=''){
   cell_clones <- data.table::fread(cell_clones_fn) %>% as.data.frame()
   cell_clones <- cell_clones %>% 
     dplyr::filter(!clone_id %in% c('Un','None','un','unassigned'))
+  cell_clones <- process_old_clone_labels(cell_clones, datatag)
   # unique(cell_clones$clone_id)
   # dim(cell_clones)
   # if(is.null(library_grouping_fn)){
@@ -756,6 +810,7 @@ get_meta_data <- function(cell_clones_fn, library_grouping_fn, datatag=''){
   # unique(cell_clones$treatmentSt)
   cell_clones <- cell_clones %>% left_join(grouping_df, by = c("library_id","sample_id"))
   unique(cell_clones$treatmentSt)
+  unique(cell_clones$treatmentstr)
   if(datatag=='SA609'){
     obs_samples <- c('SA609X3XB01584','SA609X4XB03080','SA609X5XB03223',
                      'SA609X6XB03447','SA609X7XB03554','SA609X4XB003083',
@@ -774,7 +829,9 @@ get_meta_data <- function(cell_clones_fn, library_grouping_fn, datatag=''){
     # })
     # unique(cell_clones$sample)
     cell_clones <- cell_clones %>%
-      dplyr::filter(sample_id %in% obs_samples & treatmentSt!='M')
+      dplyr::select(-treatmentSt) %>%
+      dplyr::rename(treatmentSt=treatmentstr) %>%
+      dplyr::filter(sample_id %in% obs_samples) # & treatmentSt!='M'
     
     # cell_clones2 <- cell_clones %>%
     #   dplyr::filter(clone_id=='E' & treatmentstr!='M')
@@ -788,8 +845,9 @@ get_meta_data <- function(cell_clones_fn, library_grouping_fn, datatag=''){
     # treatment_desc <- paste0(meta_pts[datatag],' ', c("Rx","RxH","UnRx"))
     treatment_desc <- c("Rx","RxH","UnRx")
     names(treatment_desc) <- c("R","H","U")
+    print(unique(cell_clones$treatmentSt))
     cell_clones$treatment_desc <- treatment_desc[cell_clones$treatmentSt]
-    # unique(cell_clones$treatment_desc)
+    print(unique(cell_clones$treatment_desc))
   }else{
     # unique(cell_clones$treatmentSt)
     cell_clones <- cell_clones %>% 

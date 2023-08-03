@@ -6,7 +6,7 @@ suppressMessages({
   library("TxDb.Hsapiens.UCSC.hg19.knownGene")
   library("edgeR")
   library("csaw")
-  library(tidyverse)
+  library("tidyverse")
   library("ggplot2")
 })
 

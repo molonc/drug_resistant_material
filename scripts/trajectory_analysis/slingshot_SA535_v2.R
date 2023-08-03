@@ -1,8 +1,8 @@
 # Run slingshot SA535
 
 
-script_dir <- '/home/htran/Projects/farhia_project/rnaseq/trajectory_analysis/'
-source(paste0(script_dir, "slingshot_utils.R"))
+script_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/scripts/'
+source(paste0(script_dir, "trajectory_analysis/slingshot_utils.R"))
 
 datatag <- 'SA535'
 input_dir <- paste0('/home/htran/storage/datasets/drug_resistance/rna_results/',datatag,'_rna/')
@@ -50,13 +50,14 @@ crv_umap_embed <- readRDS(paste0(save_dir, "slingshot_",datatag,start_cls,"_UMAP
 # sce <- readRDS(paste0(output_dir, datatag,'_',nfeatures_use,'_rd_sce.rds'))
 sce <- readRDS(paste0(output_dir, datatag,'_',nfeatures_use,'_rd_sce_clones.rds'))
 dim(sce)
-colnames(sce)[1]
+# colnames(sce)[1]
 colnames(sce) <- sce$cell_id
 sce$treatmentSt <- sce$treat
-rownames(sce)[1]
+# rownames(sce)[1]
+# sce$treat[1]
 # saveRDS(sce, paste0(output_dir, datatag,'_',nfeatures_use,'_rd_sce_clones.rds'))
 # saveRDS(sce, paste0(output_dir, datatag,'_',nfeatures_use,'_rd_sce.rds'))
-plot_all_lingeages(sce, crv_umap_embed)
+plot_all_lingeages(sce, crv_umap_embed, output_dir, datatag)
 
 segment_CNV_fn <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/dlp_cnv/SA535_cnv_mat.csv'
 sign_genes_fn <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/trajectory_genes/SA535_total_genes_modules_act_repr_trans_08_Dec.csv.gz'

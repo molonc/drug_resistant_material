@@ -1,4 +1,4 @@
-script_dir <- '/home/htran/Projects/farhia_project/rnaseq/trajectory_analysis/'
+script_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/scripts/trajectory_analysis/'
 source(paste0(script_dir, "slingshot_utils.R"))
 source(paste0(script_dir, "tradeseq_utils.R"))
 # Slingshot steps: 
@@ -23,12 +23,8 @@ save_dir <- paste0('/home/htran/storage/datasets/drug_resistance/rna_results/',d
 #                              corrected_mtx_fn=NULL, datatag, 
 #                              return_sce=F, save_data=T)
 # sce <- readRDS(paste0(input_dir,'slingshot_trajectory/BE_mtx_v2/SA609_norm_BE_sce.rds'))
-# sce <- readRDS(paste0(input_dir,'slingshot_trajectory/withBE_SA609_v2/SA609_3000_rd_sce.rds'))
 print(dim(sce))
 assayNames(sce)
-df <- as.matrix(counts(sce))
-
-library(SingleCellExperiment)
 output_dir <- save_dir
 prepare_data_Seurat(sce, output_dir, datatag, save_srt=FALSE)
 sce <- readRDS(paste0(save_dir,'SA609_3000_rd_sce.rds'))
@@ -95,29 +91,57 @@ prepare_data_Seurat(sce, output_dir, datatag, save_srt)
 
 
 # Load data for trajectory plotting
-output_dir <- save_dir
-nfeatures_use <- 3000
-sce <- readRDS(paste0(save_dir, datatag,'_',nfeatures_use,'_rd_sce.rds'))
-dim(sce)
-# sce <- readRDS(paste0(output_dir, datatag,'_',nfeatures_use,'_rd_sce.rds'))
-# pca_df <- data.table::fread(paste0(output_dir, datatag,'_',nfeatures_use, "_norm_pca.csv")) %>% as.data.frame()
-# umap_df <- data.table::fread(paste0(output_dir, datatag,'_',nfeatures_use, "_norm_umap.csv")) %>% as.data.frame()
-# dim(umap_df)
-start_cls <- '10'
-rd_use <- 'PCA'
-nfeatures_use <- 3000
-crv_umap_embed <- readRDS(paste0(save_dir, "slingshot_",datatag,'_',paste(start_cls, collapse='_'),"_UMAP_embed_crv.rds"))
-# crv1 <- readRDS(paste0(save_dir, "slingshot_pseudotime_SA609_10_PCA_crv.rds"))
+viz_all_trajectories <- function(){
+  script_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/scripts/trajectory_analysis/'
+  source(paste0(script_dir, "slingshot_utils.R"))
+  
+  datatag <- 'SA609'
+  base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+  input_dir <- paste0('/home/htran/storage/datasets/drug_resistance/rna_results/',datatag,'_rna/')
+  save_dir <- paste0('/home/htran/storage/datasets/drug_resistance/rna_results/',datatag,'_rna/slingshot_trajectory/withBE_SA609_v2/')
+  
+  output_dir <- save_dir
+  nfeatures_use <- 3000
+  sce <- readRDS(paste0(save_dir, datatag,'_',nfeatures_use,'_rd_sce.rds'))
+  dim(sce)
+  # sce$sample[1]
+  # sce <- readRDS(paste0(output_dir, datatag,'_',nfeatures_use,'_rd_sce.rds'))
+  # pca_df <- data.table::fread(paste0(output_dir, datatag,'_',nfeatures_use, "_norm_pca.csv")) %>% as.data.frame()
+  # umap_df <- data.table::fread(paste0(output_dir, datatag,'_',nfeatures_use, "_norm_umap.csv")) %>% as.data.frame()
+  # dim(umap_df)
+  start_cls <- '10' # early time point, untreated
+  rd_use <- 'PCA'
+  nfeatures_use <- 3000
+  crv_umap_embed <- readRDS(paste0(save_dir, "slingshot_",datatag,'_',paste(start_cls, collapse='_'),"_UMAP_embed_crv.rds"))
+  # crv1 <- readRDS(paste0(save_dir, "slingshot_pseudotime_SA609_10_PCA_crv.rds"))
+  
+  res <- plot_all_lingeages(sce, crv_umap_embed, output_dir, datatag)
+  
+}
 
-res <- plot_all_lingeages(sce, crv_umap_embed, output_dir, datatag)
-
-segment_CNV_fn <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/dlp_cnv/SA609_cnv_mat.csv'
+segment_CNV_fn <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/dlp_cnv/SA609_cnv_mat.csv.gz'
 sign_genes_fn <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/trajectory_genes/SA609_total_genes_modules_act_repr_trans_08_Dec.csv.gz'
-get_cis_trans_genes(sce, crv_umap_embed, output_dir, datatag, 
-                    segment_CNV_fn, sign_genes_fn, start_cls)
+get_cis_trans_genes(sce, crv_umap_embed, output_dir, datatag, segment_CNV_fn, sign_genes_fn, start_cls)
 
 # Plotting
 # Look at the script Figure7_SA609.R
 
 
+
+lg2
+p_total <- cowplot::plot_grid(lg2, p, rel_widths = c(0.3, 1), ncol=2)+
+  theme(plot.background = element_rect(fill = "white", colour = "white"))
+# ggsave(paste0(save_dir,"hm_gene_modules_",datatag, ".png"),
+#        plot = ptotal_traj_609,
+#        height = 4,
+#        width = 5,
+#        # useDingbats=F,
+#        dpi=150)
+save_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/trajectory_genes/figs/'
+ggsave(paste0(save_dir,"umaps_lineages_downsample.svg"),
+       plot = p_total,
+       height = 5.5,
+       width = 7,
+       # useDingbats=F,
+       dpi=150)
 

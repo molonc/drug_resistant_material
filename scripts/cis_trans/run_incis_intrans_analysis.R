@@ -380,17 +380,7 @@ edgeR_df$ensembl_gene_id[1:3]
 
 
 
-ngenes <- 10
-is.spike <- 1:4
-means <- 2^runif(ngenes, 6, 10)
-dispersions <- 10/means + 0.2
-nsamples <- 20
-counts <- matrix(rnbinom(ngenes*nsamples, mu=means, size=1/dispersions), ncol=nsamples)
-rownames(counts) <- paste0("Gene", seq_len(ngenes))
-dim(counts)
-View(counts)
-rowMeans(counts)
-DelayedArray::rowMeans(counts)
+
 
 
 # First create pairgroup metadata file

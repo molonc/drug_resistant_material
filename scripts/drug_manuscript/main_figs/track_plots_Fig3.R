@@ -1,43 +1,43 @@
-# df <- data.table::fread('/home/htran/storage/datasets/drug_resistance/rna_results/SA535_rna/slingshot_trajectory/tradeseq/patternRes.csv')
-# dim(df)
-# colnames(df)
-# df <- df %>%
-#   dplyr::filter(pvalue<0.05 & gene_symb=='MYC')
-# 'MYC' %in% df$gene_symb
 
-source('/home/htran/Projects/farhia_project/rnaseq/pipeline/utils/plot_utils.R')
+base_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/'
+source(paste0(base_dir,'scripts/pipeline/utils/plot_utils.R'))
 
 clones <- c('R','H')
 # clones <- c('A','H')
-save_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/dlp_cnv/'
+save_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/dlp_cnv/'
+# save_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/dlp_cnv/'
 base_name <- 'SA609'
 df_cnv_fn <- paste0(save_dir,base_name, '_cnv_mat.csv.gz')
 
 # meta_genes <- data.frame(ensembl_gene_id=rownames(norm_sce), stringsAsFactors=F)
 # data.table::fwrite(meta_genes, paste0(save_dir,base_name, '_meta_filtered_genes.csv'))
-meta_genes <- data.table::fread(paste0(save_dir,base_name, '_meta_filtered_genes.csv')) %>% as.data.frame()
+meta_genes <- data.table::fread(paste0(save_dir, base_name, '_meta_filtered_genes.csv')) %>% as.data.frame()
 dim(meta_genes)
 
 pcnv_609 <- plot_CNV(df_cnv_fn, clones, meta_genes)
 pcnv_609$cnv_plot
 pcnv_609$plg
-saveRDS(pcnv_609, paste0(save_dir,base_name, '_pcnv.rds'))
-input_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/cis_trans/signif_genes/'
-save_fig_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/dlp_cnv/trackplots/'
+
+save_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/dlp_cnv/'
+save_fig_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/dlp_cnv/trackplots/'
+saveRDS(pcnv_609, paste0(save_fig_dir,base_name, '_pcnv.rds'))
+input_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/cis_trans/signif_genes/'
+# input_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/cis_trans/signif_genes/'
+# save_fig_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/dlp_cnv/trackplots/'
 # dir.create(save_fig_dir)
 base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
 # plottitle <- 'SA609 cisplatin: logFC X7-Rx clone A vs X7-UnRx clone H'
 plottitle <- NULL
 # desc <- 'log2FC X7-Rx clone A vs X7-UnRx clone H'
 # desc <- 'SA609: Rx X7:cloneA vs. UnRx X7:cloneH'
-desc <- 'Pt4: Rx X7:cloneA vs. UnRx X7:cloneH'
+desc <- 'Pt4: Rx X7:clone A vs. UnRx X7:clone H'
 datatag <- 'SA609'
 tag <- 'Pt4'
 
 # deg_fn <- paste0(base_dir,'SA609_rna/deg_analysis/SA609-v6/SA609_UTTTT_R_UUUUU_H/signif_genes.csv')
 deg_fn <- paste0(input_dir,'scrande_SA609_4/signif_genes.csv')
 # additional_genes_fn <- paste0(base_dir, 'rnaseq_v6/trackplots_v3/SA609_R_vs_H.csv')
-additional_genes_fn <- paste0(save_fig_dir, 'SA609_R_vs_H_annotated_genes.csv')
+additional_genes_fn <- paste0(save_dir, 'SA609_R_vs_H_annotated_genes.csv')
 # subtitle <- paste0(datatag,': in cis DE genes, Rx X7:cloneA vs. UnRx X7:cloneH')
 # subtitle <- paste0(tag,': Rx X7:cloneA vs. UnRx X7:cloneH, in cis DE genes')
 subtitle <- ' '
@@ -75,11 +75,11 @@ main_plot <- cowplot::plot_grid(
   track_intrans$track_plot,
   track_incis$track_plot,
   prop_cistrans_plt$p ,
-  pcnv_609$cnv_plot,
+  pcnv_609$cnv_plot + theme(legend.position = 'none'),
   ncol = 1,
-  rel_heights = c(1.6,1.6,0.8,1.3),
-  align = 'v'#,
-  # labels = c('a')
+  rel_heights = c(1.6,1.6,0.8,1.1),
+  align = 'v',
+  labels = c('','','','','')
 )
 
 
@@ -93,6 +93,7 @@ save_fn <- gsub(':','_',save_fn)
 png(paste0(save_fig_dir,save_fn,"_track_plot.png"), height = 2*490, width=2*1000, res = 2*72)
 print(main_plot)
 dev.off()
+
 ggsave(paste0(save_dir,"Fig23_part1_logFC_legend.png"),
        plot = track_intrans$plg,
        height = 0.8,
@@ -116,7 +117,7 @@ ggsave(paste0(save_dir,"Fig23_part1_cistrans_chr_legend.png"),
 ggsave(paste0(save_dir,"Fig23_part1_track.png"),
        plot = main_plot,
        height = 5,
-       width = 7,
+       width = 9,
        # useDingbats=F,
        dpi=200)
 
@@ -144,13 +145,15 @@ head(meta_genes)
 pcnv_535 <- plot_CNV(df_cnv_fn, clones, meta_genes)
 saveRDS(pcnv_535,paste0(save_fig_dir,base_name, '_pcnv.rds'))
 pcnv_535 <- readRDS(paste0(save_fig_dir,base_name, '_pcnv.rds'))
+
+
 # DEG plot
 input_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/cis_trans/'
 save_fig_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/dlp_cnv/trackplots/'
 # dir.create(save_fig_dir)
 base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
 # desc <- 'log2FC X10-Rx T vs X9-UnRx J'
-desc <- 'log2FC X10-Rx A vs. X9-UnRx G'
+desc <- 'Pt5: Rx X10:cloneA vs. UnRx X9:cloneG'
 datatag <- 'SA535'
 
 save_dir <- save_fig_dir

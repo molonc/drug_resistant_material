@@ -1,4 +1,6 @@
-source('/home/htran/Projects/farhia_project/rnaseq/pipeline/drug_manuscript/cnv_viz_utils.R')
+
+script_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/scripts/'
+source(paste0(script_dir,'drug_manuscript/cnv_viz_utils.R'))
 
 clones <- c('R','H')
 # clones <- c('A','H')
@@ -9,21 +11,21 @@ df_cnv_fn <- paste0(save_dir,base_name, '_cnv_mat.csv')
 
 input_dir <- '/home/htran/storage/datasets/drug_resistance/dlp_results/SA609/'
 # input_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/dlp_cnv/Fig6_Mirela_cnv/'
-df_cnv_fn <- paste0(input_dir, 'total_merged_filtered_states_original.csv') #
+df_cnv_fn <- paste0(input_dir, 'total_merged_filtered_states.csv.gz') #
+
+
 
 base_dir <- '/home/htran/storage/datasets/drug_resistance/dlp_results/'
-input_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/cell_clones/'
+input_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/cell_clones/'
 save_dir <- paste0(input_dir, 'fig_medianCNV/')
-
-
-
 
 
 datatag <- 'SA501'
 copynumber_fn <- paste0(base_dir,'SA501_v2/total_merged_filtered_states.csv')
-cellclone_fn <- paste0(input_dir, datatag, '_cell_clones.csv')
+cellclone_fn <- paste0(input_dir, datatag, '_cell_clones.csv.gz')
+library_grouping_fn <- paste0(input_dir, datatag, '_DLP_library_groupings.csv.gz') 
 df_cnv <- get_median_genotype_v3(copynumber_fn, datatag, save_dir,
-                                 cellclone_fn, library_grouping_fn=NULL) 
+                                 cellclone_fn, library_grouping_fn) 
 dim(df_cnv)
 res_501 <- plot_CNV_profile(df_cnv, clones= levels(df_cnv$clone),plttitle='Pt1')
 res_501$cnv_plot
@@ -123,19 +125,25 @@ ggsave(paste0(save_dir,"Fig_SUPP2_segmentCNV.png"),
 
 
 
-
-
 save_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/dlp_cnv/'
-results_dir <- '/home/htran/storage/datasets/drug_resistance/dlp_results/SA501_v2/'
+results_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/cell_clones/'
 datatag <- 'SA501'
-res_501 <- get_median_genotype_v2(datatag, results_dir, copynumber_fn=NULL, cellclone_fn=NULL,
-                                  calcul_distance=T, distance_type='Manhattan')
-res_501 <- readRDS(paste0(save_dir, datatag, '_results_CNA_distance.rds'))
 
-saveRDS(res_501, paste0(save_dir, datatag, '_results_CNA_distance.rds'))
+save_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/dlp_cnv/medianCNV_MainFig2/'
+if(!dir.exists(save_dir)){
+        dir.create(save_dir)
+}
+copynumber_fn <- paste0(results_dir, datatag, '_total_merged_filtered_states.csv.gz')
+cellclone_fn <- paste0(results_dir, datatag, '_cell_clones.csv.gz')
+res_501 <- get_median_genotype_v2(datatag, save_dir, copynumber_fn, cellclone_fn,
+                                  calcul_distance=T, distance_type='Manhattan')
+# res_501 <- readRDS(paste0(save_dir, datatag, '_results_CNA_distance.rds'))
+
+# saveRDS(res_501$hm, paste0(save_dir, datatag, '_results_CNA_distance_plt.rds'))
 min(res_501$out_mtx$CNA_Distance)
 max(res_501$out_mtx$CNA_Distance)
 dim(res_501$dist_to_median)
+
 results_dir <- '/home/htran/storage/datasets/drug_resistance/dlp_results/SA604_v2/'
 datatag <- 'SA604'
 res_SA604 <- get_median_genotype_v2(datatag, results_dir, copynumber_fn=NULL, cellclone_fn=NULL,
@@ -150,15 +158,15 @@ datatag <- 'SA530'
 res_SA530 <- get_median_genotype_v2(datatag, results_dir, copynumber_fn=NULL, cellclone_fn=NULL,
                                     calcul_distance=T, distance_type='Manhattan')
 saveRDS(res_SA530, paste0(save_dir, datatag, '_results_CNA_distance.rds'))
-res_SA530 <- readRDS(paste0(save_dir, datatag, '_results_CNA_distance.rds'))
+res_SA530 <- readRDS(paste0(save_dir, datatag, '_results_CNA_distance_plt.rds'))
 
 
 results_dir <- '/home/htran/storage/datasets/drug_resistance/dlp_results/SA1035_new_encode/SA1035_Tyler_v2/'
 datatag <- 'SA1035'
 res_SA1035 <- get_median_genotype_v2(datatag, results_dir, copynumber_fn=NULL, cellclone_fn=NULL,
                                      calcul_distance=T, distance_type='Manhattan')
-saveRDS(res_SA1035, paste0(save_dir, datatag, '_results_CNA_distance.rds'))
-res_SA1035 <- readRDS(paste0(save_dir, datatag, '_results_CNA_distance.rds'))
+saveRDS(res_SA1035, paste0(save_dir, datatag, '_results_CNA_distance_plt.rds'))
+res_SA1035 <- readRDS(paste0(save_dir, datatag, '_results_CNA_distance_plt.rds'))
 # min(res_SA1035$out_mtx$CNA_Distance)
 # max(res_SA1035$out_mtx$CNA_Distance)
 
@@ -179,8 +187,8 @@ stat_cnv <- df
 res_SA609 <- get_median_genotype_v2(datatag, results_dir, copynumber_fn=NULL, cellclone_fn=NULL,
                                     calcul_distance=T, distance_type='Manhattan')
 # res_SA609 <- res
-saveRDS(res_SA609, paste0(save_dir, datatag, '_results_CNA_distance.rds'))
-res_SA609 <- readRDS(paste0(save_dir, datatag, '_results_CNA_distance.rds'))
+saveRDS(res_SA609$hm, paste0(save_dir, datatag, '_results_CNA_distance_plt.rds'))
+res_SA609 <- readRDS(paste0(save_dir, datatag, '_results_CNA_distance_plt.rds'))
 min(res_SA609$out_mtx$CNA_Distance)
 max(res_SA609$out_mtx$CNA_Distance)
 
@@ -191,6 +199,7 @@ res_SA535 <- get_median_genotype_v2(datatag, results_dir, copynumber_fn=NULL, ce
                                     calcul_distance=T, distance_type='Manhattan')
 saveRDS(res_SA535, paste0(save_dir, datatag, '_results_CNA_distance.rds'))
 res_SA535 <- readRDS(paste0(save_dir, datatag, '_results_CNA_distance.rds'))
+
 
 
 res_501$out_mtx$datatag <- 'Pt1'

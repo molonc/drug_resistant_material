@@ -11,10 +11,14 @@ suppressPackageStartupMessages({
   library(circlize)
   library(ComplexHeatmap)
 })
-
+suppressPackageStartupMessages(library(circlize))
+options(dplyr.summarise.inform = FALSE)
+options(tidyverse.quiet = TRUE)
 library(extrafont)
-font_import(prompt=F, paths ='/usr/share/fonts/truetype/myfonts/') # import Helvetica font
+# font_import(prompt=F, paths ='/usr/share/fonts/truetype/myfonts/') # import Helvetica font
 fonts()
+my_font <- "Helvetica"
+
 
 get_slingshot_pseudotime_v2 <- function(sce, save_dir, datatag, 
                                         start_cls=NULL, cl=NULL, rd_use='PCA'){
@@ -45,7 +49,7 @@ get_slingshot_pseudotime_v2 <- function(sce, save_dir, datatag,
   dim(pseudotime)
   pseudotime$cell_id <- rownames(pseudotime)
   # View(head(pseudotime))
-  cellWeights <- slingCurveWeights(crv1) %>% as.data.frame()
+  cellWeights <- slingshot::slingCurveWeights(crv1) %>% as.data.frame()
   dim(cellWeights)
   cellWeights$cell_id <- rownames(cellWeights)
   data.table::fwrite(pseudotime, paste0(save_dir, "slingshot_",datatag,'_',paste(start_cls, collapse='_'),'_',rd_use,"_pseudotime.csv"))
@@ -86,15 +90,29 @@ get_slingshot_pseudotime_v2 <- function(sce, save_dir, datatag,
 } 
 plot_whole_lineages_treatmentSt <- function(pt, rd, 
                                            curves, df_cls_centers, 
-                                           output_dir, datatag, cols_use=NULL,
+                                           output_dir, datatag, 
+                                           downsample_ratio=0.25, cols_use=NULL,
                                            x_plt='UMAP_1', y_plt='UMAP_2'){
+  col_plt <- 'treatmentSt'
+  # pt <- pseudo_out 
+  # rd_backup <- rd 
+  # curves, df_cls_centers, 
+  # save_figs_dir, datatag, cols_use=NULL,
+  # x_plt='UMAP_1'
+  # y_plt='UMAP_2'
   # head(curves)
   if(is.null(cols_use)){
     # res2 <- set_color_treatmentSt(rd[,'treatmentSt'], datatag, cols=NULL)
     # cols_use <- res2$clone_palette
-    ts_colors <- set_color_treatmentSt(rd[,'treatmentSt'], datatag, cols=NULL)
-    cols_use <- ts_colors$color_code
-    names(cols_use) <- ts_colors$treatmentSt
+    
+    ## Version with time point colors
+    # ts_colors <- set_color_treatmentSt(rd[,'treatmentSt'], datatag, cols=NULL)
+    # cols_use <- ts_colors$color_code
+    # names(cols_use) <- ts_colors$treatmentSt
+    
+    ## Very simple version
+    cols_use <- c("#4d4d4d","#3575e8","#ffd700")
+    names(cols_use) <- c('UnRx','Rx','RxH')
   }
   cols_use <- c(cols_use, 'NA'='#E8E8E8')
   
@@ -130,24 +148,34 @@ plot_whole_lineages_treatmentSt <- function(pt, rd,
   if(!'cell_id' %in% colnames(rd)){
     rd$cell_id <- rownames(rd)
   }
+  if(downsample_ratio>0){
+    print('Before downsampling')
+    print(dim(rd))
+    ## Original version
+    # cells_use <- rd %>%
+    #   # dplyr::filter(cluster_label %in% obs_cls)%>%
+    #   dplyr::pull(cell_id)
+    
+    ## Downsample data, make plot clearer
+    cells_use <- downsample_by_cluster_label_treatmentSt(rd, downsample_ratio=downsample_ratio) #0.15
+    print(length(cells_use))
+    pt <- pt %>%
+      dplyr::filter(cell_id %in% cells_use)
+  }
   
-  cells_use <- rd %>%
-    # dplyr::filter(cluster_label %in% obs_cls)%>%
-    dplyr::pull(cell_id)
-  
-  pt <- pt %>%
-    dplyr::filter(cell_id %in% cells_use)
-  
-  rd <- rd %>% left_join(pt, by=c('cell_id'))
-  # dim(rd)
+  # rd <- rd %>% left_join(pt, by=c('cell_id'))
+  rd <- rd %>% inner_join(pt, by=c('cell_id'))
+  # print('After downsampling')
+  print(dim(rd))
   # colors <- pal[cut(rd[,lid], breaks = 100)]
   # rd$treatmentSt <- ifelse(!is.na(rd[,lid]),rd$treatmentSt,'NA')
-  col_plt <- 'treatmentSt'
+  
   # length(colors)
   df_cls_centers1 <- df_cls_centers # clusters center
   # Just to avoid overlap with cluster centers
   # df_cls_centers$x1 <- df_cls_centers$x1 + runif(dim(df_cls_centers)[1], -0.5, 0.5)
   # df_cls_centers$y1 <- df_cls_centers$y1 + runif(dim(df_cls_centers)[1], -0.5, 0.5)
+  
   # Just to avoid overlap with cluster centers
   df_cls_centers$x1 <- df_cls_centers$x1 + 0.5
   df_cls_centers$y1 <- df_cls_centers$y1 - 0.2
@@ -184,60 +212,107 @@ plot_whole_lineages_treatmentSt <- function(pt, rd,
   rownames(patient_names) <- patient_names$datatag
   my_font <- "Helvetica"
   plttitle <- patient_names[datatag,'pt_names']
+  
+  if(col_plt=='treatmentSt'){ # simple treatment status version
+    rd <- rd %>%
+      dplyr::mutate(
+        treatmentSt=case_when(
+          grepl('T$',treatmentSt) ~ 'Rx',
+          grepl('TU$',treatmentSt) ~ 'RxH',
+                             TRUE ~ 'UnRx'
+        ))
+  }
   p <- ggplot(rd, aes_string(x=x_plt, y=y_plt, color=col_plt)) +
-    geom_point(size=0.4, alpha=0.8) +
+    geom_point(size=1.1, alpha=0.9, shape=21) + #size=0.4
     # viridis::scale_color_viridis(discrete=F, alpha=0.8) +
     scale_color_manual(values = cols_use) +
     theme(plot.title = element_text(color="black", size=17, family=my_font),
           panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
           axis.text = element_blank(),
-          axis.title = element_text(color="black", size=11),
+          # axis.title = element_text(color="black", size=11),
+          axis.title = element_blank(),
           legend.position = 'none',
           axis.line = element_blank(),
           axis.ticks = element_blank(),
-          panel.background = element_rect(fill = "white",colour = "white")) + 
-          labs(title = plttitle)
+          panel.background = element_rect(fill = "white",colour = "white")) #+ 
+          # labs(title = plttitle)
   p <- p + geom_curve(
     aes(x = x1, y = y1, xend = x2, yend = y2),
     data = curves, inherit.aes = F,
-    curvature = 0.25, size = 0.8,
-    arrow = arrow(length = unit(0.03, "npc"))
+    curvature = 0.25, size = 0.6, colour = "#2F4F4F",alpha=0.8,
+    arrow = arrow(length = unit(0.04, "npc"))
   )
-  # Draw curves
-  p <- p + annotate("text", x = df_cls_centers$x1, y = df_cls_centers$y1, 
-                    label = df_cls_centers$cls_lb, size=6, color=cls_col)
+  # Draw cluster labels
+  # p <- p + annotate("text", x = df_cls_centers$x1, y = df_cls_centers$y1, 
+  #                   label = df_cls_centers$cls_lb, size=6, color=cls_col)
   
   # Draw cluster centers
   for(startp in ls_startp){
     p <- p + annotate(geom="point", startp$x1, y = startp$y1, 
-                      colour = "green", size = 4.5, alpha=0.4) # starting point
+                      colour = "green", size = 6.5, alpha=0.3) # starting point
   }
   for(endp in ls_endp){
     p <- p + annotate(geom="point", endp$x1, y = endp$y1, 
-                      colour = "red", size = 4.5, alpha=0.4) # end point
+                      colour = "red", size = 6, alpha=0.3) # end point
   }
   
   p <- p + annotate(geom="point", df_cls_centers1$x1, y = df_cls_centers1$y1, 
-                    colour = "black", size = 2) 
+                    colour = "#2F4F4F", size = 2.5, alpha=0.6) 
   # 
   # p
   
-  png(paste0(output_dir,"ts_slingshot_out_wholedataset_",datatag,".png"), height = 2*400, width=2*600,res = 2*72)
-  print(p)
-  dev.off()
+  # png(paste0(output_dir,"ts_slingshot_out_wholedataset_",datatag,".png"), height = 2*400, width=2*600,res = 2*72)
+  # print(p)
+  # dev.off()
+  # ggsave(paste0(save_figs_dir,"umaps_lineages_",datatag,".png"),
+  #        plot = p,
+  #        height = 4,
+  #        width = 5.5,
+  #        # useDingbats=F,
+  #        dpi=250)
+  
   saveRDS(p, paste0(output_dir,"ts_slingshot_out_wholedataset_",datatag,".rds"))
   return(p)
 }
 
 # pt <- pseudo_out
 
+downsample_by_cluster_label_treatmentSt <- function(rd, downsample_ratio=0.3){
+  if(!'cell_id' %in% colnames(rd)){
+    rd$cell_id <- rownames(rd)
+  }
+  set.seed(243)
+  cls <- unique(rd$cluster_label)
+  cells_use <- c()
+  for(cl in cls){
+    tmp <- rd %>%
+      dplyr::filter(cluster_label==cl) 
+    dim(tmp)
+    for(s in unique(tmp$treatmentSt)){
+      cells_cls <- tmp %>%
+        dplyr::filter(treatmentSt==s)  %>%
+        dplyr::pull(cell_id)
+      if(length(cells_cls)>=10){ # very small outliers, remove from downsampling list
+        cells_cls <- sample(cells_cls, round(length(cells_cls)*downsample_ratio))
+        cells_use <- c(cells_use, cells_cls)  
+      }
+      
+    }  
+  }
+  print('Number of downsampling cells: ')
+  print(length(cells_use))
+  # rd <- rd %>%
+  #   dplyr::filter(cell_id %in% cells_use) 
+  return(cells_use)
+}
 plot_given_lineage_treatmentSt <- function(pt, lid, rd, 
                                            curves, df_cls_centers, 
                                            output_dir, datatag, plttitle, cols_use=NULL,
-                                           x_plt='UMAP_1', y_plt='UMAP_2'){
+                                           x_plt='UMAP_1', y_plt='UMAP_2', downsample_viz=FALSE){
   # head(curves)
   if(is.null(cols_use)){
-    ts_colors <- set_color_treatmentSt(rd[,'treatmentSt'], datatag, cols=NULL)
+    # ts_colors <- set_color_treatmentSt(rd[,'treatmentSt'], datatag, cols=NULL)
+    ts_colors <- set_color_treatmentSt_simplify_version(rd[,'treatmentSt'], datatag, cols=NULL)
     cols_use <- ts_colors$color_code
     # names(cols_use) <- ts_colors$label
     # lg2 <- plot_colors(cols_use, save_dir, legend_label='treatment', 1)
@@ -271,7 +346,7 @@ plot_given_lineage_treatmentSt <- function(pt, lid, rd,
   if(!'cell_id' %in% colnames(rd)){
     rd$cell_id <- rownames(rd)
   }
-  
+  rd <- downsample_by_cluster_label(rd, downsample_ratio=0.4)
   cells_use <- rd %>%
     dplyr::filter(cluster_label %in% obs_cls)%>%
     dplyr::pull(cell_id)
@@ -321,8 +396,10 @@ plot_given_lineage_treatmentSt <- function(pt, lid, rd,
     cls_col <- 'red'
   }
   my_font <- "Helvetica"
+  plttitle <- NULL
+  unique(rd$treatmentSt)
   p <- ggplot(rd, aes_string(x=x_plt, y=y_plt, color=col_plt)) +
-    geom_point(size=0.2, alpha=0.7) +
+    geom_point(size=0.3, alpha=1, shape=21) +
     # viridis::scale_color_viridis(discrete=F, alpha=0.8) +
     scale_color_manual(values = cols_use) +
     theme(#plot.title = element_blank(),
@@ -330,29 +407,37 @@ plot_given_lineage_treatmentSt <- function(pt, lid, rd,
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(), 
           axis.text = element_blank(),
-          axis.title = element_text(color="black", size=10, family=my_font),
+          # axis.title = element_text(color="black", size=10, family=my_font),
+          axis.title = element_blank(),
           legend.position = 'none',
           # axis.line = element_blank(),
           axis.ticks = element_blank(),
-          panel.background = element_rect(fill = "white",colour = "grey")) + 
-    labs(title = plttitle, x=NULL, y=NULL)
+          panel.background = element_rect(fill = "white",colour = "grey"),
+          panel.spacing = unit(c(0, 0, 0, 0), "null"),
+          plot.margin = unit(c(0, 0, 0, 0), "null"),
+          legend.margin=margin(0,0,0,0),
+          # legend.box.margin=margin(-2,-2,-2,-2),
+          panel.border = element_rect(colour = "darkgray", fill=NA, size=0.1)
+    ) #+ 
+    # labs(title = plttitle, x=NULL, y=NULL)
   p <- p + geom_curve(
     aes(x = x1, y = y1, xend = x2, yend = y2),
     data = curves, inherit.aes = F,
-    curvature = 0.25, size = 0.8,
-    arrow = arrow(length = unit(0.03, "npc"))
+    curvature = 0.25, size = 0.7,colour = "#088F8F", alpha=1,
+    arrow = arrow(length = unit(0.06, "npc"))
   )
-  # Draw curves
-  p <- p + annotate("text", x = df_cls_centers$x1, y = df_cls_centers$y1, 
-                    label = df_cls_centers$cls_lb, size=5, color=cls_col)
+  
+  # Draw cluster labels
+  # p <- p + annotate("text", x = df_cls_centers$x1, y = df_cls_centers$y1, 
+  #                   label = df_cls_centers$cls_lb, size=5, color=cls_col)
   
   # Draw cluster centers
   p <- p + annotate(geom="point", startp$x1, y = startp$y1, 
-                    colour = "green", size = 4, alpha=0.4) # starting point
+                    colour = "green", size = 6, alpha=0.4) # starting point
   p <- p + annotate(geom="point", endp$x1, y = endp$y1, 
-                    colour = "red", size = 4, alpha=0.4) # end point
+                    colour = "red", size = 6, alpha=0.4) # end point
   p <- p + annotate(geom="point", df_cls_centers1$x1, y = df_cls_centers1$y1, 
-                    colour = "black", size = 2) 
+                    colour = "#2F4F4F", size = 4.5, alpha=0.4) 
   # 
   # p
   
@@ -446,7 +531,7 @@ plot_given_lineage <- function(pt, lid, rd, curves, df_cls_centers,
   # }
   
   p <- ggplot(rd, aes_string(x=x_plt, y=y_plt, color=col_plt)) +
-    geom_point(size=0.4) +
+    geom_point(size=0.4, alpha=0.6, shape=21) +
     viridis::scale_color_viridis(discrete=F, alpha=0.8) +
     # scale_color_manual(values = cols_use) + 
     theme(plot.title = element_blank(),
@@ -460,12 +545,11 @@ plot_given_lineage <- function(pt, lid, rd, curves, df_cls_centers,
   p <- p + geom_curve(
     aes(x = x1, y = y1, xend = x2, yend = y2),
     data = curves, inherit.aes = F,
-    curvature = 0.25, size = 1,
-    arrow = arrow(length = unit(0.03, "npc"))
+    curvature = 0.25, size = 0.8, colour = "#2F4F4F", alpha=0.8,
+    arrow = arrow(length = unit(0.07, "npc")) #length = unit(2, "mm")
   )
-  # Draw curves
-  p <- p + annotate("text", x = df_cls_centers$x1, y = df_cls_centers$y1, 
-                    label = df_cls_centers$cls_lb, size=7, color=cls_col)
+  # p <- p + annotate("text", x = df_cls_centers$x1, y = df_cls_centers$y1, 
+  #                   label = df_cls_centers$cls_lb, size=7, color=cls_col)
   
   # Draw cluster centers
   p <- p + annotate(geom="point", startp$x1, y = startp$y1, 
@@ -473,7 +557,7 @@ plot_given_lineage <- function(pt, lid, rd, curves, df_cls_centers,
   p <- p + annotate(geom="point", endp$x1, y = endp$y1, 
                     colour = "red", size = 4, alpha=0.4) # end point
   p <- p + annotate(geom="point", df_cls_centers1$x1, y = df_cls_centers1$y1, 
-                    colour = "black", size = 2) 
+                    colour = "#2F4F4F", size = 2, alpha=0.7) 
   
   # 
   # p
@@ -634,10 +718,13 @@ get_cis_trans_genes <- function(sce, crv_umap_embed,
   # head(cnv)
   
   signf_genes <- data.table::fread(sign_genes_fn) %>% as.data.frame()
-  common_genes <- intersect(signf_genes$ens_gene_id, cnv$ens_gene_id)
-  length(common_genes)
+  common_genes <- intersect(signf_genes$ens_gene_id, cnv$ensembl_gene_id)
+  
+  print('Number of common genes: ')
+  print(length(common_genes))
   dim(signf_genes)
   genes_stat <- tibble::tibble()
+  # 'Unmapped CNV'
   for(lg in lg_ls){
     obs_clones <- meta_clone_lg %>%
       dplyr::filter(lineage==lg) %>%
@@ -645,7 +732,7 @@ get_cis_trans_genes <- function(sce, crv_umap_embed,
     
     for(g in common_genes){
       cnv_profile <- cnv %>%
-        dplyr::filter(ens_gene_id==g) %>%
+        dplyr::filter(ensembl_gene_id==g) %>%
         dplyr::select(all_of(obs_clones))
       cnv_profile <- unlist(cnv_profile[1,])
       cnv_profile <- cnv_profile[!is.na(cnv_profile)]
@@ -659,15 +746,14 @@ get_cis_trans_genes <- function(sce, crv_umap_embed,
       genes_stat <- dplyr::bind_rows(genes_stat, tmp)
     }
   }
-  genes_stat$gene_type <- ifelse(is.na(genes_stat$gene_type),'trans',genes_stat$gene_type)
+  # genes_stat$gene_type <- ifelse(is.na(genes_stat$gene_type),'trans',genes_stat$gene_type)
   dim(genes_stat)
-  sum(is.na(genes_stat$gene_type))
-  trans_genes <- signf_genes$ens_gene_id[!signf_genes$ens_gene_id %in% common_genes]
-  length(trans_genes)
+  unmapped_genes <- signf_genes$ens_gene_id[!signf_genes$ens_gene_id %in% common_genes]
+  length(unmapped_genes)
   nb_lg <- length(lg_ls)
   
-  for(g in trans_genes){
-    tmp <- tibble::tibble(ens_gene_id=rep(g,nb_lg), lineage=lg_ls, gene_type=rep('trans',nb_lg))
+  for(g in unmapped_genes){
+    tmp <- tibble::tibble(ens_gene_id=rep(g,nb_lg), lineage=lg_ls, gene_type=rep('unmapped',nb_lg))
     genes_stat <- dplyr::bind_rows(genes_stat, tmp)
   }  
     
@@ -680,7 +766,8 @@ get_cis_trans_genes <- function(sce, crv_umap_embed,
 plot_all_lingeages <- function(sce, crv_umap_embed, output_dir, datatag){
   # output_dir <- "/home/htran/storage/datasets/drug_resistance/rna_results/SA1035_rna/slingshot_trajectory/slingshot_output_400/"
   # dir.create(output_dir)
-  save_figs_dir <- paste0(output_dir,'figs_v3/')
+  # save_figs_dir <- paste0(output_dir,'figs_v4/')
+  save_figs_dir <- paste0(output_dir,'figs_v5/')
   if(!dir.exists(save_figs_dir)){
     dir.create(save_figs_dir)
   }  
@@ -692,8 +779,8 @@ plot_all_lingeages <- function(sce, crv_umap_embed, output_dir, datatag){
   umaps$cluster_label <- sce$cluster_label
   umaps$cluster_label <- as.factor(umaps$cluster_label)
   umaps$clone <- sce$clone
-  
-  umaps$treatmentSt <- colData(sce)[rownames(umaps),'treatmentSt']
+  # umaps$treatmentSt <- colData(sce)[rownames(umaps),'treatmentSt']
+  umaps$treatmentSt <- sce$treatmentSt
   
   # Draw clusters
   res <- set_color_clusters(umaps$cluster_label)
@@ -714,11 +801,42 @@ plot_all_lingeages <- function(sce, crv_umap_embed, output_dir, datatag){
   # Draw treatment
   # sce$treatmentSt <- sce$treat
   ts_colors <- set_color_treatmentSt(colData(sce)[,'treatmentSt'], datatag, cols=NULL)
-  data.table::fwrite(ts_colors, paste0(save_figs_dir, 'treatment_meta_colors.csv'))
+  ts_colors <- set_color_treatmentSt_simplify_version(colData(sce)[,'treatmentSt'], datatag, cols=NULL)
+  # data.table::fwrite(ts_colors, paste0(save_figs_dir, 'treatment_meta_colors.csv'))
   cols_use <- ts_colors$color_code
   names(cols_use) <- ts_colors$label
   lg2 <- plot_colors(cols_use, save_figs_dir, legend_label='treatment', 3)
+  
+  # ## For simplify version SA609
+  # cols_use <- c("#989898","#4d4d4d","#00FFFF","#7aa4f0","#D5FF00","#FFFF00")
+  # # names(cols_use) <- c('1 UnRx', '2,3,4 UnRx','1 Rx', '2,3,4 Rx','1 RxH', '2,3,4 RxH')
+  # names(cols_use) <- c('UnRx-X4', 'UnRx-X5,X6,X7','Rx-X4', 'Rx-X5,X6,X7','RxH-X5', 'RxH-X6,X7')
+  
+  ## For simplify-est version SA609 with only 3 status
+  cols_use <- c("#4d4d4d","#3575e8","#ffd700")
+  names(cols_use) <- c('UnRx','Rx','RxH')
+  lg2 <- plot_colors(cols_use, save_figs_dir, legend_label='Treatment', 1)
+  
+  ## For simplify version SA535
+  cols_use <- c("#989898","#4d4d4d","#00FFFF","#7aa4f0","#D5FF00","#FFFF00")
+  names(cols_use) <- c('UnRx-X6', 'UnRx-X7,X8,X9','Rx-X6', 'Rx-X7,X8,X10','RxH-X7', 'RxH-X8,X10')
+
+  ## For simplify version SA1035
+  # cols_use <- c("#989898","#4d4d4d","#00FFFF","#7aa4f0","#D5FF00","#FFFF00")
+  # # names(cols_use) <- c('1 UnRx', '2,3,4 UnRx','1 Rx', '2,3,4 Rx','1 RxH', '2,3,4 RxH')
+  # names(cols_use) <- c('UnRx-X4', 'UnRx-X5,X6,X7,X8','Rx-X5', 'Rx-X6,X7,X8','RxH-X6', 'RxH-X7,X8')
+  
+  ## For simplify-est version SA1035 with only 3 status
+  cols_use <- c("#4d4d4d","#3575e8","#ffd700")
+  names(cols_use) <- c('UnRx','Rx','RxH')
+  lg2 <- plot_colors(cols_use, save_figs_dir, legend_label='Treatment', 1)
+  
+  # cols_use <- c("#989898","#4d4d4d","#00FFFF","#7aa4f0","#D5FF00","#FFFF00")
+  # names(cols_use) <- c('1 UnRx', '2,3,4 UnRx','1 Rx', '2,3,5 Rx','1 RxH', '2,4 RxH')
+  lg2 <- plot_colors(cols_use, save_figs_dir, legend_label='', nrow_plt=2) #Treatment\n Cycle
+  lg2 <- plot_colors(cols_use, save_figs_dir, legend_label='', 6) #Treatment\n Cycle
   # lg2 <- plot_colors(cols_use, save_figs_dir, legend_label='treatment', round(dim(ts_colors)[1]/4,0))
+  
   names(cols_use) <- ts_colors$treatmentSt
   pt <- plot_curves(datatag, umaps, unique_curves_ls, 
                     ls_lineages$curves, cols_use, save_figs_dir, col_plt='treatmentSt', 
@@ -734,14 +852,13 @@ plot_all_lingeages <- function(sce, crv_umap_embed, output_dir, datatag){
   pseudo_out <- slingPseudotime(crv_umap_embed) %>% as.data.frame()
   # lid <- 'Lineage2'
   
-  plt_ls <- list()
-  for(lid in unique(curves$ligneage_id)){
-    plt_ls[[lid]] <- plot_given_lineage(pseudo_out, lid, rd, curves, df_cls_centers, 
-                                        output_dir, x_plt='UMAP_1', y_plt='UMAP_2')
-    
-  }
-  
-  
+  # plt_ls <- list()
+  # for(lid in unique(curves$ligneage_id)){
+  #   plt_ls[[lid]] <- plot_given_lineage(pseudo_out, lid, rd, curves, df_cls_centers, 
+  #                                       output_dir, x_plt='UMAP_1', y_plt='UMAP_2')
+  #   
+  # }
+  # plt_ls$Lineage1
   
   plttlts <- get_lineage_plot_label(datatag)
   lgs <- unique(curves$ligneage_id)
@@ -762,12 +879,35 @@ plot_all_lingeages <- function(sce, crv_umap_embed, output_dir, datatag){
     
   }
   
+  # plt_ts_ls$Lineage1
+  # plg <- cowplot::plot_grid(lg2, NULL, ncol=2, rel_widths = c(1,1.5))
+    ## SA535
+  # p <- cowplot::plot_grid(plt_ts_ls$Lineage4, plt_ts_ls$Lineage2, 
+  #                         plt_ts_ls$Lineage1, plt_ts_ls$Lineage3, nrow=2) + 
+  #   theme(plot.background = element_rect(fill = "white", colour = "white"))
+  # p
+  ## SA1035
+  p <- cowplot::plot_grid(plt_ts_ls$Lineage1, plt_ts_ls$Lineage2,
+                          plt_ts_ls$Lineage3, plt_ts_ls$Lineage4, nrow=2) +
+    theme(plot.background = element_rect(fill = "white", colour = "white"))
+  # p
+  dim(pseudo_out)
+  dim(rd)
+  
   p <- plot_whole_lineages_treatmentSt(pseudo_out, rd, 
                                   curves, df_cls_centers, 
-                                  save_figs_dir, datatag, cols_use=NULL,
+                                  save_figs_dir, datatag, 
+                                  downsample_ratio=0.3, cols_use=NULL,
                                   x_plt='UMAP_1', y_plt='UMAP_2')
-  
+  # p
   # SA609
+  ggsave(paste0(save_figs_dir,"SUPP_Fig11_trajectory_SA1035_plg_lineage.svg"),
+         plot = p,
+         height = 2.5,
+         width = 3.5,
+         # useDingbats=F,
+         dpi=150)
+  
   p1 <- cowplot::plot_grid(plt_ts_ls$Lineage3,plt_ts_ls$Lineage2, plt_ts_ls$Lineage1, ncol=1)
   ptotal <- cowplot::plot_grid(p,p1, rel_widths = c(2,1))
   
@@ -791,19 +931,14 @@ get_lineage_plot_label <- function(datatag=''){
   if(datatag=='SA609'){
     # meta_lineage <- data.frame(lineage=c("Lineage 1","Lineage 2","Lineage 3"),
     #                            lineage_desc=c("Lineage 3: Rx","Lineage 2: RxH","Lineage 1: UnRx"))
-    plttlts <- c('Lineage 3: Rx','Lineage 2: RxH','Lineage 1: UnRx')
+    # plttlts <- c('Lineage 3: Rx','Lineage 2: RxH','Lineage 1: UnRx')
+    plttlts <- c('L3-Rx','L2-RxH','L1-UnRx')
   }else if(datatag=='SA535'){
     # meta_lineage <- data.frame(lineage=c("Lineage 1","Lineage 2","Lineage 3","Lineage 4"),
     #                            lineage_desc=c("Lineage 3: Rx,RxH","Lineage 2: Rx,RxH",
     #                                           "Lineage 4: Rx,1Rx","Lineage 1: UnRx"))
-    plttlts <- c("Lineage 3: Rx,RxH","Lineage 2: Rx,RxH",
-                 "Lineage 4: Rx,1Rx","Lineage 1: UnRx")
-  }else if(datatag=='SA535'){
-    # meta_lineage <- data.frame(lineage=c("Lineage 1","Lineage 2","Lineage 3","Lineage 4"),
-    #                            lineage_desc=c("Lineage 3: Rx,RxH","Lineage 2: Rx,RxH",
-    #                                           "Lineage 4: Rx,1Rx","Lineage 1: UnRx"))
-    plttlts <- c("Lineage 3: Rx,RxH","Lineage 2: Rx,RxH",
-                 "Lineage 4: Rx,1Rx","Lineage 1: UnRx")
+    plttlts <- c("L3-Rx,RxH","L2-Rx,RxH",
+                 "L4-Rx,1Rx","L1-UnRx")
   }else if(datatag=='SA1035'){
     # meta_lineage <- data.frame(lineage=c("Lineage1","Lineage2","Lineage3","Lineage4","Lineage5"),
     #                            lineage_desc=c("L4: Rx,RxH","L3: UnRx(Sen), RxH",
@@ -811,11 +946,20 @@ get_lineage_plot_label <- function(datatag=''){
     
     # plttlts <- c("L2: Rx,RxH","L4: RxH, UnRx",
     #              "L1: 1Rx,Rx","L3: Rx")
-    plttlts <- c("L4: Rx,RxH","L3: UnRx(Sen), RxH","L2: Rx(Res), RxH","L1: 1Rx, Rx","L5:Rx, UnRx")
+    plttlts <- c("L4-Rx,RxH","L3-UnRx(Sen),RxH","L2-Rx(Res),RxH","L1-1Rx,Rx","L5-Rx,UnRx")
     # plttlts <- NULL
   }else{
     print('Using default lineages name')
-  }
+    # plttlts <- NULL
+  }  
+  # }else if(datatag=='SA535'){
+  #   # meta_lineage <- data.frame(lineage=c("Lineage 1","Lineage 2","Lineage 3","Lineage 4"),
+  #   #                            lineage_desc=c("Lineage 3: Rx,RxH","Lineage 2: Rx,RxH",
+  #   #                                           "Lineage 4: Rx,1Rx","Lineage 1: UnRx"))
+  #   plttlts <- c("L3-Rx,RxH","L2-Rx,RxH",
+  #                "L4-Rx,1Rx","L1-UnRx")
+  # }
+  
   return(plttlts)
 }
 
@@ -866,7 +1010,7 @@ plot_curves <- function(datatag, rd, curves, df_annot, cols_use, output_dir, col
   meta_cluster <- get_cluster_annotation_plt(datatag)  
   df_annot <- df_annot %>% inner_join(meta_cluster, by=c('cluster_label'))
   p <- ggplot(rd, aes_string(x=x_plt, y=y_plt, color=col_plt)) +
-    geom_point(size=cell_size) + 
+    geom_point(size=cell_size, alpha=0.6, shape=21) + 
     scale_color_manual(values = cols_use) + 
     theme(plot.title = element_blank(),
           panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
@@ -880,16 +1024,16 @@ plot_curves <- function(datatag, rd, curves, df_annot, cols_use, output_dir, col
   p <- p + geom_curve(
     aes(x = x1, y = y1, xend = x2, yend = y2),
     data = curves, inherit.aes = F,
-    curvature = 0.25, size = 1,
-    arrow = arrow(length = unit(0.03, "npc"))
+    curvature = 0.25, size = 0.8,colour = "#2F4F4F", alpha=0.8,
+    arrow = arrow(length = unit(0.07, "npc"))
   )
   # Draw curves
-  p <- p + annotate("text", x = df_annot$x1, y = df_annot$y1, 
-                    label = df_annot$cls_lb, size=5, color=cls_col)
+  # p <- p + annotate("text", x = df_annot$x1, y = df_annot$y1, 
+  #                   label = NULL, size=5, color=cls_col) #label = df_annot$cls_lb
   
   # Draw cluster centers
   p <- p + annotate(geom="point", df_annot1$x1, y = df_annot1$y1, 
-                    colour = "black", size = 2) 
+                    colour = "black", size = 1.5, alpha=0.5) 
   # p
   png(paste0(output_dir,"slingshot_out_curves_",datatag,"_",col_plt,".png"), height = 2*400, width=2*600,res = 2*72)
   print(p)
@@ -947,26 +1091,54 @@ set_color_clusters <- function(clusters_labels){
   return(list(clone_palette=clone_palette,cols_use=cols_use))
   
 }
-plot_colors <- function(cols, save_dir, legend_label='', ncol_plt=4){
+plot_colors <- function(cols, save_dir, legend_label='', nrow_plt=5){
   # clusters_use <- gtools::mixedsort(names(cols))
   # clusters_use <- c('UU','UUU','UUUU','UUUUU','UUT','UUTT','UUTTT','UUTTTTT','UUTU','UUTTU','UUTTTTU')
   # cols <- cols[clusters_use]
   color_df <- data.frame(color_code=cols, cluster=names(cols), vals=c(rep(1:length(cols),1)))
   data.table::fwrite(color_df, paste0(save_dir, legend_label,'_metacolors.csv'))
   # color_df$cluster <- factor(color_df$cluster, levels = lvs)
+  color_df$cluster <- factor(color_df$cluster, levels = color_df$cluster)
   p <- ggplot(color_df, aes(x=cluster, y=vals, color=cluster)) +
     # geom_line(aes_string(color=plottype)) +  #,color=colorcode
     geom_point(size=7.5) +
-    scale_color_manual(values = cols) + labs(colour='')#'Clusters'legend_label
-  p <- p + guides(color = guide_legend(ncol=ncol_plt, override.aes = list(size=7)))
+    scale_color_manual(values = cols) + labs(colour='') + 
+    theme(legend.text=element_text(size=11, hjust = 0, family=my_font),
+          legend.title=element_text(size=11, hjust = 0.5, family=my_font),
+          panel.spacing = unit(c(0, 0, 0, 0), "null"),
+          legend.key=element_blank())#panel.margin = unit(c(0, 0, 0, 0), "null")
+  p <- p + guides(color = guide_legend(title = legend_label, nrow=nrow_plt, override.aes = list(size=5))) 
+  
   lg <- cowplot::get_legend(p)
-  pc <- cowplot::ggdraw() + cowplot::draw_plot(lg)
-  saveRDS(pc, paste0(save_dir, legend_label,'_plt.rds'))
-  png(paste(save_dir,"lg_",legend_label,".png",sep=""),height = 2*300, width=2*400,res = 2*72)
-  # print(grid.arrange(grobs = plots[select_grobs(layout)], layout_matrix = layout,
-  #                    bottom=" ",right=" "))
-  print(pc)
-  dev.off()
+  pc <- cowplot::ggdraw() + cowplot::draw_plot(lg) #+ theme(plot.background = element_rect(fill = "white", colour = "white"))
+  saveRDS(pc, paste0(save_dir, gsub(' ','_',legend_label),'_plt.rds'))
+  # saveRDS(lg, paste0(save_dir, legend_label,'_plt_legend.rds'))
+  # png(paste(save_dir,"lg_",legend_label,".png",sep=""),height = 2*400, width=2*300,res = 2*72)
+  # # print(grid.arrange(grobs = plots[select_grobs(layout)], layout_matrix = layout,
+  # #                    bottom=" ",right=" "))
+  # print(pc)
+  # dev.off()
+  # ggsave(paste0(save_dir,"pseudo_gene_modules_",datatag, "_lg_color.png"),
+  #        plot = cowplot::ggdraw() + cowplot::draw_plot(lg) + 
+  #          theme(plot.background = element_rect(fill = "transparent", colour = "white")),
+  #        height = 4.5,
+  #        width = 3,
+  #        # useDingbats=F,
+  #        dpi=150)
+  # ggsave(paste0(save_dir,"pseudo_gene_modules_",datatag, "_lg_color.svg"),
+  #        plot = cowplot::ggdraw() + cowplot::draw_plot(lg) + 
+  #          theme(plot.background = element_rect(fill = "transparent", colour = "white")),
+  #        height = 4.5,
+  #        width = 3,
+  #        # useDingbats=F,
+  #        dpi=150)
+  # ggsave(paste0(save_figs_dir,"SA609_umaps_legends.svg"),
+  #        plot = lg2,
+  #        height = 1,
+  #        width = 2.5,
+  #        # useDingbats=F,
+  #        dpi=20)
+  
   return(pc)
 }
 get_start_cluster <- function(meta_info, datatag,root_ts=NULL){
@@ -1149,7 +1321,67 @@ prepare_data_Seurat <- function(sce, output_dir, datatag, save_srt=FALSE){
 }  
 
 
-
+plot_legend_treatmentSt <- function(save_dir){
+  # cyan, corn flower, cobalt, dark blue, midnight blue
+  rx_cols <- c('#00FFFF','#7aa4f0','#3a76c9', '#2a2aa3','#20208a')
+  names(rx_cols) <- c('1Rx','2Rx','3Rx','4Rx','5Rx')
+  #light grey, darkgray, dimgray, dark grey, dark dark grey
+  # unrx_cols <- c('#989898','#676767','#696969', '#505050','#383838')
+  unrx_cols <- c('#989898','#676767','#4d4d4d', '#2e2c2c','#0f0f0f')
+  names(unrx_cols) <- c('1UnRx','2UnRx','3UnRx','4UnRx','5UnRx')
+  
+  rxh_cols <- c('#D5FF00','#FFFF00','#FFD500', '#FFBF00','#767600')
+  names(rxh_cols) <- c('1RxH','2RxH','3RxH','4RxH','5RxH')
+  
+  cols <- c(unrx_cols, rx_cols, rxh_cols)
+  lg <- plot_colors(cols, save_dir, legend_label='Treatment Cycles', 5)
+  # lg
+  return(lg)
+}
+set_color_treatmentSt_simplify_version <- function(clusters, datatag, cols=NULL){
+  library(stringr)
+  clusters_labels <- unique(clusters)
+  metacells <- data.frame(treatmentSt=clusters_labels, stringsAsFactors=F)
+  if(is.null(cols)){
+    # cyan, corn flower, cobalt, dark blue, midnight blue
+    rx_cols <- c('#00FFFF','#7aa4f0','#7aa4f0', '#7aa4f0','#7aa4f0') ## only keep first time point with contrast color
+    names(rx_cols) <- c('1Rx','2Rx','3Rx','4Rx','5Rx')
+    #light grey, darkgray, dimgray, dark grey, dark dark grey
+    # unrx_cols <- c('#989898','#676767','#696969', '#505050','#383838')
+    unrx_cols <- c('#989898','#4d4d4d','#4d4d4d', '#4d4d4d','#4d4d4d')
+    names(unrx_cols) <- c('1UnRx','2UnRx','3UnRx','4UnRx','5UnRx')
+    
+    rxh_cols <- c('#D5FF00','#FFFF00','#FFFF00', '#FFFF00','#FFFF00')
+    names(rxh_cols) <- c('1RxH','2RxH','3RxH','4RxH','5RxH')
+    
+    cols <- c(unrx_cols, rx_cols, rxh_cols)
+  }
+  order_labels <- data.frame(label=names(cols), 
+                             color_code=cols,
+                             order_st=seq(1:length(cols)))  # to fix the order of labels in plot
+  
+  
+  metacells$label <- ifelse(grepl('T$',metacells$treatmentSt),'Rx','UnRx')
+  metacells$label <- ifelse(grepl('TU$',metacells$treatmentSt),'RxH',metacells$label)
+  if(datatag=='SA535'){
+    metacells$label <- ifelse(metacells$label %in% c('Rx','RxH'),paste0(str_count(metacells$treatmentSt,'T'),
+                                                                        metacells$label),
+                              paste0(str_count(metacells$treatmentSt,'U')-1,metacells$label)) #SA535 contains 1 more U at starting points
+  }else{
+    metacells$label <- ifelse(metacells$label %in% c('Rx','RxH'),paste0(str_count(metacells$treatmentSt,'T'),
+                                                                        metacells$label),
+                              paste0(str_count(metacells$treatmentSt,'U'),metacells$label))
+  }
+  
+  # cols1 <- cols[metacells$label]
+  metacells <- metacells %>% dplyr::inner_join(order_labels, by='label')
+  # names(cols1) <-  metacells$treatmentSt
+  
+  metacells <- metacells[order(metacells$order_st, decreasing=F),]
+  # return(list(clone_palette=cols1,cols_use=cols1[clusters]))
+  return(metacells)
+  
+}  
 
 set_color_treatmentSt <- function(clusters, datatag, cols=NULL){
   library(stringr)
@@ -1261,6 +1493,17 @@ get_genes_modules <- function(preprocess_mat, reduction_method = c("UMAP"), max_
   
 }
 
+get_treatment_passage_detail_desc <- function(metacell,datatag=NULL){
+  # ts <- unique(treatmentSts)
+  library(stringr)
+  
+  metacell$label <- ifelse(grepl('T$',metacell$treatmentSt),'Rx','UnRx')
+  metacell$label <- ifelse(grepl('TU$',metacell$treatmentSt),'RxH',metacell$label)
+  # unique(metacell$timepoint)
+  metacell$treatment_desc <- paste0(metacell$label,'-', metacell$timepoint)
+  # unique(metacell$treatment_desc)
+  return(metacell)
+}
 
 get_treatment_detail_desc <- function(treatmentSts,datatag='SA609'){
   # ts <- unique(treatmentSts)
@@ -1316,7 +1559,11 @@ get_unique_clone_id <- function(clone_labels){
   return(as.character(cls))
 }
 
-plot_trajectory_clones_prevalence_SA1035 <- function(sce, output_dir, datatag){
+plot_trajectory_clones_prevalence_SA1035 <- function(metacell, meta_lineage, output_dir, save_dir, datatag){
+  save_figs_dir <- paste0(output_dir, 'figs_v3/')
+  if(!dir.exists(save_figs_dir)){
+    dir.create(save_figs_dir)
+  }
   # sce$clone_v1 <- sce$clone
   # sce$clone <- ''
   # rownames(clone_df) <- clone_df$cell_id
@@ -1325,10 +1572,10 @@ plot_trajectory_clones_prevalence_SA1035 <- function(sce, output_dir, datatag){
   # sce$clone <- ifelse(sce$clone=='','unassigned',sce$clone)
   
   # sum(clone_df$cell_id %in% metacell$cell_id)
-  metacell <- colData(sce) %>% as.data.frame()
-  dim(metacell)
-  unique(metacell$clone)
-  summary(as.factor(sce$clone))
+  # metacell <- colData(sce) %>% as.data.frame()
+  # dim(metacell)
+  # unique(metacell$clone)
+  # summary(as.factor(sce$clone))
   sce$clone <- get_unique_clone_id(sce$clone)
   
   # metacell$clone <- get_unique_clone_id(metacell$clone)
@@ -1336,20 +1583,20 @@ plot_trajectory_clones_prevalence_SA1035 <- function(sce, output_dir, datatag){
   unique(metacell$clone)
   unique(metacell$treatmentSt)
   # metacell$treatment_desc <- get_treatment_desc(metacell$treatmentSt)
-  metacell$treatment_desc <- get_treatment_detail_desc(metacell$treatmentSt)
-  
+  # metacell$treatment_desc <- get_treatment_detail_desc(metacell$treatmentSt)
+  metacell <- get_treatment_passage_detail_desc(metacell)
   # unique(metacell$cluster_label)
   # table(metacell$treatment_desc,metacell$clone)
   metadata <- metacell %>%
     # dplyr::filter(clone!='unassigned')%>% # & cluster_label!=0
-    dplyr::select(treatment_desc,clone,cell_id,treatmentSt)%>%
-    dplyr::mutate(treatment_clone=paste0(treatment_desc,': clone',clone))%>%
-    dplyr::mutate(clone=paste0('clone',clone))
+    dplyr::select(treatment_desc,clone,cell_id,treatmentSt,label)%>%
+    # dplyr::mutate(treatment_clone=paste0(treatment_desc,' clone ',clone))%>%
+    dplyr::mutate(treatment_clone=paste0(label,'-clone ',clone))%>%
+    dplyr::mutate(clone=paste0('clone ',clone))
+  
   pseudo <- data.table::fread(paste0(save_dir,'slingshot_output/slingshot_SA1035_0_PCA_pseudotime.csv')) %>% as.data.frame()
   weight <- data.table::fread(paste0(save_dir,'slingshot_output/slingshot_SA1035_0_PCA_cellWeights.csv')) %>% as.data.frame()
-  dim(weight)  
-  sum(weight$Lineage1==0)
-  pseudo$cell_id[1:2]
+  
   # dim(pseudo)
   # head(pseudo)
   weight <- weight %>% inner_join(metadata,by='cell_id')
@@ -1360,15 +1607,15 @@ plot_trajectory_clones_prevalence_SA1035 <- function(sce, output_dir, datatag){
   # meta_lineage <- data.frame(lineage=c("Lineage1","Lineage2","Lineage3","Lineage4"),
   #                            lineage_desc=c("Lineage2","Lineage4",
   #                                           "Lineage1","Lineage3"))  # version 1
-  meta_lineage <- data.frame(lineage=c("Lineage1","Lineage2","Lineage3","Lineage4","Lineage5"),
-                             lineage_desc=c("L4: Rx,RxH","L3: UnRx, RxH",
-                                            "L2: Rx, RxH","L1: 1Rx, Rx", "L5:Rx, UnRx"))
+  # meta_lineage <- data.frame(lineage=c("Lineage1","Lineage2","Lineage3","Lineage4","Lineage5"),
+  #                            lineage_desc=c("L4: Rx,RxH","L3: UnRx, RxH",
+  #                                           "L2: Rx, RxH","L1: 1Rx, Rx", "L5:Rx, UnRx"))
   rownames(meta_lineage) <- meta_lineage$lineage
   # plttlts <- c("L2: Rx,RxH","L4: RxH, UnRx",
   #              "L1: 1Rx,Rx","L3: Rx")
   # weight$treatment_desc[1:5]
   lgs <- grep('Lineage',colnames(weight),value=T)
-  
+  lgs <- lgs[lgs!='Lineage5'] # very small lineage, not important, remove from the considered list of lineages
   stat <- tibble::tibble()
   for(lg in lgs){
     ps <- weight %>%
@@ -1394,21 +1641,21 @@ plot_trajectory_clones_prevalence_SA1035 <- function(sce, output_dir, datatag){
   #          "1RxH","2RxH","3RxH",
   #          "1UnRx","2UnRx","3UnRx","4UnRx","5UnRx")
   # stat1 <- stat1[rns,]
-  treatment_order <- data.table::fread(paste0(save_figs_dir,'treatment_meta_colors.csv')) %>% as.data.frame()
-  treatment_order <- treatment_order %>%
-    dplyr::filter(label %in% rownames(stat1)) %>%
-    dplyr::arrange(!desc(order_st))
-  if(dim(treatment_order)[1]!=dim(stat1)[1]){
-    stop('Double check meta treatment table')
-  }
-  stat1 <- stat1[treatment_order$label,]
-  rownames(stat1)
+  # treatment_order <- data.table::fread(paste0(save_figs_dir,'treatment_meta_colors.csv')) %>% as.data.frame()
+  # treatment_order <- treatment_order %>%
+  #   dplyr::filter(label %in% rownames(stat1)) %>%
+  #   dplyr::arrange(!desc(order_st))
+  # if(dim(treatment_order)[1]!=dim(stat1)[1]){
+  #   stop('Double check meta treatment table')
+  # }
+  # stat1 <- stat1[treatment_order$label,]
+  # rownames(stat1)
   colnames(stat1) <- meta_lineage[colnames(stat1),'lineage_desc']
   # stat1[stat1<0.05] <- 0
   # max(stat1)
   # viz_hm_proportions(stat1, datatag, output_dir, 'treatment_desc',ht=400, wd=200, 0.1)
   pts <- viz_hm_proportions(stat1, datatag, save_figs_dir, tag='treatment_desc', 
-                            ht=400, wd=200, verbose_thres=0.1, col_fun=NULL, text_size = 9)
+                            ht=400, wd=200, verbose_thres=0.1, col_fun=NULL, text_size = 11)
   
   stat <- tibble::tibble()
   for(lg in lgs){
@@ -1434,18 +1681,18 @@ plot_trajectory_clones_prevalence_SA1035 <- function(sce, output_dir, datatag){
   }
   dim(stat)
   # stat$treatment_clone <- stat$clone
-  unique(stat$treatment_clone)
-  stat$treatment_clone <- ifelse(grepl('cloneH',stat$treatment_clone) 
-                                 & !grepl('UnRx: cloneH',stat$treatment_clone),
-                                 paste0(stat$treatment_clone,'(Res)'),stat$treatment_clone)
-  
-  stat$treatment_clone <- ifelse(grepl('UnRx: cloneE',stat$treatment_clone),
-                                 paste0(stat$treatment_clone,'(Sen)'),stat$treatment_clone)
-  
-  stat$treatment_clone <- ifelse(grepl('1RxH: cloneB',stat$treatment_clone) | 
-                                 grepl('2RxH: cloneG',stat$treatment_clone) | 
-                                 grepl('3RxH: cloneG',stat$treatment_clone)  ,
-                                 paste0(stat$treatment_clone,'(DH, Res)'),stat$treatment_clone)
+  # unique(stat$treatment_clone)
+  # stat$treatment_clone <- ifelse(grepl('cloneH',stat$treatment_clone) 
+  #                                & !grepl('UnRx: cloneH',stat$treatment_clone),
+  #                                paste0(stat$treatment_clone,'(Res)'),stat$treatment_clone)
+  # 
+  # stat$treatment_clone <- ifelse(grepl('UnRx: cloneE',stat$treatment_clone),
+  #                                paste0(stat$treatment_clone,'(Sen)'),stat$treatment_clone)
+  # 
+  # stat$treatment_clone <- ifelse(grepl('1RxH: cloneB',stat$treatment_clone) | 
+  #                                grepl('2RxH: cloneG',stat$treatment_clone) | 
+  #                                grepl('3RxH: cloneG',stat$treatment_clone)  ,
+  #                                paste0(stat$treatment_clone,'(DH, Res)'),stat$treatment_clone)
   
   # 
   # stat$treatment_clone <- ifelse(grepl('clone H',stat$treatment_clone),paste0(stat$treatment_clone,' (resistant*)'),
@@ -1460,7 +1707,7 @@ plot_trajectory_clones_prevalence_SA1035 <- function(sce, output_dir, datatag){
   #                                                                            stat$treatment_clone)
   # stat$treatment_clone <- ifelse(grepl('cloneH',stat$treatment_clone),paste0(stat$treatment_clone,' (sensitive*)'),
   #                                stat$treatment_clone)
-  unique(stat$treatment_clone)
+  # unique(stat$treatment_clone)
   # stat$treatment_clone <- paste0(stat$lineage,': ',stat$treatment_clone)
   # View(stat)
   # View(stat1)
@@ -1494,11 +1741,13 @@ plot_trajectory_clones_prevalence_SA1035 <- function(sce, output_dir, datatag){
                             colorRampPalette(c("white", "darkgreen"))(length(vals)))
   pc <- viz_hm_proportions(stat1, datatag, save_figs_dir, tag='treatment_clone', 
                            ht=400, wd=200, verbose_thres=0.04, col_fun=col_fun_desc, text_size = 7)
+  return(list(pts=pts, pc=pc))
 }
 
 
 viz_hm_proportions <- function(stat1, datatag, output_dir, tag='', 
-                               ht=400, wd=200, verbose_thres=0.05, col_fun=NULL, text_size=11){
+                               ht=400, wd=200, verbose_thres=0.05, 
+                               col_fun=NULL, text_size=11){
   if(!dir.exists(output_dir)){
     dir.create(output_dir)
   }
@@ -1544,7 +1793,7 @@ viz_hm_proportions <- function(stat1, datatag, output_dir, tag='',
                                # left_annotation = left_anno,
                                cell_fun = cell_funcs,
                                row_dend_reorder=F,
-                               heatmap_legend_param = list(direction = "horizontal")
+                               heatmap_legend_param = list(direction = "vertical")
                                # column_title = "Pseudotime", 
                                # column_title_side = "bottom"
   )
@@ -1565,35 +1814,52 @@ viz_hm_proportions <- function(stat1, datatag, output_dir, tag='',
   # dev.off()
   return(p)
 }
-plot_trajectory_clones_prevalence_SA609 <- function(sce){
+
+
+plot_trajectory_clones_prevalence_SA609 <- function(metacell, input_dir, output_dir, meta_lineage=NULL){
   # For SA609
   # G, H
   # B, C
   # R
   # D
-  meta_lineage <- data.frame(lineage=c("Lineage1","Lineage2","Lineage3"),
-                             lineage_desc=c("Lineage 3: Rx","Lineage 2: RxH","Lineage 1: UnRx"))
-  rownames(meta_lineage) <- meta_lineage$lineage
+  if(is.null(meta_lineage)){
+    # meta_lineage <- data.frame(lineage=c("Lineage1","Lineage2","Lineage3"),
+    #                            lineage_desc=c("Lineage 3: Rx","Lineage 2: RxH","Lineage 1: UnRx"))
+    meta_lineage <- data.frame(lineage=c("Lineage1","Lineage2","Lineage3"),
+                               lineage_desc=c("L3-Rx","L2-RxH","L1-UnRx"))
+  }
+  rownames(meta_lineage) <- meta_lineage$lineage  
   
-  metacell <- colData(sce) %>% as.data.frame()
-  dim(metacell)
-  unique(metacell$clone)
+  
+  # dim(metacell)
+  # unique(metacell$clone)
   metacell$clone <- get_unique_clone_id(metacell$clone)
-  unique(metacell$clone)
+  # unique(metacell$treatmentSt)
+  
+  ## SA609, new labels, replace R by A 
   metacell <- metacell %>%
     dplyr::mutate(clone=replace(clone,clone=='R','A'))
-  unique(metacell$treatmentSt)
+  # unique(metacell$treatmentSt)
   # metacell$treatment_desc <- get_treatment_desc(metacell$treatmentSt)
-  metacell$treatment_desc <- get_treatment_detail_desc(metacell$treatmentSt)
+  # metacell$treatment_desc <- get_treatment_detail_desc(metacell$treatmentSt)
+  metacell <- get_treatment_passage_detail_desc(metacell, datatag='SA609')
   
-  unique(metacell$treatment_desc)
-  table(metacell$treatment_desc,metacell$clone)
   metadata <- metacell %>%
-    dplyr::select(treatment_desc,clone,cell_id,treatmentSt)%>%
-    dplyr::mutate(clone=paste0('clone ',clone))%>%
-    dplyr::mutate(treatment_clone=paste0(treatment_desc,': clone',clone))
+    dplyr::select(treatment_desc,clone,cell_id,treatmentSt,label)%>%
+    # dplyr::mutate(treatment_clone=paste0(treatment_desc,' clone ',clone))%>%
+    dplyr::mutate(treatment_clone=paste0(label,'-clone ',clone))%>%
+    dplyr::mutate(clone=paste0('clone ',clone))
+  
+
+  ## Loading slingshot output from file
   pseudo <- data.table::fread(paste0(save_dir,'slingshot_SA609_10_PCA_pseudotime.csv')) %>% as.data.frame()
   weight <- data.table::fread(paste0(save_dir,'slingshot_SA609_10_PCA_cellWeights.csv')) %>% as.data.frame()
+  
+  ## Loading slingshot output directly from objects
+  # pseudo <- slingPseudotime(crv_umap_embed) %>% as.data.frame()
+  # weight <- slingshot::slingCurveWeights(crv_umap_embed) %>% as.data.frame()
+  # dim(weight)
+  # weight$cell_id <- rownames(weight)
   dim(weight)  
   sum(weight$Lineage1==0)
   pseudo$cell_id[1]
@@ -1625,126 +1891,126 @@ plot_trajectory_clones_prevalence_SA609 <- function(sce){
     t()  
   
   # rns <- c("1Rx","2Rx","3Rx","4Rx","1RxH","2RxH","3RxH","1UnRx","2UnRx","3UnRx","4UnRx","5UnRx")
-  treatment_order <- data.table::fread(paste0(output_dir,'treatment_meta_colors.csv')) %>% as.data.frame()
-  treatment_order <- treatment_order %>%
-    dplyr::filter(label %in% rownames(stat1)) %>%
-    dplyr::arrange(!desc(order_st))
-  if(dim(treatment_order)[1]!=dim(stat1)[1]){
-    stop('Double check meta treatment table')
-  }
+  # treatment_order <- data.table::fread(paste0(output_dir,'treatment_meta_colors.csv')) %>% as.data.frame()
+  # treatment_order <- treatment_order %>%
+  #   dplyr::filter(label %in% rownames(stat1)) %>%
+  #   dplyr::arrange(-order_st)
+  # if(dim(treatment_order)[1]!=dim(stat1)[1]){
+  #   stop('Double check meta treatment table')
+  # }
   
-  stat1 <- stat1[treatment_order$label,]
+  # stat1 <- stat1[treatment_order$label,]
   # stat1[stat1<0.05] <- 0
   # View(stat1)
-  max(stat1)
+  # max(stat1)
   
   # plttlts <- c("Lineage 3: Rx,RxH","Lineage 2: Rx,RxH",
   #              "Lineage 4: Rx,1Rx","Lineage 1: UnRx")
   # stat1[stat1<0.05] <- 0
   # View(stat1)
-  max(stat1)
-  dim(stat1)
+  # max(stat1)
+  # dim(stat1)
   
   colnames(stat1) <- meta_lineage[colnames(stat1),'lineage_desc']
   
   pts <- viz_hm_proportions(stat1, datatag, paste0(output_dir,'figs_v3/'), tag='treatment', 
                           ht=400, wd=200, verbose_thres=0.05, col_fun=NULL)
   # pts
-  
-  
-  
   # Plot clone proportion heatmap
   stat <- tibble::tibble()
   for(lg in lgs){
     ps <- weight %>%
       dplyr::filter(!!sym(lg)>0)
     
-    ps <- ps %>%
-      group_by(clone) %>%
-      summarise(fraction_cells=n()/dim(ps)[1])%>%
-      filter(fraction_cells>0.01)
     # ps <- ps %>%
-    #   group_by(treatment_clone) %>%
-    #   summarise(fraction_cells=n()/dim(ps)[1]) %>%
+    #   group_by(clone) %>%
+    #   summarise(fraction_cells=n()/dim(ps)[1])%>%
     #   filter(fraction_cells>0.01)
+    ps <- ps %>%
+      group_by(treatment_clone) %>%
+      summarise(fraction_cells=n()/dim(ps)[1]) %>%
+      filter(fraction_cells>0.01)
     ps$lineage <- lg
     stat <- dplyr::bind_rows(stat, ps)
   }
-  dim(stat)
-  stat$treatment_clone <- stat$clone
-  stat$treatment_clone <- ifelse(stat$treatment_clone=='clone B','clone B (DH)',stat$treatment_clone)
+  # dim(stat)
+  # stat$treatment_clone <- stat$clone
+  # stat$treatment_clone <- ifelse(stat$treatment_clone=='clone B','clone B (*Rx)',stat$treatment_clone)
   
-  stat$treatment_clone <- ifelse(grepl('clone A',stat$treatment_clone),
-                                 paste0(stat$treatment_clone,' (Res)'),
-                                 stat$treatment_clone)
-  stat$treatment_clone <- ifelse(grepl('clone H',stat$treatment_clone),
-                                 paste0(stat$treatment_clone,' (Sen)'),
-                                 stat$treatment_clone)
+  # stat$treatment_clone <- ifelse(grepl('clone A',stat$treatment_clone),
+  #                                paste0(stat$treatment_clone,' (*Rx)'),
+  #                                stat$treatment_clone)
+  # stat$treatment_clone <- ifelse(grepl('clone H',stat$treatment_clone),
+  #                                paste0(stat$treatment_clone,' (*UnRx)'),
+  #                                stat$treatment_clone)
   # stat$treatment_clone <- ifelse(stat$treatment_clone=='RxH: cloneB','RxH: cloneB (reversibility*)',stat$treatment_clone)
   # 
   # stat$treatment_clone <- ifelse(grepl('cloneA',stat$treatment_clone),paste0(stat$treatment_clone,' (resistant*)'),
   #                                                                            stat$treatment_clone)
   # stat$treatment_clone <- ifelse(grepl('cloneH',stat$treatment_clone),paste0(stat$treatment_clone,' (sensitive*)'),
   #                                stat$treatment_clone)
-  unique(stat$treatment_clone)
+  print(unique(stat$treatment_clone))
   # stat$treatment_clone <- paste0(stat$lineage,': ',stat$treatment_clone)
   # View(stat)
   # View(stat1)
   stat1 <- stat %>%
-    dplyr::select(-clone)%>%
+    # dplyr::select(-clone)%>%
     tidyr::pivot_wider(names_from='treatment_clone', 
                        values_from='fraction_cells',values_fill = 0)%>%
     tibble::column_to_rownames('lineage')%>%
     t()
   
-  max(stat1)
-  dim(stat1)
-  rownames(stat1)
+  # max(stat1)
+  # dim(stat1)
+  # rownames(stat1)
   colnames(stat1) <- meta_lineage[colnames(stat1),'lineage_desc']
   p <- viz_hm_proportions(stat1, datatag, paste0(output_dir,'figs_v3/'), tag='clone', 
                           ht=400, wd=200, verbose_thres=0.1, col_fun=NULL)
-  p
+  return(p)
 }
 
 
-plot_trajectory_clones_prevalence_SA535 <- function(sce, output_dir){
+plot_trajectory_clones_prevalence_SA535 <- function(metacell, input_dir, output_dir, meta_lineage=NULL){
+  
   save_figs_dir <- paste0(output_dir,'figs_v3/')
   if(!dir.exists(save_figs_dir)){
     dir.create(save_figs_dir)
   }  
-  meta_lineage <- data.frame(lineage=c("Lineage1","Lineage2","Lineage3","Lineage4"),
-                             lineage_desc=c("L3: UnRx,RxH","L2: Rx,RxH",
-                                            "L4: Rx,1Rx","L1: UnRx"))
+  if(is.null(meta_lineage)){
+    # meta_lineage <- data.frame(lineage=c("Lineage1","Lineage2","Lineage3","Lineage4"),
+    #                            lineage_desc=c("L3: UnRx,RxH","L2: Rx,RxH",
+    #                                           "L4: Rx,1Rx","L1: UnRx"))
+    meta_lineage <- data.frame(lineage=c("Lineage1","Lineage2","Lineage3","Lineage4"),
+                               lineage_desc=c("L3-Rx,RxH","L2-Rx,RxH",
+                                              "L4-1Rx","L1-UnRx"))
+  }
   rownames(meta_lineage) <- meta_lineage$lineage
-  
-  metacell <- colData(sce) %>% as.data.frame()
-  dim(metacell)
   # grep('clone',colnames(metacell), value=T)
-  unique(metacell$clone)
+  unique(metacell$treatmentSt)
   metacell$clone <- get_unique_clone_id(metacell$clone)
   metacell$treatmentSt[1]
   # metacell$treatment_desc <- get_treatment_desc(metacell$treatmentSt)
-  metacell$treatment_desc <- get_treatment_detail_desc(metacell$treatmentSt, datatag = 'SA535')
-  
-  unique(metacell$treatment_desc)
-  table(metacell$treatment_desc,metacell$clone)
+  # metacell$treatment_desc <- get_treatment_detail_desc(metacell$treatmentSt, datatag = 'SA535')
+  metacell <- get_treatment_passage_detail_desc(metacell,datatag='SA535')
+  # unique(metacell$treatment_desc)
+  # table(metacell$treatment_desc,metacell$clone)
   # metacell$cell_id <- paste0(metacell$library_id,'_',metacell$Barcode)
   # metadata <- metacell %>%
   #   dplyr::select(treatment_desc,cell_id,treatmentSt)
+  
   metadata <- metacell %>%
     # dplyr::filter(clone!='unassigned')%>%
-    dplyr::select(treatment_desc,clone,cell_id,treatmentSt)%>%
-    dplyr::mutate(treatment_clone=paste0(treatment_desc,': clone',clone))%>%
-    dplyr::mutate(clone=paste0('clone',clone))
+    dplyr::select(treatment_desc,clone,cell_id,treatmentSt,label)%>%
+    # dplyr::mutate(treatment_clone=paste0(treatment_desc,' clone ',clone))%>%
+    dplyr::mutate(treatment_clone=paste0(label,'-clone ',clone))%>%
+    dplyr::mutate(clone=paste0('clone ',clone))
   pseudo <- data.table::fread(paste0(save_dir,'slingshot_SA535_7_PCA_pseudotime.csv')) %>% as.data.frame()
   weight <- data.table::fread(paste0(save_dir,'slingshot_SA535_7_PCA_cellWeights.csv')) %>% as.data.frame()
-  dim(weight)  
-  sum(weight$Lineage1==0)
-  pseudo$cell_id[1:5]
+  # dim(weight)  
+  
+  
   weight <- weight %>% inner_join(metadata, by='cell_id')
-  dim(weight)  
-  weight$cell_id[1]
-  # weight$treatment_desc[1:5]
+  # dim(weight)  
   lgs <- grep('Lineage',colnames(weight),value=T)
   stat <- tibble::tibble()
   for(lg in lgs){
@@ -1769,23 +2035,23 @@ plot_trajectory_clones_prevalence_SA535 <- function(sce, output_dir){
     tibble::column_to_rownames('lineage')%>%
     t()  
   
-  treatment_order <- data.table::fread(paste0(save_figs_dir,'treatment_meta_colors.csv')) %>% as.data.frame()
-  treatment_order <- treatment_order %>%
-    dplyr::filter(label %in% rownames(stat1)) %>%
-    dplyr::arrange(!desc(order_st))
-  if(dim(treatment_order)[1]!=dim(stat1)[1]){
-    stop('Double check meta treatment table')
-  }
-  stat1 <- stat1[treatment_order$label,]
-  rownames(stat1)
+  # treatment_order <- data.table::fread(paste0(save_figs_dir,'treatment_meta_colors.csv')) %>% as.data.frame()
+  # treatment_order <- treatment_order %>%
+  #   dplyr::filter(label %in% rownames(stat1)) %>%
+  #   dplyr::arrange(-order_st)
+  # if(dim(treatment_order)[1]!=dim(stat1)[1]){
+  #   stop('Double check meta treatment table')
+  # }
+  # stat1 <- stat1[treatment_order$label,]
+  # rownames(stat1)
   # rns <- c("1Rx","2Rx","3Rx","1RxH","2RxH","4RxH","1UnRx","2UnRx","3UnRx","4UnRx")
   # stat1 <- stat1[rns,]
-  colnames(stat1)
-  max(stat1)
-  dim(stat1)
+  # colnames(stat1)
+  # max(stat1)
+  # dim(stat1)
   colnames(stat1) <- meta_lineage[colnames(stat1),'lineage_desc']
   # viz_hm_proportions(stat1, datatag, save_figs_dir, tag='treatment', ht=400, wd=190, col_fun=NULL)
-  pts <- viz_hm_proportions(stat1, datatag, paste0(output_dir,'figs_v3/'), tag='treatment', 
+  pts <- viz_hm_proportions(stat1, datatag, save_figs_dir, tag='treatment', 
                             ht=400, wd=200, verbose_thres=0.1, col_fun=NULL, text_size = 9)
   
   
@@ -1805,24 +2071,24 @@ plot_trajectory_clones_prevalence_SA535 <- function(sce, output_dir){
     ps$lineage <- lg
     stat <- dplyr::bind_rows(stat, ps)
   }
-  dim(stat)
+  # dim(stat)
   # SA535: treatment: A, untreated: G 
   # drug holiday:X8: D, X10: E
   # stat$treatment_clone <- stat$clone
-  unique(stat$treatment_clone)
-  stat$treatment_clone <- ifelse(stat$treatment_clone=='4RxH: cloneE','4RxH: cloneE(DH)',stat$treatment_clone)
-  stat$treatment_clone <- ifelse(stat$treatment_clone=='2RxH: cloneD','2RxH: cloneD(DH)',stat$treatment_clone)
-  stat$treatment_clone <- ifelse(grepl('cloneA',stat$treatment_clone),paste0(stat$treatment_clone,'(Res)'),
-                                 stat$treatment_clone)
-  stat$treatment_clone <- ifelse(grepl('UnRx: cloneG',stat$treatment_clone),paste0(stat$treatment_clone,'(Sen)'),
-                                 stat$treatment_clone)
+  # unique(stat$treatment_clone)
+  # stat$treatment_clone <- ifelse(stat$treatment_clone=='4RxH: cloneE','4RxH: cloneE(*Rx)',stat$treatment_clone)
+  # stat$treatment_clone <- ifelse(stat$treatment_clone=='2RxH: cloneD','2RxH: cloneD(*Rx)',stat$treatment_clone)
+  # stat$treatment_clone <- ifelse(grepl('cloneA',stat$treatment_clone),paste0(stat$treatment_clone,'(*Rx)'),
+  #                                stat$treatment_clone)
+  # stat$treatment_clone <- ifelse(grepl('UnRx: cloneG',stat$treatment_clone),paste0(stat$treatment_clone,'(*UnRx)'),
+  #                                stat$treatment_clone)
   # stat$treatment_clone <- ifelse(stat$treatment_clone=='RxH: cloneB','RxH: cloneB (reversibility*)',stat$treatment_clone)
   # 
   # stat$treatment_clone <- ifelse(grepl('cloneA',stat$treatment_clone),paste0(stat$treatment_clone,' (resistant*)'),
   #                                                                            stat$treatment_clone)
   # stat$treatment_clone <- ifelse(grepl('cloneH',stat$treatment_clone),paste0(stat$treatment_clone,' (sensitive*)'),
   #                                stat$treatment_clone)
-  unique(stat$treatment_clone)
+  # unique(stat$treatment_clone)
   # stat$treatment_clone <- paste0(stat$lineage,': ',stat$treatment_clone)
   # View(stat)
   # View(stat1)
@@ -1832,7 +2098,7 @@ plot_trajectory_clones_prevalence_SA535 <- function(sce, output_dir){
                        values_from='fraction_cells',values_fill = 0)%>%
     tibble::column_to_rownames('lineage')%>%
     t()
-  max(stat1)
+  # max(stat1)
   vals <- c(0, 0.03, 0.05, 0.1, max(stat1))
   col_fun_desc = colorRamp2(vals, 
                        colorRampPalette(c("white", "darkgreen"))(length(vals)))

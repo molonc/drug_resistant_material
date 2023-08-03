@@ -268,7 +268,6 @@ obs_genes_df <- data.frame(genes_use=c(gene_module_df$id),
                            row.names=gene_module_df$id)
 dim(obs_genes_df)
 plttitle <- 'Activated Repressed genes'
-
 p <- viz_heatmap(ts_sce, obs_genes_df, output_dir, datatag, plttitle)
 
 plttitle <- 'Transient_genes'
@@ -594,7 +593,7 @@ save_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/SA609_rna/
 genes_df <- data.table::fread(paste0(save_dir, 'SA609_total_genes_modules_act_repr_trans_08_Dec.csv.gz')) %>% as.data.frame()
 dim(genes_df)
 colnames(genes_df)
-
+View(head(genes_df))
 
 datatag <- 'SA609'
 base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
@@ -603,11 +602,11 @@ save_dir <- paste0('/home/htran/storage/datasets/drug_resistance/rna_results/',d
 ts_sce <- readRDS(paste0(save_dir,'tradeSeq_3000/', "fitGAM_out.rds"))
 plttitle <- 'Activated Repressed Transient genes'
 genes_df$gene_type <- genes_df$gene_type_module
-unique(genes_df$gene_type_module)
-
+unique(genes_df$gene_type)
+save_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/SA609_rna/slingshot_trajectory/withBE_SA609_v2/tradeSeq_3000/SA609_tradeSeq_v4/'
 phm <- viz_heatmap(ts_sce, genes_df, save_dir, datatag, plttitle)
 
-results_dir <- "/home/htran/storage/datasets/drug_resistance/rna_results/SA609_rna/slingshot_trajectory/withBE_SA609_v2/figs_v3/"
+results_dir <- "/home/htran/storage/datasets/drug_resistance/rna_results/SA609_rna/slingshot_trajectory/withBE_SA609_v2/figs_v4/"
 saveRDS(phm, paste0(results_dir,'Activated_Repressed_Transient_genes.rds'))
 
 

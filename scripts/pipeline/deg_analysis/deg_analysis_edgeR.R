@@ -72,9 +72,10 @@ edgeR_DE_analysis_by_clones_samples <- function(pair_groups_fn,
 
   ribo_genes <- str_detect(rowData(sce)$Symbol, "^RP(L|S)")  # or ^RP[L|S]?
   sum(ribo_genes==TRUE)
-  sce <- sce[(!mito_genes) & (!ribo_genes), ]
+  # sce <- sce[(!mito_genes) & (!ribo_genes), ]
+  sce <- sce[!mito_genes, ] # regress out mito genes
   print("Observed sce: ")
-  print(paste0('Removing mito and ribo genes: ',dim(sce)[1],'_',dim(sce)[2]))
+  print(paste0('Removing mito genes, new sce file: ',dim(sce)[1],'_',dim(sce)[2]))
   
   
   meta_data <- as.data.frame(colData(sce))

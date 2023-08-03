@@ -311,7 +311,6 @@ sce_cbind_func <- function(sce_list, genes_df, cut_off_overall = 0.05, exprs = c
   return(sce_combine)
 }
 
-
 sce_cbind_func_v2 <- function(sce_list, cut_off_overall = 0.01, exprs = c("counts", "logcounts","normcounts"), 
                            colData_names = NULL, save_raw=T, save_dir='',tag='SA') { #, meta_data=NULL
   n_batch <- length(sce_list)

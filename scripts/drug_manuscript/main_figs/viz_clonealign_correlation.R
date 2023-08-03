@@ -40,9 +40,9 @@ thesis_theme <- ggplot2::theme(
   strip.placement = "outside",
   # axis.line = element_line(colour = "black"),
   # axis.line = element_blank(),
-  axis.text = element_text(size=9, face="bold",family=my_font, hjust = 0.5),#color="black",
-  axis.title = element_text(size=9, face="bold",family=my_font, hjust = 0.5),
-  plot.title = element_text(size=10, face="bold",family=my_font), #, hjust = 0.5
+  axis.text = element_text(size=10, face="bold",family=my_font, hjust = 0.5),#color="black",
+  axis.title = element_text(size=10, face="bold",family=my_font, hjust = 0.5),
+  plot.title = element_text(size=11, face="bold",family=my_font), #, hjust = 0.5
   legend.title=element_text(size=9, hjust = 0.5, family=my_font),
   # legend.text=element_text(color="black",size=7, hjust = 0.5, family=my_font),
   strip.text.x = element_text(size=9, family=my_font),
@@ -158,14 +158,15 @@ viz_correlation_SA609 <- function(){
   dim(meta_data)  
   base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/clonealign_plot/'
   save_dir <- base_dir
-  # summary_stat <- data.table::fread(paste0(save_dir, 'summary_stat_10x_dlp.csv'))
+  summary_stat <- data.table::fread(paste0(save_dir, 'summary_stat_10x_dlp_subsetSA609.csv'))
   summary_stat$sample_id[1]
-  unique(summary_stat$PDX)
+  unique(summary_stat$data_type1)
   summary_stat <- summary_stat %>%
     dplyr::filter(PDX=='SA609')
   dim(summary_stat)
   unique(summary_stat$PDX)
-  summary_stat$data_type <- gsub(' ','_',summary_stat$data_type)
+  summary(as.factor(summary_stat$data_type))
+  # summary_stat$data_type <- gsub(' ','_',summary_stat$data_type)
   summary_stat$sample_id <- gsub('.csv','',summary_stat$sample_id)
   summary_stat$PDX <- stringr::str_sub(summary_stat$sample_id,1,6)
   summary_stat$PDX <- gsub('X','',summary_stat$PDX)
@@ -173,7 +174,7 @@ viz_correlation_SA609 <- function(){
   
   summary_stat$sample_id <- gsub('.csv','',summary_stat$sample_id)
   # summary_stat$sample_id <- gsub('XB0','_',summary_stat$sample_id)
-  datatag=='SA609'
+  datatag <- 'SA609'
   if(datatag=='SA609'){
     obs_samples <- c('SA609X3XB01584','SA609X4XB03080','SA609X5XB03223',
                      'SA609X6XB03447','SA609X7XB03554','SA609X4XB003083',
@@ -190,12 +191,13 @@ viz_correlation_SA609 <- function(){
     length(obs_samples)
   }
   dim(summary_stat)
-  
+  summary(as.factor(summary_stat$data_type))
   sum(unique(summary_stat$sample_id) %in% meta_data$mouse_id)
   colnames(meta_data)
   meta_data <- meta_data %>%
     dplyr::select(passage, mouse_id, treatmentSt)
-  
+  sum(summary_stat$sample_id %in% meta_data$mouse_id)
+  dim(summary_stat)
   summary_stat <- summary_stat %>% left_join(meta_data, by=c('sample_id'='mouse_id'))
   ts <- unique(summary_stat$treatmentSt)
   df <- tibble::tibble()
@@ -210,31 +212,46 @@ viz_correlation_SA609 <- function(){
     tmp <- data.frame(treatmentSt=conds, treatment_desc=rep(obs_treatment, length(conds)))
     df <- dplyr::bind_rows(df, tmp)
   }
+  unique(summary_stat$data_type1)
+  # summary_stat <- summary_stat %>%
+  #   dplyr::mutate(data_type1 = case_when(
+  #     data_type1 =='10x' ~ 'scRNA-seq (10x)',
+  #     data_type1 =='DLP' ~ 'scWGS (DLP)',
+  #     TRUE  ~  data_type1
+  #   ))
   
-  summary_stat$data_type1 <- ifelse(summary_stat$data_type=='scRNA-seq (10x)', '10x', 'DLP')
-  summary_stat$data_type <- ifelse(summary_stat$data_type=='10x','scRNA-seq (10x)', 'scWGS (DLP)')
+  # summary_stat$data_type1 <- ifelse(summary_stat$data_type1=='10x','scRNA-seq (10x)', 'scWGS (DLP)')
+  # summary_stat$data_type <- ifelse(summary_stat$data_type=='10x','scRNA-seq (10x)', 'scWGS (DLP)')
   unique(summary_stat$data_type)
   dim(summary_stat)
   summary_stat <- summary_stat %>% left_join(df, by=c('treatmentSt'))
-  summary_stat$desc <- paste0('Pt4:',summary_stat$passage,',',summary_stat$treatment_desc, ' (',summary_stat$data_type1,')')
-  length(unique(summary_stat$desc))
-  length(unique(summary_stat$sample_id))
-  View(meta_data)
-  summary_stat$p
+  summary_stat$desc <- paste0(summary_stat$passage,'-',summary_stat$treatment_desc, ' ',summary_stat$data_type1)
+    # View(meta_data)
+  if(datatag=='SA609'){
+    summary_stat <- summary_stat %>%
+      dplyr::filter(!clone %in% c('E','F','A','R1'))%>% 
+      dplyr::mutate(clone = case_when(
+        clone == 'R' ~ 'A',
+        TRUE  ~  clone
+      ))
+  }
+  unique(summary_stat$clone)
   sids <- unique(summary_stat$sample_id)
-  p1 <- viz_correlation(summary_stat, xstring = 'clone', ystring = 'desc')
+  p1 <- viz_correlation_Pt4(summary_stat, xstring = 'clone', ystring = 'desc', color_plt='data_type', size_plt='freq')
+  unique(summary_stat$data_type1)
   res <- viz_legend(summary_stat) 
-  
-  p1 <- p1 + labs(title='Pt4 - clonal proportions')
-  pSA609_clonealign <- cowplot::plot_grid(p1, res$colplt,res$sizeplt, ncol = 1, rel_heights = c(10,0.9,0.9))
-  save_dir <- base_dir
-  png(paste0(save_dir,"Fig2_part22_clonealign_correlation.png"), height = 2*400, width=2*450, res = 2*72)
-  print(ptotal)
-  dev.off()
-  saveRDS(p1, paste0(save_dir,"clonealign_correlation-SA609.rds"))
-  p1 <- readRDS(paste0(save_dir,"clonealign_correlation-SA609.rds"))
-  saveRDS(res, paste0(save_dir,"clonealign_correlation-SA609_legends.rds"))
-  res <- readRDS(paste0(save_dir,"clonealign_correlation-SA609_legends.rds"))
+  # res$sizeplt
+  # p1 <- p1 + labs(title='Pt4 - clonal proportions')
+  # pSA609_clonealign <- cowplot::plot_grid(p1, res$colplt,res$sizeplt, ncol = 1, rel_heights = c(10,0.9,0.9))
+  # save_dir <- base_dir
+  # png(paste0(save_dir,"Fig2_part22_clonealign_correlation.png"), height = 2*400, width=2*450, res = 2*72)
+  # print(ptotal)
+  # dev.off()
+  output_dir <- "/home/htran/Projects/farhia_project/drug_resistant_material/materials/umap_figs/main_fig2/"
+  saveRDS(p1, paste0(output_dir,"clonealign_correlation-SA609.rds"))
+  # p1 <- readRDS(paste0(save_dir,"clonealign_correlation-SA609.rds"))
+  saveRDS(res, paste0(output_dir,"clonealign_correlation-SA609_legends.rds"))
+  # res <- readRDS(paste0(save_dir,"clonealign_correlation-SA609_legends.rds"))
 }
 
 
@@ -335,6 +352,50 @@ viz_total_correlation <- function(){
 }  
 
 
+viz_correlation_Pt4 <- function(summary_stat, xstring='clone', ystring='sample_id', color_plt='data_type', size_plt='freq'){
+  if(!is.data.frame(summary_stat)){
+    summary_stat <- as.data.frame(summary_stat)
+  }
+  colorcode <- c('darkgreen','#DA70D6')
+  names(colorcode) <- c("scRNA-seq (10x)","scWGS (DLP)")
+  my_font <- "Helvetica"
+  
+  
+  descs <- summary_stat %>%
+    dplyr::group_by(desc) %>%
+    dplyr::summarise(nb_passages=n()) %>%
+    dplyr::pull(gtools::mixedsort(desc))
+  # descs
+  summary_stat$desc <- factor(summary_stat$desc, levels=descs)
+  p <- ggplot(summary_stat, aes_string(x = xstring, y = ystring)) + 
+    geom_point(aes_string(color = color_plt, size=size_plt), alpha=0.9) + #, size=2*log10(pct_genes)size=4.5
+    scale_color_manual(values = colorcode) + 
+    # facet_grid(PDX ~ ., scales="free_y", space='free',drop=T) + # PDX ~ ref_gene, . ~ PDX
+    # geom_hline(yintercept = 1:6, col = "#e2e2e2") +
+    # geom_text(aes(label=celltype_desc))+
+    # annotate('text', x = df$success, y = df$index, label = df$success, size=3, colour = col[df$gender])+
+    
+    # scale_color_manual(values = col) +
+    theme_bw()+
+    labs(x='Clone Id', y='Pt4 - Joint Tumour Populations Analysis') + 
+    theme(#strip.text = element_text(size=9, color="black", family=my_font),
+          #strip.background = element_blank(),
+          legend.position = "none",
+          # panel.grid.major.x = element_blank(),
+          # panel.grid.minor.x = element_blank(),
+          # axis.ticks.y = element_blank(),
+          # axis.text  = element_blank(),
+          axis.title.y = element_text(size = 13, hjust = 0.5, family=my_font, color="black", face="bold"),
+          axis.title.x = element_text(size = 11, hjust = 0.5, family=my_font, color="black", face="bold"),
+          text = element_text(size = 10, hjust = 0.5, family=my_font, color="black"),
+          axis.text.x = element_text(size=14, hjust = 0.5, family=my_font, color="black"),  #, angle = 90
+          axis.text.y = element_text(size=11, hjust = 1, family=my_font, color="black"),
+          plot.title = element_text(size=11, face="bold", hjust=0, family=my_font, color="black")) #+
+  
+  
+  # p
+  return(p)
+}
 viz_correlation <- function(summary_stat, xstring='clone', ystring='sample_id'){
   colorcode <- c('darkgreen','#DA70D6')
   names(colorcode) <- c('scRNA-seq (10x)','scWGS (DLP)')
@@ -358,10 +419,10 @@ viz_correlation <- function(summary_stat, xstring='clone', ystring='sample_id'){
           # axis.ticks.y = element_blank(),
           # axis.text  = element_blank(),
           axis.title.y = element_blank(),
-          text = element_text(size = 7, hjust = 0.5, family=my_font),
-          axis.text.x = element_text(size=9, hjust = 0.5, family=my_font),  #, angle = 90
-          axis.text.y = element_text(size=9, hjust = 0.5, family=my_font),
-          plot.title = element_text(size=10, face="bold", hjust=0, family=my_font)) #+
+          text = element_text(size = 10, hjust = 0.5, family=my_font, color="black"),
+          axis.text.x = element_text(size=12, hjust = 0.5, family=my_font, color="black"),  #, angle = 90
+          axis.text.y = element_text(size=11, hjust = 0.5, family=my_font, color="black"),
+          plot.title = element_text(size=11, face="bold", hjust=0, family=my_font), color="black") #+
   
   
  
@@ -377,7 +438,7 @@ viz_legend <- function(summary_stat){
     geom_point(aes(color = data_type), alpha=0.9) + #, size=2*log10(pct_genes)size=4.5
     scale_color_manual(values = colorcode, name=' ') +
     theme(legend.position ='bottom')
-  p1 <- p1 + guides(color = guide_legend(override.aes = list(size=7, nrow = 1))) #shape = 0, 
+  p1 <- p1 + guides(color = guide_legend(override.aes = list(size=5, nrow = 1))) #shape = 0, 
   lg <- cowplot::get_legend(p1)
   plg <- cowplot::ggdraw() + cowplot::draw_plot(lg)
   
@@ -385,7 +446,7 @@ viz_legend <- function(summary_stat){
     geom_point(aes(size=Clone_Prevalence), alpha=0.9) + #, size=2*log10(pct_genes)size=4.5
     scale_color_manual(values = colorcode, name=' ') +
     theme(legend.position ='bottom')
-  p1 <- p1 + guides(size = guide_legend(override.aes = list(nrow = 2))) #shape = 0, 
+  p1 <- p1 + guides(size = guide_legend(title = 'Clone Prevalence',override.aes = list(nrow = 2))) #shape = 0, 
   lg <- cowplot::get_legend(p1)
   plg2 <- cowplot::ggdraw() + cowplot::draw_plot(lg)
   return(list(colplt=plg,sizeplt=plg2))

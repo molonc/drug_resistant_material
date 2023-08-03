@@ -210,6 +210,19 @@ runQC(opt$input_file, opt$min_features,
 # 
 # }
 
+input_dir <- '/home/htran/storage/rnaseq_datasets/hakwoo_metastasis_RNAseq/SA535_human/'
+min_features <- 1000
+max_mito <- 20
+max_ribo <- 60
+nmads_threshold <- 3
+output_dir <- '/home/htran/storage/datasets/metastasis_results/rnaseq_SA535/filtered/'
+lids <- c('SCRNA10X_SA_CHIP0250_001')
+for(library_id in lids){
+  runQC(paste0(input_dir,library_id,'/',library_id,'.rdata'), min_features,
+        max_mito, max_ribo,
+        paste0(output_dir,library_id,'_filtered.rds'), library_id, nmads_threshold)
+
+}
 
 # /usr/local/bin/Rscript /home/htran/Projects/farhia_project/rnaseq/pipeline/utils/qc_filtering.R --input_file /home/htran/storage/rnaseq_datasets/hakwoo_metastasis_RNAseq/SA535_human/SCRNA10X_SA_CHIP0220_001/SCRNA10X_SA_CHIP0220_001.rdata --output_file /home/htran/storage/datasets/metastasis_results/rnaseq_SA535/filtered/SCRNA10X_SA_CHIP0220_001_filtered.rds --library_id SCRNA10X_SA_CHIP0220_001 --max_mito 20 --max_ribo 60 --min_features 1000
 # /usr/local/bin/Rscript /home/htran/Projects/farhia_project/rnaseq/pipeline/utils/qc_filtering.R --input_file /home/htran/storage/rnaseq_datasets/hakwoo_metastasis_RNAseq/SA535_human/SCRNA10X_SA_CHIP0220_002/SCRNA10X_SA_CHIP0220_002.rdata --output_file /home/htran/storage/datasets/metastasis_results/rnaseq_SA535/filtered/SCRNA10X_SA_CHIP0220_002_filtered.rds --library_id SCRNA10X_SA_CHIP0220_002 --max_mito 20 --max_ribo 60 --min_features 1000

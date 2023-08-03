@@ -16,7 +16,8 @@ fonts()
 
 
 plot_proportion_cistrans_reference_set <- function(pair_groups, 
-                                                   reference_sets=c('CoreFitness','BroadSanger','cosmic','cisplatin_resistance'))
+                                                   reference_sets=c('CoreFitness','BroadSanger',
+                                                                    'cosmic','cisplatin_resistance'))
 {
   minLogFC <- 0.5
   FDR_cutoff <- 0.01
@@ -96,7 +97,7 @@ plot_proportion_cistrans_reference_set <- function(pair_groups,
       prop_plt <- plot_reference_set_proportion(ref_stat_tmp, save_dir)
       prop_plt_ls[[pd]] <- prop_plt$prevalence_plt
     }  
-    prop_plt_ls$SA609
+    # prop_plt_ls$SA609
     res_prevalence_plt <- plot_reference_set_proportion(ref_stat, save_dir)
     res_prevalence_plt$prevalence_plt
     pathway_stat <- get_pathway_stat(pair_groups, input_dir, save_dir)

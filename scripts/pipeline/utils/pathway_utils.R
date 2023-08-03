@@ -10,7 +10,7 @@ suppressPackageStartupMessages({
   # require(DOSE)
 })
 library(extrafont)
-font_import(prompt=F, paths ='/usr/share/fonts/truetype/myfonts/') # import Helvetica font
+# font_import(prompt=F, paths ='/usr/share/fonts/truetype/myfonts/') # import Helvetica font
 fonts()
 
 # A vector of genes as input
@@ -999,9 +999,9 @@ viz_pathways <- function(pathway_stat, datatag, save_dir){
   p <- p + geom_text_repel(data = pathway_stat, aes(label = pathway), size = 3.7)
   # p <- p + annotate("text", x = pathway_stat$datatag, y = pathway_stat$nb_signf_genes+2, 
   #                   label = pathway_stat$pathway, size=3.5)
-  png(paste0(save_dir, datatag, "_trajectory_pathways.png"), height = 2*500, width=2*400, res = 2*72)
-  print(p)
-  dev.off()
+  # png(paste0(save_dir, datatag, "_trajectory_pathways.png"), height = 2*500, width=2*400, res = 2*72)
+  # print(p)
+  # dev.off()
   saveRDS(p, paste0(save_dir, datatag, "_trajectory_pathways.rds"))
   return(p)
   
@@ -1043,25 +1043,60 @@ viz_vennDiagram_ggplot <- function(genes_set, save_dir, datatag,
   return(p)
 }
 
+# df <- pathway_stat1
+# viz_pathways_barplot_v2 <- function(df, xplt='pathway', yplt='nb_signf_genes'){
+#   df$pathway <- ifelse(df$pathway=='epithelial_mesenchymal_transition','EMT',df$pathway)
+#   df$pathway <- gsub('response','res',df$pathway)
+#   
+#   # colnames(df)
+#   my_font <- "Helvetica"
+#   for(gt in unique(df$gene_type_module)){
+#     tmp <- df %>%
+#       dplyr::filter(gene_type_module==gt)
+#     p <- ggplot(tmp) + 
+#       geom_bar(stat="identity", aes_string(x=xplt, y=yplt),width=0.4, color='grey', fill='grey') + 
+#       coord_flip() + 
+#       facet_grid(rows = vars(gene_type_module), scales = "free") + #, space = "free"
+#       theme_bw() + 
+#       theme(#strip.text.y = element_text(angle = 0),
+#         panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         panel.border = element_blank(),
+#         panel.background = element_blank(),
+#         strip.background = element_rect(color='white', fill='white'),
+#         axis.text.x = element_text(color="black", size=10, family=my_font),
+#         axis.text.y = element_text(color="black", size=10, family=my_font)) + 
+#       labs(x=NULL, y='#signf genes', title = NULL)
+#     p  
+#   }
+#   
+#   return(p)
+# }
+
 viz_pathways_barplot <- function(df, xplt='pathway', yplt='nb_signf_genes'){
-  df$pathway <- ifelse(df$pathway=='epithelial_mesenchymal_transition','EMT',df$pathway)
+  # df$pathway <- ifelse(df$pathway=='epithelial_mesenchymal_transition','EMT',df$pathway)
+  df$pathway <- ifelse(df$pathway=='epithelial_mesenchymal_transition','epi_mes_trans-EMT',df$pathway)
   df$pathway <- gsub('response','res',df$pathway)
   
-  colnames(df)
+  # colnames(df)
   my_font <- "Helvetica"
   p <- ggplot(df) + 
     geom_bar(stat="identity", aes_string(x=xplt, y=yplt),width=0.4, color='grey', fill='grey') + 
     coord_flip() + 
-    facet_grid(rows = vars(gene_type_module), scales = "free", space = "free") + 
+    facet_grid(rows = vars(gene_type_module), space = "free", scales = "free") + #, strip.position = "left" for facet_wrap
     theme_bw() + 
-    theme(#strip.text.y = element_text(angle = 0),
-      panel.grid.major = element_blank(),
+    theme(strip.text = element_text(color="black", size=15),      
+          panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
       panel.border = element_blank(),
+      axis.ticks.length.y = unit(.25, "cm"),
       panel.background = element_blank(),
+      plot.margin = unit(c(0, 0, 0, 0), "null"),
+      panel.spacing = unit(c(0, 0, 0, 0), "null"),
       strip.background = element_rect(color='white', fill='white'),
+      strip.text.y = element_blank(),
       axis.text.x = element_text(color="black", size=10, family=my_font),
-      axis.text.y = element_text(color="black", size=10, family=my_font)) + 
+      axis.text.y = element_text(color="black", size=11, family=my_font)) + 
     labs(x=NULL, y='#signf genes', title = NULL)
   # p
   return(p)

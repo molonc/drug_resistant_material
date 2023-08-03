@@ -7,10 +7,16 @@ suppressPackageStartupMessages({
   require(scales)
   require(ggrepel)
   require(stringr)
+  require(grid)
 })
+# Suppress summarise info 
+options(dplyr.summarise.inform = FALSE)
+options(tidyverse.quiet = TRUE)
 library(extrafont)
 font_import(prompt=F, paths ='/usr/share/fonts/truetype/myfonts/') # import Helvetica font
 fonts()
+my_font <- "Helvetica"
+
 get_median_cnv <- function(df_cnv){
   df_cnv <- data.table::fread(df_cnv_fn, check.names = F, stringsAsFactors = F) %>% as.data.frame()
   
@@ -30,6 +36,59 @@ get_median_cnv <- function(df_cnv){
   median_cnv <- as.data.frame(median_cnv)
   return(median_cnv)
 }
+process_old_clone_labels_UMAP <- function(umap_df, datatag){
+  # if(datatag=='SA609'){
+  #   cell_clones <- cell_clones %>%
+  #     dplyr::filter(!clone_id %in% c('E','F','A','R1'))%>% 
+  #     dplyr::mutate(clone_id = case_when(
+  #       clone_id == 'R' ~ 'A',
+  #       TRUE  ~  clone_id
+  #     ))
+  # }
+  if(datatag=='SA501'){
+    umap_df <- umap_df %>%
+      dplyr::mutate(clone = case_when(
+        clone == 'R' ~ 'H',
+        TRUE  ~  clone
+      ))
+  }
+  if(datatag=='SA604'){
+    umap_df <- umap_df %>%
+      dplyr::mutate(clone = case_when(
+        clone %in% c('R1','R2') ~ 'K',
+        TRUE  ~  clone
+      ))
+  }
+  return(umap_df)
+}
+
+process_old_clone_labels <- function(cell_clones, datatag){
+  # if(datatag=='SA609'){
+  #   cell_clones <- cell_clones %>%
+  #     dplyr::filter(!clone_id %in% c('E','F','A','R1'))%>% 
+  #     dplyr::mutate(clone_id = case_when(
+  #       clone_id == 'R' ~ 'A',
+  #       TRUE  ~  clone_id
+  #     ))
+  # }
+  if(datatag=='SA501'){
+    cell_clones <- cell_clones %>%
+      dplyr::mutate(clone_id = case_when(
+        clone_id == 'R' ~ 'H',
+        TRUE  ~  clone_id
+      ))
+  }
+  if(datatag=='SA604'){
+    cell_clones <- cell_clones %>%
+      dplyr::mutate(clone_id = case_when(
+        clone_id %in% c('R1','R2') ~ 'K',
+        TRUE  ~  clone_id
+      ))
+  }
+  return(cell_clones)
+}
+
+
 get_median_genotype_v3 <- function(copynumber_fn, 
                                    datatag, save_dir,
                                    cellclone_fn=NULL, library_grouping_fn=NULL){
@@ -58,13 +117,15 @@ get_median_genotype_v3 <- function(copynumber_fn,
   # metasample <- data.table::fread(library_grouping_fn) %>% as.data.frame()
   # dim(metasample)
   # head(metasample)
+  cell_clones <- process_old_clone_labels(cell_clones, datatag)
+    
   cell_clones <- cell_clones %>%
-    dplyr::filter(!clone_id %in% c('None','unassigned'))
+    dplyr::filter(!clone_id %in% c('None','unassigned','un','Unassigned'))
   
-  if(datatag=='SA604'){
-    cell_clones$clone_id <- ifelse(cell_clones$clone_id=='R1','K',
-                                   ifelse(cell_clones$clone_id=='R2','L',cell_clones$clone_id))  
-  }
+  # if(datatag=='SA604'){
+  #   cell_clones$clone_id <- ifelse(cell_clones$clone_id=='R1','K',
+  #                                  ifelse(cell_clones$clone_id=='R2','L',cell_clones$clone_id))  
+  # }
   
   # colnames(metasample)
   # metasample <- metasample %>%
@@ -113,7 +174,7 @@ get_median_genotype_v3 <- function(copynumber_fn,
   stat_cnv$end <- as.numeric(unname(sapply(regions, '[[', 3)))
   stat_cnv <- stat_cnv %>%
     dplyr::select(-chr_desc)
-  data.table::fwrite(stat_cnv, paste0(save_dir, datatag,'_median_cnv.csv'))
+  data.table::fwrite(stat_cnv, paste0(save_dir, datatag,'_median_cnv.csv.gz'))
   # data.table::fwrite(stat_cnv, paste0(save_dir,datatag, '_stat_median_cnv.csv'))
   # dim(stat_cnv)
   return(stat_cnv)  
@@ -236,11 +297,13 @@ plot_CNV_profile <- function(df_cnv, clones=NULL, plttitle='',meta_genes=NULL){
   #                    # panel.background = element_rect(fill = "#F8F8F8", colour = NA),
   #                    panel.spacing = unit(c(0.1), 'cm'))
   cnv_plot <- cnv_plot + theme(strip.background = element_rect(fill = 'white', colour = 'white'),
+                               strip.text.x = element_text(color="black",size=9, family=my_font),
+                               strip.text.y = element_text(color="black",size=9, family=my_font),
                                text = element_text(color="black",size = 8, hjust = 0.5, family=my_font),
                                axis.text.x = element_blank(),
                                plot.title = element_text(color="black",size=12, hjust = 0, family=my_font, face="bold"),
                                axis.ticks.x = element_blank(),
-                               axis.text.y = element_text(color="black",size=7, hjust = 0.5, family=my_font),
+                               axis.text.y = element_text(color="black",size=11, hjust = 0.5, family=my_font, face="bold"),
                                axis.title.y = element_text(color="black",size=8, hjust = 0.5, family=my_font),
                                axis.line = element_line(colour = "black"),
                                strip.placement = "outside",
@@ -262,7 +325,7 @@ plot_CNV_profile <- function(df_cnv, clones=NULL, plttitle='',meta_genes=NULL){
   lg <- cowplot::get_legend(cnv_plot)
   plg <- cowplot::ggdraw() + cowplot::draw_plot(lg)
   cnv_plot <- cnv_plot + theme(legend.position = "none")
-  results <- list(df_cnv=df_cnv, plg=plg, cnv_plot=cnv_plot)
+  results <- list(plg=plg, cnv_plot=cnv_plot) #df_cnv=df_cnv, 
   return(results)
 }
 
@@ -280,40 +343,102 @@ get_sample_id <- function(cell_ids) {
   return(as.character(labels))
 }
 
+get_median_genotype_v3_SA609 <- function(cellclone_fn, copynumber_fn){
+  cell_clones <- read.csv(cellclone_fn, check.names = F,stringsAsFactors = FALSE)
+  cell_clones <- process_old_clone_labels(cell_clones, datatag)
+  print(unique(cell_clones$clone_id))
+  ## Noted: for SA609, a wrong format somewhere TO DO
+  cnv <- data.table::fread(copynumber_fn) %>% as.data.frame()
+  dim(cnv)
+  colnames(cnv)
+  cnv <- cnv %>%
+    # dplyr::filter(cell_id %in% cell_clones$cell_id) %>%
+    dplyr::rename(copy_number=state) %>%
+    inner_join(cell_clones, by=c("cell_id"))
+  cnv <- cnv %>%
+    dplyr::rename(clone=clone_id)
+  
+  
+  regions <- sapply(cnv$chr_desc, strsplit, "_")
+  cnv$chr <- unname(sapply(regions, '[[', 1))
+  cnv$start <- as.numeric(unname(sapply(regions, '[[', 2)))
+  cnv$end <- as.numeric(unname(sapply(regions, '[[', 3)))
+  cnv <- cnv %>%
+    dplyr::select(-chr_desc)
+  
+  
+  copynumber_fn1 <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/cell_clones/SA535_total_merged_filtered_states.csv.gz'
+  tmp <- data.table::fread(copynumber_fn1) %>% as.data.frame()
+  CNA_regions_ls <- as.character(tmp$V1)
+  rm(tmp)
+  length(CNA_regions_ls)
+  copynumber <- copynumber[CNA_regions_ls,]
+  
+  data.table::fwrite(cnv, paste0(save_dir, datatag,'_median_cnv.csv.gz'))
+  
+}
 
-
-
-get_median_genotype_v2 <- function(datatag, results_dir, copynumber_fn=NULL, cellclone_fn=NULL,
+get_median_genotype_v2 <- function(datatag, save_dir, copynumber_fn=NULL, cellclone_fn=NULL,
                                    calcul_distance=F, distance_type='Manhattan'){
   
   if(is.null(copynumber_fn)){
-    copynumber_fn <- paste0(results_dir,'total_merged_filtered_states.csv')
+    # copynumber_fn <- paste0(results_dir,'total_merged_filtered_states.csv.gz')
+    return(null)
   }
   if(is.null(cellclone_fn)){
-    cellclone_fn <- paste0(results_dir,'cell_clones.csv')  
+    # cellclone_fn <- paste0(results_dir,'cell_clones.csv.gz')  
+    return(null)
   }
-  save_dir <- paste0(results_dir,'CN_profile/')
+  # save_dir <- paste0(results_dir,'CN_profile/')
   if(!dir.exists(save_dir)){
     dir.create(save_dir)
   }
   
-  copynumber <- read.csv(copynumber_fn, header=T, 
-                         row.names = 1, check.names = F,stringsAsFactors = FALSE)
+  copynumber <- read.csv(copynumber_fn, check.names = F,stringsAsFactors = FALSE, row.names = 1)#data.table::fread(copynumber_fn) %>% as.data.frame() #
+  # copynumber <- data.table::fread(copynumber_fn) %>% as.data.frame()
+  # rownames(copynumber) <- copynumber$chr_desc
+  # copynumber$chr_desc <- NULL
+  # if(datatag=='SA609'){
+  #   print(dim(copynumber))  
+  #   copynumber_fn1 <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/cell_clones/SA535_total_merged_filtered_states.csv.gz'
+  #   tmp <- data.table::fread(copynumber_fn1) %>% as.data.frame()
+  #   CNA_regions_ls <- as.character(tmp$V1)
+  #   rm(tmp)
+  #   length(CNA_regions_ls)
+  #   copynumber <- copynumber[CNA_regions_ls,]
+  #   print(dim(copynumber))  
+  # }
   
   # cell_clones contain 2 columns of cell_id, and clone_id
   # ex:           cell_id                      clone_id
   # 1   SA535X4XB02498-A98163A-R09-C11          C
   cell_clones <- read.csv(cellclone_fn, check.names = F,stringsAsFactors = FALSE)
-  
+  cell_clones <- process_old_clone_labels(cell_clones, datatag)
+  print(unique(cell_clones$clone_id))
   print(dim(copynumber))
   cells_use <- colnames(copynumber)[colnames(copynumber) %in% cell_clones$cell_id]
-  copynumber <- copynumber[,cells_use]
+  print(length(cells_use))
+  
+  copynumber <- copynumber[,as.character(cells_use)]
+  
   copynumber$chr_desc <- rownames(copynumber)
+  
   cnv <- copynumber %>%
-    pivot_longer(!chr_desc, names_to = "cell_id", values_to = "copy_number")
+    pivot_longer(!chr_desc, names_to = "cell_id", values_to = "copy_number")#
   
   print(dim(cnv))
+  
   cnv <- cnv %>% inner_join(cell_clones, by=c("cell_id"))
+  
+  
+  ## Noted: for SA609, a wrong format somewhere
+  # cnv <- data.table::fread(copynumber_fn2) %>% as.data.frame()
+  # dim(cnv)
+  # cnv[1:3,]
+  # cnv <- cnv %>%
+  #   # dplyr::filter(cell_id %in% cell_clones$cell_id) %>%
+  #   dplyr::rename(copy_number=state) %>%
+  #   inner_join(cell_clones, by=c("cell_id"))
   
   # get median genotype 
   print("Get median genotype")
@@ -332,7 +457,7 @@ get_median_genotype_v2 <- function(datatag, results_dir, copynumber_fn=NULL, cel
   
   median_cnv <- as.data.frame(median_cnv)
   # write.csv(median_cnv, paste0(save_dir,'SA609_median_cnv.csv'), quote = F, row.names = F)
-  write.csv(median_cnv, paste0(save_dir,'median_cnv.csv'), quote = F, row.names = F)
+  write.csv(median_cnv, paste0(save_dir, datatag,'_median_cnv.csv.gz'), quote = F, row.names = F)
   median_cnv <- median_cnv %>%
     tibble::column_to_rownames('chr_desc')
   
@@ -355,6 +480,9 @@ get_median_genotype_v2 <- function(datatag, results_dir, copynumber_fn=NULL, cel
   # median_cnv <- median_cnv[ls_features,]
   # dim(median_cnv)
   res <- compute_dist_mat(median_cnv, save_dir, use_hamming = F)
+  data.table::fwrite(as.data.frame(res$dist_to_median), paste0(save_dir,datatag,'_cn_distance.csv.gz'), row.names=T)
+  data.table::fwrite(res$out_mtx, paste0(save_dir,datatag,'_cn_distance_output.csv.gz'))
+  
   # head(res$dist_to_median)
   p <- plot_heatmap_genotype(res$dist_to_median, distance_type, datatag, save_dir)
   res$hm <- p
@@ -421,9 +549,9 @@ plot_heatmap_genotype <- function(dis_mtx, distance_type, datatag, results_dir){
   )#row_dend_reorder=F
   # p
   
-  png(paste0(results_dir, datatag, distance_type,'_distance_','.png'), height = 2*500, width=2*600, res = 2*72)
-  print(p)
-  dev.off()
+  # png(paste0(results_dir, datatag, distance_type,'_distance_','.png'), height = 2*500, width=2*600, res = 2*72)
+  # print(p)
+  # dev.off()
   return(p)
 }
 
@@ -469,8 +597,7 @@ compute_dist_mat <- function(mg_mat, results_dir, use_hamming = FALSE) {
     }
     rownames(dist_to_median) <- colnames(mg_mat)
     colnames(dist_to_median) <- colnames(mg_mat)
-    data.table::fwrite(as.data.frame(dist_to_median), paste0(results_dir,'cn_distance_',distance_type,'.csv'), row.names=T)
-    data.table::fwrite(out_mtx, paste0(results_dir,'cn_distance_',distance_type,'_output.csv'))
+    
     return(list(dist_to_median=dist_to_median,out_mtx=out_mtx))
   }
   

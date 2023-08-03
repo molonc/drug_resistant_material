@@ -87,10 +87,10 @@ runQC <- function(sce, min_features=1000,
                   min_pc_sum=1000, output_file=NULL, output_dir=NULL, 
                   library_id=NULL, nmads_threshold=3){
 
-  mito_genes <- str_detect(rowData(sce)$Symbol, "^MT\\-")
+  mito_genes <- str_detect(toupper(rowData(sce)$Symbol), "^MT\\-")
   sum(mito_genes==TRUE)
 
-  ribo_genes <- str_detect(rowData(sce)$Symbol, "^RP(L|S)")  # or ^RP[L|S]?
+  ribo_genes <- str_detect(toupper(rowData(sce)$Symbol), "^RP(L|S)")  # or ^RP[L|S]?
   sum(ribo_genes==TRUE)
   print(paste0('Original size: ',dim(sce)[1],' ',dim(sce)[2], ' library_id:', library_id))
 

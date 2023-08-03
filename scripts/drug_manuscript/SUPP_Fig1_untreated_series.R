@@ -31,6 +31,7 @@ plot_medianCNV_heatmap <- function(){
     df_cnv <- get_median_genotype_v3(copynumber_fn, datatag, save_dir,
                                      cellclone_fn, library_grouping_fn) 
     print(dim(df_cnv))
+    # unique(df_cnv$clone)
     res <- plot_CNV_profile(df_cnv, clones= levels(df_cnv$clone),
                             plttitle=paste0(pts_lb[datatag],' DLP - median copy number profile'))
     dlp_heatmap_ls[[datatag]] <- res
@@ -57,6 +58,9 @@ plot_10x_UMAP <- function()
   source(paste0(base_dir, 'scripts/drug_manuscript/viz_umap_figs/viz_umaps.R'))
   input_dir <- paste0(base_dir, 'materials/umap_figs/')
   output_dir <- paste0(base_dir, 'materials/umap_figs/figs_rna/')
+  series <- c('SA501','SA530','SA604')
+  pts_lb <- c('Pt1','Pt2','Pt3') 
+  names(pts_lb) <- series
   # dir.create(output_dir)
   
   ##---------------------------------------------------------------------------------------
@@ -80,8 +84,9 @@ plot_10x_UMAP <- function()
   sum(umap_df$cell_id %in% clonealign_stat$cell_id)
   umap_df <- umap_df %>% left_join(clonealign_stat, by=c('cell_id'))
   summary(as.factor(umap_df$clone))
-  
-  color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
+  umap_df <- process_old_clone_labels_UMAP(umap_df, datatag)
+  # color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
+  color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v4.csv.gz')
   cols_use <- get_color_clones(datatag, color_fn) # predefined clone color code for DLP and 10x inferred clones clonealign
   
   tps <- unique(umap_df$timepoint)
@@ -89,7 +94,7 @@ plot_10x_UMAP <- function()
   rna_umap_SA501 <- list()
   obs_treatment <- 'UnRx'
   for(obs_passage in tps){
-    plottitle= paste0('10x - ',obs_treatment,': ',obs_passage)
+    plottitle= paste0(pts_lb[datatag],':10x - ',obs_treatment,': ',obs_passage)
     res <- viz_umap_obs_clones(umap_df, cols_use, datatag, 
                                output_dir, obs_treatment, obs_passage, 
                                plottitle, F)
@@ -101,7 +106,7 @@ plot_10x_UMAP <- function()
   # res_SA501_UnRx <- readRDS(paste0(input_dir,'figs/',datatag,'_dlp_prevalence.rds'))
   
   # res_dlp_SA501_lg <- readRDS(paste0(input_dir,'figs/',datatag,'_clone_legend_plt.rds'))
-  
+  umap_df <- umap_df_backup 
   ## Clone prevalence of inferred clones - output of clonealign
   res_prop10x_SA501 <- plot_fill_barplot_wholedataset_rnaseq(umap_df, cols_use, output_dir, 
                                                              datatag, plottitle=NULL, plotlegend=F)
@@ -130,16 +135,17 @@ plot_10x_UMAP <- function()
   # sum(umap_df$cell_id %in% clonealign_stat$cell_id)
   # umap_df <- umap_df %>% left_join(clonealign_stat, by=c('cell_id'))
   
-  color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
+  # color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
+  color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v4.csv.gz')
   cols_use <- get_color_clones(datatag, color_fn) # predefined clone color code for DLP and 10x inferred clones clonealign
-  
+  umap_df <- process_old_clone_labels_UMAP(umap_df, datatag)
   tps <- unique(umap_df$timepoint)
   print(tps)
   rna_umap_SA530 <- list()
   obs_treatment <- 'UnRx'
   
   for(obs_passage in tps){
-    plottitle= paste0('10x - ',obs_treatment,': ',obs_passage)
+    plottitle= paste0(pts_lb[datatag],':10x - ',obs_treatment,': ',obs_passage)
     res <- viz_umap_obs_clones(umap_df, cols_use, datatag, 
                                output_dir, obs_treatment, obs_passage, 
                                plottitle, F)
@@ -155,6 +161,9 @@ plot_10x_UMAP <- function()
   # res_prop10x_SA530$plg
   # dev.off()
   saveRDS(res_prop10x_SA530, paste0(output_dir, datatag, "_prevalence_clone_clonealign10x.rds"))
+  
+  
+  
   ##---------------------------------------------------------------------------------------
   ##-----------------------------------SA604 10x UMAP, barplot prevalence clonealign-------
   input_dir <- paste0(base_dir, 'materials/umap_figs/')
@@ -185,15 +194,16 @@ plot_10x_UMAP <- function()
   umap_df <- umap_df %>% 
     dplyr::rename(treatmentSt=treat)
   
-  color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
+  # color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
+  color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v4.csv.gz')
   cols_use <- get_color_clones(datatag, color_fn) # predefined clone color code for DLP and 10x inferred clones clonealign
-  
+  umap_df <- process_old_clone_labels_UMAP(umap_df, datatag)
   tps <- unique(umap_df$timepoint)
   print(tps)
   rna_umap_SA604 <- list()
   obs_treatment <- 'UnRx'
   for(obs_passage in tps){
-    plottitle= paste0('10x - ',obs_treatment,': ',obs_passage)
+    plottitle= paste0(pts_lb[datatag],':10x - ',obs_treatment,': ',obs_passage)
     res <- viz_umap_obs_clones(umap_df, cols_use, datatag, 
                                output_dir, obs_treatment, obs_passage, 
                                plottitle, F)
@@ -222,9 +232,12 @@ plot_10x_UMAP <- function()
 plot_DLP_barplot <- function(){
   base_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/'
   source(paste0(base_dir, 'scripts/drug_manuscript/viz_umap_figs/viz_umaps.R'))
+  source(paste0(base_dir, 'scripts/drug_manuscript/cnv_viz_utils.R'))
   input_dir <- paste0(base_dir, 'materials/cell_clones/')
   output_dir <- paste0(base_dir, 'materials/umap_figs/figs_rna/')
-  
+  series <- c('SA501','SA530','SA604')
+  pts_lb <- c('Pt1','Pt2','Pt3') 
+  names(pts_lb) <- series
   ##---------------------------------------------------------------------------------------
   ##-----------------------------------SA501 barplot prevalence from sitka tree -----------
   
@@ -234,14 +247,15 @@ plot_DLP_barplot <- function(){
   cell_clones <- data.table::fread(cell_clones_fn) %>% as.data.frame()
   dim(cell_clones)
   # cols_use <- make_clone_palette(unique(cell_clones$clone_id)) # old version
-  color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
+  # color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
+  color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v4.csv.gz')
   cols_use <- get_color_clones(datatag, color_fn) # predefined clone color code for DLP and 10x inferred clones clonealign
   obs_treatment <- 'UnRx'
   obs_passage <- 'X2'
   cell_clones$timepoint <- 'X2'
   
   cell_clones <- get_meta_data(cell_clones_fn, library_grouping_fn, datatag)
-  cell_clones$treatment_desc <- paste0('DLP-',cell_clones$treatment_desc)
+  cell_clones$treatment_desc <- paste0(pts_lb[datatag],':DLP-',cell_clones$treatment_desc)
   res_barDLP_501 <- plot_fill_barplot_wholedataset_v2(cell_clones, cols_use, output_dir, 
                                                       datatag, plottitle=NULL, plotlegend=F)
   
@@ -259,13 +273,14 @@ plot_DLP_barplot <- function(){
   cell_clones <- data.table::fread(cell_clones_fn) %>% as.data.frame()
   dim(cell_clones)
   # cols_use <- make_clone_palette(unique(cell_clones$clone_id)) # old version
-  color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
+  # color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
+  color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v4.csv.gz')
   cols_use <- get_color_clones(datatag, color_fn) # predefined clone color code for DLP and 10x inferred clones clonealign
   obs_treatment <- 'UnRx'
   obs_passage <- 'X3'
   cell_clones$timepoint <- 'X3'
   cell_clones <- get_meta_data(cell_clones_fn, library_grouping_fn, datatag)
-  cell_clones$treatment_desc <- paste0('DLP-',cell_clones$treatment_desc)
+  cell_clones$treatment_desc <- paste0(pts_lb[datatag],':DLP-',cell_clones$treatment_desc)
   res_barDLP_530 <- plot_fill_barplot_wholedataset_v2(cell_clones, cols_use, output_dir, 
                                                       datatag, plottitle=NULL, plotlegend=F)
   
@@ -287,10 +302,11 @@ plot_DLP_barplot <- function(){
   cell_clones <- data.table::fread(cell_clones_fn) %>% as.data.frame()
   dim(cell_clones)
   # cols_use <- make_clone_palette(unique(cell_clones$clone_id)) # old version
-  color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
+  # color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v3.csv.gz')
+  color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v4.csv.gz')
   cols_use <- get_color_clones(datatag, color_fn) # predefined clone color code for DLP and 10x inferred clones clonealign
   cell_clones <- get_meta_data(cell_clones_fn, library_grouping_fn, datatag)
-  cell_clones$treatment_desc <- paste0('DLP-',cell_clones$treatment_desc)
+  cell_clones$treatment_desc <- paste0(pts_lb[datatag],':DLP-',cell_clones$treatment_desc)
   res_barDLP_604 <- plot_fill_barplot_wholedataset_v2(cell_clones, cols_use, output_dir, 
                                                       datatag, plottitle=NULL, plotlegend=F)
   # res_barDLP_604$p
@@ -303,7 +319,7 @@ plot_DLP_barplot <- function(){
 
 plot_SUPP_fig1 <- function(){
   
-  ## Eric
+  
   ## Change base_dir to your github folder, ex: yourdir/ddrug_resistant_material/materials/
   ## Loading rds files and do plotting
   ## You can use plot_grid or save each patient data into 1 image and paste into svg file, up to you
@@ -312,7 +328,7 @@ plot_SUPP_fig1 <- function(){
   # source(paste0(base_dir, 'scripts/drug_manuscript/cnv_viz_utils.R'))
   source(paste0(base_dir, 'scripts/drug_manuscript/viz_umap_figs/viz_umaps.R'))
   input_dir <- paste0(base_dir, 'materials/umap_figs/figs_rna/')
-
+  output_dir <- paste0(base_dir, 'materials/umap_figs/figs_rna/')
   
   ## Loading DLP plots from folder or run functions above
   series <- c('SA501','SA530','SA604')
@@ -355,7 +371,8 @@ plot_SUPP_fig1 <- function(){
   
   
   
-  ## SUPP Fig 1, Eric
+  
+  ## SUPP Fig 1
   res_barDLP_501 <- readRDS(paste0(output_dir, series[1], "_barplot_DLP.rds"))
   res_barDLP_530 <- readRDS(paste0(output_dir, series[2], "_barplot_DLP.rds"))
   res_barDLP_604 <- readRDS(paste0(output_dir, series[3], "_barplot_DLP.rds"))
@@ -370,49 +387,52 @@ plot_SUPP_fig1 <- function(){
   rna_umap_SA604 <- readRDS(paste0(output_dir, series[3], "_umap_plt.rds"))
   
   clone_plg_501 <- plot_clone_color_legend('SA501', base_dir, ncols_grid=1)
-  p501_total <- cowplot::plot_grid(res_barDLP_501$p, res_prop10x_SA501$p, clone_plg_501, rna_umap_SA501$UnRx_X2$p, 
-                                   nrow=1, rel_widths = c(1,1,1,2)) + 
-    theme(plot.background = element_rect(fill = "white", colour = "white"))
+
+  p501_total <- cowplot::plot_grid(res_barDLP_501$p, res_prop10x_SA501$p, clone_plg_501,rna_umap_SA501$UnRx_X2$p, 
+                                   nrow=1, rel_widths = c(1,1,1,2)) #+ 
+  #theme(plot.background = element_rect(fill = "white", colour = "white"))
   
   clone_plg_530 <- plot_clone_color_legend('SA530', base_dir, ncols_grid=1)
   p530_total <- cowplot::plot_grid(res_barDLP_530$p, res_prop10x_SA530$p, clone_plg_530, rna_umap_SA530$UnRx_X3$p, 
-                                   nrow=1, rel_widths = c(1,1,1,2)) + 
-    theme(plot.background = element_rect(fill = "white", colour = "white"))
+                                   nrow=1, rel_widths = c(1,1,1,2)) #+ 
+    # theme(plot.background = element_rect(fill = "white", colour = "white"))
   # p530_total
   
-  clone_plg_604 <- plot_clone_color_legend('SA604', base_dir, ncols_grid=3)
+  clone_plg_604 <- plot_clone_color_legend('SA604', base_dir, ncols_grid=1)
+  # clone_plg_604
   ##rna_umap_SA604$UnRx_X6 ## noted exclude X6 - 10x data from analysis
   
-  p604_part1 <- cowplot::plot_grid(res_barDLP_604$p, res_prop10x_SA604$p, clone_plg_604, rel_heights = c(1,1, 1), ncol=1)
+  p604_part1 <- cowplot::plot_grid(NULL, res_barDLP_604$p, res_prop10x_SA604$p, rel_heights = c(1,1,1), ncol=1)
   p604_part2 <- cowplot::plot_grid(rna_umap_SA604$UnRx_X7$p, rna_umap_SA604$UnRx_X8$p, 
-                                   rna_umap_SA604$UnRx_X9$p, ncol=2) + 
-    theme(plot.background = element_rect(fill = "white", colour = "white")) 
-  p604_total <- cowplot::plot_grid(p604_part1, p604_part2, rel_widths = c(1,1))+ 
-    theme(plot.background = element_rect(fill = "white", colour = "white"))
+                                   rna_umap_SA604$UnRx_X9$p, ncol=1) #+ 
+    # theme(plot.background = element_rect(fill = "white", colour = "white")) 
+  clone_plg_6041 <- cowplot::plot_grid( NULL, clone_plg_604, ncol=1, rel_widths = c(0.2,2))
+  p604_total <- cowplot::plot_grid(p604_part1, clone_plg_6041, p604_part2, rel_widths = c(2,1,2), nrow=1)#+ 
+    # theme(plot.background = element_rect(fill = "white", colour = "white"))
 
   
     
-  supp_fig1_rightside <- cowplot::plot_grid(p501_total,p530_total, p604_total, rel_heights = c(1,1,3), ncol=1)+ #labels=pts_lb, 
-    theme(plot.background = element_rect(fill = "white", colour = "white"))
+  supp_fig1_rightside <- cowplot::plot_grid(p501_total,p530_total, p604_total, rel_heights = c(1,1,3), ncol=1)#+ #labels=pts_lb, 
+    # theme(plot.background = element_rect(fill = "white", colour = "white"))
   ## The best way is defining a layout using plot_grid function but it takes time...
   
-  supp_fig1 <- cowplot::plot_grid(supp_fig1_leftside, supp_fig1_rightside, rel_widths = c(1,1), ncol=2)+ 
+  supp_fig1 <- cowplot::plot_grid(supp_fig1_leftside, supp_fig1_rightside, rel_widths = c(0.9,1), ncol=2)+ 
     theme(plot.background = element_rect(fill = "white", colour = "white"))
   
-  ggsave(paste0(output_dir,"SUPPFig1_3untreated_series.pdf"),
-         plot = supp_fig1,
-         height = 11,
-         width = 13,
-         useDingbats=F, # from Sam's suggestion
-         dpi = 150
-  )
+  # ggsave(paste0(output_dir,"SUPPFig1_3untreated_series.pdf"),
+  #        plot = supp_fig1,
+  #        height = 11,
+  #        width = 13,
+  #        useDingbats=F, # from Sam's suggestion
+  #        dpi = 150
+  # )
   
-  ggsave(paste0(output_dir,"SUPPFig1_3untreated_series.png"),
+  ggsave(paste0(output_dir,"SUPPFig1_3untreated_series.svg"),
          plot = supp_fig1,
-         height = 11,
-         width = 13,
-         type = "cairo-png",
-         dpi=150
+         height = 12,
+         width = 12,
+         # type = "cairo-png",
+         dpi=250
   )
   # If you have an issue with cairo-png, you can install: 
   #   https://cran.r-project.org/web/packages/Cairo/index.html
