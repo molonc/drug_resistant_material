@@ -94,7 +94,7 @@ Cell clone assignment results
 - Supplementary figure files at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/supplementary_figures/) 
 
 ### Supplementary tables
-- All tables in manuscript are uploaded into [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/umap_figs/) 
+- All tables in manuscript are uploaded into [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/supplementary_tables/) 
 
 ### Pseudotime analysis results
 - Significant genes across pseudotime analysis are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/trajectory_genes/)
@@ -106,7 +106,7 @@ Cell clone assignment results
 - Scripts are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/pipeline/utils/)
 
 ### Clonealign execution script 
-- Scripts are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/)
+- Scripts are clonealign Figure 2 are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/)
 ### Differential expression analysis
 - Scripts are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/de_edgeR/)
 ### Gene type identification
@@ -114,7 +114,7 @@ Cell clone assignment results
 ### Treatment cycles
 - Scripts for Figures 4 and 5 at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/treatment_cycles/)
 ### Pseudotime analysis script
-- Scripts are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/trajectory_analysis/)
+- Scripts for Figure 6, and SUPP Figure 10, 11 are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/trajectory_analysis/)
 
 
 
