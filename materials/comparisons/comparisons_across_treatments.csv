@@ -1,0 +1,5 @@
+file,comparison,labels_detailed,passage,series
+scrande_SA609_202_SA609_UUU_C_UUU_H_logfc_results.csv,UnRx_vs_UnRx,X5 UnRx:C / UnRx:H,X5,Pt4
+scrande_SA609_203_SA609_UUU_D_UUU_H_logfc_results.csv,UnRx_vs_UnRx,X5 UnRx:D / UnRx:H,X5,Pt4
+scrande_SA609_200_SA609_UUUU_C_UUUU_H_logfc_results.csv,UnRx_vs_UnRx,X6 UnRx:C / UnRx:H,X6,Pt4
+scrande_SA609_201_SA609_UUUUU_C_UUUUU_H_logfc_results.csv,UnRx_vs_UnRx,X7 UnRx:C / UnRx:H,X7,Pt4
