@@ -3,3 +3,12 @@ scrande_SA609_202_SA609_UUU_C_UUU_H_logfc_results.csv,UnRx_vs_UnRx,X5 UnRx:C / U
 scrande_SA609_203_SA609_UUU_D_UUU_H_logfc_results.csv,UnRx_vs_UnRx,X5 UnRx:D / UnRx:H,X5,Pt4
 scrande_SA609_200_SA609_UUUU_C_UUUU_H_logfc_results.csv,UnRx_vs_UnRx,X6 UnRx:C / UnRx:H,X6,Pt4
 scrande_SA609_201_SA609_UUUUU_C_UUUUU_H_logfc_results.csv,UnRx_vs_UnRx,X7 UnRx:C / UnRx:H,X7,Pt4
+scrande_SA609_1_SA609_UT_R_UU_H_logfc_results.csv,Rx_expand_vs_UnRx,X4 Rx:A / UnRx:H,X4,Pt4
+scrande_SA609_2_SA609_UTT_R_UUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X5 Rx:A / UnRx:H,X5,Pt4
+scrande_SA609_3_SA609_UTTT_R_UUUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X6 Rx:A / UnRx:H,X6,Pt4
+scrande_SA609_4_SA609_UTTTT_R_UUUUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:A / UnRx:H,X7,Pt4
+scrande_SA609_11_SA609_UT_B_UU_H_logfc_results.csv,Rx_shrink_vs_UnRx,X4 Rx:B / UnRx:H,X4,Pt4
+scrande_SA609_23_SA609_UTTU_R_UUUU_H_logfc_results.csv,RxH_vs_UnRx,X6 RxH:A / UnRx:H,X6,Pt4
+scrande_SA609_24_SA609_UTTTU_R_UUUUU_H_logfc_results.csv,RxH_vs_UnRx,X7 RxH:A / UnRx:H,X7,Pt4
+scrande_SA609_204_SA609_UT_R_UT_B_logfc_results.csv,Rx_expand_vs_Rx_shrink,X4 Rx:A / Rx:B,X4,Pt4
+
