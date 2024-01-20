@@ -11,4 +11,36 @@ scrande_SA609_11_SA609_UT_B_UU_H_logfc_results.csv,Rx_shrink_vs_UnRx,X4 Rx:B / U
 scrande_SA609_23_SA609_UTTU_R_UUUU_H_logfc_results.csv,RxH_vs_UnRx,X6 RxH:A / UnRx:H,X6,Pt4
 scrande_SA609_24_SA609_UTTTU_R_UUUUU_H_logfc_results.csv,RxH_vs_UnRx,X7 RxH:A / UnRx:H,X7,Pt4
 scrande_SA609_204_SA609_UT_R_UT_B_logfc_results.csv,Rx_expand_vs_Rx_shrink,X4 Rx:A / Rx:B,X4,Pt4
+scrande_SA535_200_SA535_UUUU_G_UUUU_B_C_logfc_results.csv,UnRx_vs_UnRx,X7 UnRx:G / UnRx:BC,X7,Pt5
+scrande_SA535_10_SA535_UUUUU_G_UUUUU_B-C_logfc_results.csv,UnRx_vs_UnRx,X8 UnRx:G / UnRx:BC,X8,Pt5
+scrande_SA535_1_SA535_UUTTT_A_UUUUU_G_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:A / UnRx:G,X8,Pt5
+scrande_SA535_3_SA535_UUTTTTT_A_UUUUUU_G_logfc_results.csv,Rx_expand_vs_UnRx,X10 Rx:A / X9 UnRx:G,X10,Pt5
+scrande_SA535_201_SA535_UUTTT_H_UUUUU_G_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:H / UnRx:G,X8,Pt5
+scrande_SA535_202_SA535_UUTTTTT_H_UUUUUU_G_logfc_results.csv,Rx_shrink_vs_UnRx,X10 Rx:H / X9 UnRx:G,X10,Pt5
+scrande_SA535_76_SA535_UUTTU_A_UUUUU_G_logfc_results.csv,RxH_vs_UnRx,X8 RxH:A / UnRx:G,X8,Pt5
+scrande_SA535_78_SA535_UUTTTTU_A_UUUUUU_G_logfc_results.csv,RxH_vs_UnRx,X10 RxH:A / X9 UnRx:G,X10,Pt5
+scrande_SA535_203_SA535_UUTTT_A_UUTTT_H_logfc_results.csv,Rx_expand_vs_Rx_shrink,X8 Rx:A / Rx:H,X8,Pt5
+scrande_SA535_204_SA535_UUTTTTT_A_UUTTTTT_H_logfc_results.csv,Rx_expand_vs_Rx_shrink,X10 Rx:A / Rx:H,X10,Pt5
+scrande_SA1035_10_SA1035_UUUU_E_UUUU_B_logfc_results.csv,UnRx_vs_UnRx,X7 UnRx:E / UnRx:B,X7,Pt6
+scrande_SA1035_200_SA1035_UUUUU_E_UUUUU_B_logfc_results.csv,UnRx_vs_UnRx,X8 UnRx:E / UnRx:B,X8,Pt6
+scrande_SA1035_1_SA1035_UTTT_H_UUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:H / UnRx:E,X7,Pt6
+scrande_SA1035_2_SA1035_UTTTT_H_UUUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:H / UnRx:E,X8,Pt6
+scrande_SA1035_51_SA1035_UTTT_G_UUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:G / UnRx:E,X7,Pt6
+scrande_SA1035_52_SA1035_UTTTT_G_UUUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:G / UnRx:E,X8,Pt6
+scrande_SA1035_201_SA1035_UTTT_I_UUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X7 Rx:I / UnRx:E,X7,Pt6
+scrande_SA1035_202_SA1035_UTTTT_I_UUUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:I / UnRx:E,X8,Pt6
+scrande_SA1035_203_SA1035_UTTT_C_UUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X7 Rx:C / UnRx:E,X7,Pt6
+scrande_SA1035_204_SA1035_UTTTT_C_UUUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:C / UnRx:E,X8,Pt6
+scrande_SA1035_36_SA1035_UTTU_H_UUUU_E_logfc_results.csv,RxH_vs_UnRx,X7 RxH:H / UnRx:E,X7,Pt6
+scrande_SA1035_34_SA1035_UTTTU_H_UUUUU_E_logfc_results.csv,RxH_vs_UnRx,X8 RxH:H / UnRx:E,X8,Pt6
+scrande_SA1035_12_SA1035_UTTU_G_UUUU_E_logfc_results.csv,RxH_vs_UnRx,X7 Rx:G / UnRx:E,X7,Pt6
+scrande_SA1035_22_SA1035_UTTTU_G_UUUUU_E_logfc_results.csv,RxH_vs_UnRx,X8 Rx:G / UnRx:E,X8,Pt6
+scrande_SA1035_205_SA1035_UTTT_G_UTTT_I_logfc_results.csv,Rx_expand_vs_Rx_shrink,X7 Rx:G / Rx:I,X7,Pt6
+scrande_SA1035_206_SA1035_UTTT_G_UTTT_C_logfc_results.csv,Rx_expand_vs_Rx_shrink,X7 Rx:G / Rx:C,X7,Pt6
+scrande_SA1035_207_SA1035_UTTT_H_UTTT_I_logfc_results.csv,Rx_expand_vs_Rx_shrink,X7 Rx:H / Rx:I,X7,Pt6
+scrande_SA1035_208_SA1035_UTTT_H_UTTT_C_logfc_results.csv,Rx_expand_vs_Rx_shrink,X7 Rx:H / Rx:C,X7,Pt6
+scrande_SA1035_209_SA1035_UTTTT_G_UTTTT_I_logfc_results.csv,Rx_expand_vs_Rx_shrink,X8 Rx:G / Rx:I,X8,Pt6
+scrande_SA1035_210_SA1035_UTTTT_G_UTTTT_C_logfc_results.csv,Rx_expand_vs_Rx_shrink,X8 Rx:G / Rx:C,X8,Pt6
+scrande_SA1035_211_SA1035_UTTTT_H_UTTTT_I_logfc_results.csv,Rx_expand_vs_Rx_shrink,X8 Rx:H / Rx:I,X8,Pt6
+scrande_SA1035_212_SA1035_UTTTT_H_UTTTT_C_logfc_results.csv,Rx_expand_vs_Rx_shrink,X8 Rx:H / Rx:C,X8,Pt6
 
