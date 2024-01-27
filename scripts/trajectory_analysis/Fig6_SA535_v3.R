@@ -24,7 +24,7 @@ plot_heatmap_gene_modules <- function(){
   # phm <- viz_heatmap(ts_sce, genes_df, save_dir, datatag, plttitle)
   output_dir <- save_dir
   
-  output_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/trajectory_genes/SA535/'
+  # output_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/trajectory_genes/SA535/'
   exp_mtx <- data.table::fread(paste0(output_dir,"mtx_hm.csv.gz")) %>% as.data.frame()
   obs_genes_df <- data.table::fread(paste0(output_dir,"obs_genes_hm.csv.gz")) %>% as.data.frame()
   obs_cells_df <- data.table::fread(paste0(output_dir,"obs_cells_hm.csv.gz")) %>% as.data.frame()

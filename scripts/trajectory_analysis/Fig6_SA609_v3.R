@@ -171,8 +171,8 @@ plot_heatmap_gene_modules <- function(){
   # ts_sce <- readRDS(paste0(save_dir,'tradeSeq_3000/', "fitGAM_out.rds"))
   save_dir <- "/home/htran/storage/datasets/drug_resistance/rna_results/SA609_rna/slingshot_trajectory/withBE_SA609_v2/tradeSeq_3000/SA609_tradeSeq/"
   ## phm <- viz_heatmap(ts_sce, genes_df, save_dir, datatag, plttitle)
-  # output_dir <- save_dir # old version
-  output_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/trajectory_genes/SA609/'
+  output_dir <- save_dir # old version
+  # output_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/trajectory_genes/SA609/'
   exp_mtx <- data.table::fread(paste0(output_dir,"mtx_hm.csv.gz")) %>% as.data.frame()
   obs_genes_df <- data.table::fread(paste0(output_dir,"obs_genes_hm.csv.gz")) %>% as.data.frame()
   obs_cells_df <- data.table::fread(paste0(output_dir,"obs_cells_hm.csv.gz")) %>% as.data.frame()
@@ -185,7 +185,7 @@ plot_heatmap_gene_modules <- function(){
   rownames(cistrans_anno) <- NULL
   # cistrans_anno$gene_type <- paste0("in ",cistrans_anno$gene_type)
   summary(as.factor(cistrans_anno$gene_type))
-  head(cistrans_anno)
+  # head(cistrans_anno)
   meta_clone_lg <- data.table::fread(paste0(input_dir,datatag,'_meta_clone_lineages.csv')) %>% as.data.frame()
   meta_clone_lg <- meta_clone_lg[!duplicated(meta_clone_lg$lineage),]
   
@@ -193,7 +193,7 @@ plot_heatmap_gene_modules <- function(){
   obs_cells_df$lineage <- gsub('Lineage ','L',obs_cells_df$lineage)
   obs_cells_df$lineage <- gsub(': ','-',obs_cells_df$lineage)
   table(obs_genes_df$chromatin_st, obs_genes_df$gene_type)
-  
+  dim(obs_genes_df)
   
   ## Adding new labels
   # save_fig_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/trajectory_genes/'
