@@ -541,8 +541,8 @@ viz_genes_exp_lineages_cistrans_anno_hm <- function(exp_mtx, obs_genes_df, obs_c
     left_join(meta_clone_lg, by='lineage') %>%
     select(-lineage) %>%
     rename(lineage=lineage_desc)
-  dim(obs_cells_df)
-  head(obs_cells_df)
+  # dim(obs_cells_df)
+  # head(obs_cells_df)
   ## Adding number of genes for each module
   meta_genes <- obs_genes_df %>% 
     dplyr::group_by(gene_type) %>% 

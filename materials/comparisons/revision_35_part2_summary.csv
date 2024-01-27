@@ -1,0 +1,102 @@
+gene_type,nb_genes,pct_genes,file_header,result_fn,comp_type,labels_detailed,passage,series,datatag,clone1,clone2,gt
+In_cis_Decrease_DownRegulated,198,7.75,scrande_SA609_1,scrande_SA609_1_SA609_UT_R_UU_H_logfc_results.csv,Rx_expand_vs_UnRx,X4 Rx:A vs. UnRx:H,X4,Pt4,SA609,R,H,cis
+In_cis_Decrease_UpRegulated,79,3.09,scrande_SA609_1,scrande_SA609_1_SA609_UT_R_UU_H_logfc_results.csv,Rx_expand_vs_UnRx,X4 Rx:A vs. UnRx:H,X4,Pt4,SA609,R,H,cis
+In_cis_Increase_DownRegulated,45,1.76,scrande_SA609_1,scrande_SA609_1_SA609_UT_R_UU_H_logfc_results.csv,Rx_expand_vs_UnRx,X4 Rx:A vs. UnRx:H,X4,Pt4,SA609,R,H,cis
+In_cis_Increase_UpRegulated,999,39.1,scrande_SA609_1,scrande_SA609_1_SA609_UT_R_UU_H_logfc_results.csv,Rx_expand_vs_UnRx,X4 Rx:A vs. UnRx:H,X4,Pt4,SA609,R,H,cis
+In_trans_DownRegulated,269,10.53,scrande_SA609_1,scrande_SA609_1_SA609_UT_R_UU_H_logfc_results.csv,Rx_expand_vs_UnRx,X4 Rx:A vs. UnRx:H,X4,Pt4,SA609,R,H,trans
+In_trans_UpRegulated,893,34.95,scrande_SA609_1,scrande_SA609_1_SA609_UT_R_UU_H_logfc_results.csv,Rx_expand_vs_UnRx,X4 Rx:A vs. UnRx:H,X4,Pt4,SA609,R,H,trans
+In_cis_Decrease_DownRegulated,325,8.25,scrande_SA609_2,scrande_SA609_2_SA609_UTT_R_UUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X5 Rx:A vs. UnRx:H,X5,Pt4,SA609,R,H,cis
+In_cis_Decrease_UpRegulated,81,2.06,scrande_SA609_2,scrande_SA609_2_SA609_UTT_R_UUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X5 Rx:A vs. UnRx:H,X5,Pt4,SA609,R,H,cis
+In_cis_Increase_DownRegulated,44,1.12,scrande_SA609_2,scrande_SA609_2_SA609_UTT_R_UUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X5 Rx:A vs. UnRx:H,X5,Pt4,SA609,R,H,cis
+In_cis_Increase_UpRegulated,1664,42.25,scrande_SA609_2,scrande_SA609_2_SA609_UTT_R_UUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X5 Rx:A vs. UnRx:H,X5,Pt4,SA609,R,H,cis
+In_trans_DownRegulated,271,6.88,scrande_SA609_2,scrande_SA609_2_SA609_UTT_R_UUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X5 Rx:A vs. UnRx:H,X5,Pt4,SA609,R,H,trans
+In_trans_UpRegulated,1424,36.16,scrande_SA609_2,scrande_SA609_2_SA609_UTT_R_UUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X5 Rx:A vs. UnRx:H,X5,Pt4,SA609,R,H,trans
+In_cis_Decrease_DownRegulated,427,15.83,scrande_SA609_3,scrande_SA609_3_SA609_UTTT_R_UUUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X6 Rx:A vs. UnRx:H,X6,Pt4,SA609,R,H,cis
+In_cis_Decrease_UpRegulated,40,1.48,scrande_SA609_3,scrande_SA609_3_SA609_UTTT_R_UUUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X6 Rx:A vs. UnRx:H,X6,Pt4,SA609,R,H,cis
+In_cis_Increase_DownRegulated,49,1.82,scrande_SA609_3,scrande_SA609_3_SA609_UTTT_R_UUUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X6 Rx:A vs. UnRx:H,X6,Pt4,SA609,R,H,cis
+In_cis_Increase_UpRegulated,922,34.19,scrande_SA609_3,scrande_SA609_3_SA609_UTTT_R_UUUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X6 Rx:A vs. UnRx:H,X6,Pt4,SA609,R,H,cis
+In_trans_DownRegulated,583,21.62,scrande_SA609_3,scrande_SA609_3_SA609_UTTT_R_UUUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X6 Rx:A vs. UnRx:H,X6,Pt4,SA609,R,H,trans
+In_trans_UpRegulated,596,22.1,scrande_SA609_3,scrande_SA609_3_SA609_UTTT_R_UUUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X6 Rx:A vs. UnRx:H,X6,Pt4,SA609,R,H,trans
+In_cis_Decrease_DownRegulated,252,10.48,scrande_SA609_4,scrande_SA609_4_SA609_UTTTT_R_UUUUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:A vs. UnRx:H,X7,Pt4,SA609,R,H,cis
+In_cis_Decrease_UpRegulated,55,2.29,scrande_SA609_4,scrande_SA609_4_SA609_UTTTT_R_UUUUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:A vs. UnRx:H,X7,Pt4,SA609,R,H,cis
+In_cis_Increase_DownRegulated,56,2.33,scrande_SA609_4,scrande_SA609_4_SA609_UTTTT_R_UUUUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:A vs. UnRx:H,X7,Pt4,SA609,R,H,cis
+In_cis_Increase_UpRegulated,971,40.39,scrande_SA609_4,scrande_SA609_4_SA609_UTTTT_R_UUUUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:A vs. UnRx:H,X7,Pt4,SA609,R,H,cis
+In_trans_DownRegulated,389,16.18,scrande_SA609_4,scrande_SA609_4_SA609_UTTTT_R_UUUUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:A vs. UnRx:H,X7,Pt4,SA609,R,H,trans
+In_trans_UpRegulated,602,25.04,scrande_SA609_4,scrande_SA609_4_SA609_UTTTT_R_UUUUU_H_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:A vs. UnRx:H,X7,Pt4,SA609,R,H,trans
+In_cis_Decrease_DownRegulated,245,8.56,scrande_SA609_11,scrande_SA609_11_SA609_UT_B_UU_H_logfc_results.csv,Rx_shrink_vs_UnRx,X4 Rx:B vs. UnRx:H,X4,Pt4,SA609,B,H,cis
+In_cis_Decrease_UpRegulated,219,7.65,scrande_SA609_11,scrande_SA609_11_SA609_UT_B_UU_H_logfc_results.csv,Rx_shrink_vs_UnRx,X4 Rx:B vs. UnRx:H,X4,Pt4,SA609,B,H,cis
+In_cis_Increase_DownRegulated,63,2.2,scrande_SA609_11,scrande_SA609_11_SA609_UT_B_UU_H_logfc_results.csv,Rx_shrink_vs_UnRx,X4 Rx:B vs. UnRx:H,X4,Pt4,SA609,B,H,cis
+In_cis_Increase_UpRegulated,999,34.92,scrande_SA609_11,scrande_SA609_11_SA609_UT_B_UU_H_logfc_results.csv,Rx_shrink_vs_UnRx,X4 Rx:B vs. UnRx:H,X4,Pt4,SA609,B,H,cis
+In_trans_DownRegulated,313,10.94,scrande_SA609_11,scrande_SA609_11_SA609_UT_B_UU_H_logfc_results.csv,Rx_shrink_vs_UnRx,X4 Rx:B vs. UnRx:H,X4,Pt4,SA609,B,H,trans
+In_trans_UpRegulated,953,33.31,scrande_SA609_11,scrande_SA609_11_SA609_UT_B_UU_H_logfc_results.csv,Rx_shrink_vs_UnRx,X4 Rx:B vs. UnRx:H,X4,Pt4,SA609,B,H,trans
+In_cis_Decrease_DownRegulated,410,24.12,scrande_SA535_1,scrande_SA535_1_SA535_UUTTT_A_UUUUU_G_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:A vs. UnRx:G,X8,Pt5,SA535,A,G,cis
+In_cis_Decrease_UpRegulated,49,2.88,scrande_SA535_1,scrande_SA535_1_SA535_UUTTT_A_UUUUU_G_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:A vs. UnRx:G,X8,Pt5,SA535,A,G,cis
+In_cis_Increase_DownRegulated,10,0.59,scrande_SA535_1,scrande_SA535_1_SA535_UUTTT_A_UUUUU_G_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:A vs. UnRx:G,X8,Pt5,SA535,A,G,cis
+In_cis_Increase_UpRegulated,127,7.47,scrande_SA535_1,scrande_SA535_1_SA535_UUTTT_A_UUUUU_G_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:A vs. UnRx:G,X8,Pt5,SA535,A,G,cis
+In_trans_DownRegulated,382,22.47,scrande_SA535_1,scrande_SA535_1_SA535_UUTTT_A_UUUUU_G_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:A vs. UnRx:G,X8,Pt5,SA535,A,G,trans
+In_trans_UpRegulated,680,40,scrande_SA535_1,scrande_SA535_1_SA535_UUTTT_A_UUUUU_G_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:A vs. UnRx:G,X8,Pt5,SA535,A,G,trans
+In_cis_Decrease_DownRegulated,416,28.03,scrande_SA535_3,scrande_SA535_3_SA535_UUTTTTT_A_UUUUUU_G_logfc_results.csv,Rx_expand_vs_UnRx,X10 Rx:A vs. X9 UnRx:G,X10,Pt5,SA535,A,G,cis
+In_cis_Decrease_UpRegulated,33,2.22,scrande_SA535_3,scrande_SA535_3_SA535_UUTTTTT_A_UUUUUU_G_logfc_results.csv,Rx_expand_vs_UnRx,X10 Rx:A vs. X9 UnRx:G,X10,Pt5,SA535,A,G,cis
+In_cis_Increase_DownRegulated,5,0.34,scrande_SA535_3,scrande_SA535_3_SA535_UUTTTTT_A_UUUUUU_G_logfc_results.csv,Rx_expand_vs_UnRx,X10 Rx:A vs. X9 UnRx:G,X10,Pt5,SA535,A,G,cis
+In_cis_Increase_UpRegulated,132,8.89,scrande_SA535_3,scrande_SA535_3_SA535_UUTTTTT_A_UUUUUU_G_logfc_results.csv,Rx_expand_vs_UnRx,X10 Rx:A vs. X9 UnRx:G,X10,Pt5,SA535,A,G,cis
+In_trans_DownRegulated,321,21.63,scrande_SA535_3,scrande_SA535_3_SA535_UUTTTTT_A_UUUUUU_G_logfc_results.csv,Rx_expand_vs_UnRx,X10 Rx:A vs. X9 UnRx:G,X10,Pt5,SA535,A,G,trans
+In_trans_UpRegulated,533,35.92,scrande_SA535_3,scrande_SA535_3_SA535_UUTTTTT_A_UUUUUU_G_logfc_results.csv,Rx_expand_vs_UnRx,X10 Rx:A vs. X9 UnRx:G,X10,Pt5,SA535,A,G,trans
+In_cis_Decrease_DownRegulated,126,10.61,scrande_SA535_201,scrande_SA535_201_SA535_UUTTT_H_UUUUU_G_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:H vs. UnRx:G,X8,Pt5,SA535,H,G,cis
+In_cis_Decrease_UpRegulated,43,3.62,scrande_SA535_201,scrande_SA535_201_SA535_UUTTT_H_UUUUU_G_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:H vs. UnRx:G,X8,Pt5,SA535,H,G,cis
+In_cis_Increase_DownRegulated,16,1.35,scrande_SA535_201,scrande_SA535_201_SA535_UUTTT_H_UUUUU_G_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:H vs. UnRx:G,X8,Pt5,SA535,H,G,cis
+In_cis_Increase_UpRegulated,229,19.28,scrande_SA535_201,scrande_SA535_201_SA535_UUTTT_H_UUUUU_G_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:H vs. UnRx:G,X8,Pt5,SA535,H,G,cis
+In_trans_DownRegulated,234,19.7,scrande_SA535_201,scrande_SA535_201_SA535_UUTTT_H_UUUUU_G_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:H vs. UnRx:G,X8,Pt5,SA535,H,G,trans
+In_trans_UpRegulated,511,43.01,scrande_SA535_201,scrande_SA535_201_SA535_UUTTT_H_UUUUU_G_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:H vs. UnRx:G,X8,Pt5,SA535,H,G,trans
+In_cis_Decrease_DownRegulated,247,12.81,scrande_SA535_202,scrande_SA535_202_SA535_UUTTTTT_H_UUUUUU_G_logfc_results.csv,Rx_shrink_vs_UnRx,X10 Rx:H vs. X9 UnRx:G,X10,Pt5,SA535,H,G,cis
+In_cis_Decrease_UpRegulated,45,2.33,scrande_SA535_202,scrande_SA535_202_SA535_UUTTTTT_H_UUUUUU_G_logfc_results.csv,Rx_shrink_vs_UnRx,X10 Rx:H vs. X9 UnRx:G,X10,Pt5,SA535,H,G,cis
+In_cis_Increase_DownRegulated,31,1.61,scrande_SA535_202,scrande_SA535_202_SA535_UUTTTTT_H_UUUUUU_G_logfc_results.csv,Rx_shrink_vs_UnRx,X10 Rx:H vs. X9 UnRx:G,X10,Pt5,SA535,H,G,cis
+In_cis_Increase_UpRegulated,326,16.91,scrande_SA535_202,scrande_SA535_202_SA535_UUTTTTT_H_UUUUUU_G_logfc_results.csv,Rx_shrink_vs_UnRx,X10 Rx:H vs. X9 UnRx:G,X10,Pt5,SA535,H,G,cis
+In_trans_DownRegulated,378,19.61,scrande_SA535_202,scrande_SA535_202_SA535_UUTTTTT_H_UUUUUU_G_logfc_results.csv,Rx_shrink_vs_UnRx,X10 Rx:H vs. X9 UnRx:G,X10,Pt5,SA535,H,G,trans
+In_trans_UpRegulated,841,43.62,scrande_SA535_202,scrande_SA535_202_SA535_UUTTTTT_H_UUUUUU_G_logfc_results.csv,Rx_shrink_vs_UnRx,X10 Rx:H vs. X9 UnRx:G,X10,Pt5,SA535,H,G,trans
+In_cis_Decrease_DownRegulated,61,2.18,scrande_SA1035_1,scrande_SA1035_1_SA1035_UTTT_H_UUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:H vs. UnRx:E,X7,Pt6,SA1035,H,E,cis
+In_cis_Decrease_UpRegulated,9,0.32,scrande_SA1035_1,scrande_SA1035_1_SA1035_UTTT_H_UUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:H vs. UnRx:E,X7,Pt6,SA1035,H,E,cis
+In_cis_Increase_DownRegulated,9,0.32,scrande_SA1035_1,scrande_SA1035_1_SA1035_UTTT_H_UUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:H vs. UnRx:E,X7,Pt6,SA1035,H,E,cis
+In_cis_Increase_UpRegulated,105,3.75,scrande_SA1035_1,scrande_SA1035_1_SA1035_UTTT_H_UUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:H vs. UnRx:E,X7,Pt6,SA1035,H,E,cis
+In_trans_DownRegulated,737,26.33,scrande_SA1035_1,scrande_SA1035_1_SA1035_UTTT_H_UUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:H vs. UnRx:E,X7,Pt6,SA1035,H,E,trans
+In_trans_UpRegulated,1805,64.49,scrande_SA1035_1,scrande_SA1035_1_SA1035_UTTT_H_UUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:H vs. UnRx:E,X7,Pt6,SA1035,H,E,trans
+In_cis_Decrease_DownRegulated,91,3.12,scrande_SA1035_2,scrande_SA1035_2_SA1035_UTTTT_H_UUUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:H vs. UnRx:E,X8,Pt6,SA1035,H,E,cis
+In_cis_Decrease_UpRegulated,17,0.58,scrande_SA1035_2,scrande_SA1035_2_SA1035_UTTTT_H_UUUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:H vs. UnRx:E,X8,Pt6,SA1035,H,E,cis
+In_cis_Increase_DownRegulated,16,0.55,scrande_SA1035_2,scrande_SA1035_2_SA1035_UTTTT_H_UUUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:H vs. UnRx:E,X8,Pt6,SA1035,H,E,cis
+In_cis_Increase_UpRegulated,85,2.91,scrande_SA1035_2,scrande_SA1035_2_SA1035_UTTTT_H_UUUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:H vs. UnRx:E,X8,Pt6,SA1035,H,E,cis
+In_trans_DownRegulated,1563,53.51,scrande_SA1035_2,scrande_SA1035_2_SA1035_UTTTT_H_UUUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:H vs. UnRx:E,X8,Pt6,SA1035,H,E,trans
+In_trans_UpRegulated,1060,36.29,scrande_SA1035_2,scrande_SA1035_2_SA1035_UTTTT_H_UUUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:H vs. UnRx:E,X8,Pt6,SA1035,H,E,trans
+In_cis_Decrease_DownRegulated,33,2.14,scrande_SA1035_51,scrande_SA1035_51_SA1035_UTTT_G_UUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:G vs. UnRx:E,X7,Pt6,SA1035,G,E,cis
+In_cis_Decrease_UpRegulated,9,0.58,scrande_SA1035_51,scrande_SA1035_51_SA1035_UTTT_G_UUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:G vs. UnRx:E,X7,Pt6,SA1035,G,E,cis
+In_cis_Increase_DownRegulated,4,0.26,scrande_SA1035_51,scrande_SA1035_51_SA1035_UTTT_G_UUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:G vs. UnRx:E,X7,Pt6,SA1035,G,E,cis
+In_cis_Increase_UpRegulated,101,6.54,scrande_SA1035_51,scrande_SA1035_51_SA1035_UTTT_G_UUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:G vs. UnRx:E,X7,Pt6,SA1035,G,E,cis
+In_trans_DownRegulated,427,27.64,scrande_SA1035_51,scrande_SA1035_51_SA1035_UTTT_G_UUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:G vs. UnRx:E,X7,Pt6,SA1035,G,E,trans
+In_trans_UpRegulated,931,60.26,scrande_SA1035_51,scrande_SA1035_51_SA1035_UTTT_G_UUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X7 Rx:G vs. UnRx:E,X7,Pt6,SA1035,G,E,trans
+In_cis_Decrease_DownRegulated,74,2.48,scrande_SA1035_52,scrande_SA1035_52_SA1035_UTTTT_G_UUUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:G vs. UnRx:E,X8,Pt6,SA1035,G,E,cis
+In_cis_Decrease_UpRegulated,8,0.27,scrande_SA1035_52,scrande_SA1035_52_SA1035_UTTTT_G_UUUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:G vs. UnRx:E,X8,Pt6,SA1035,G,E,cis
+In_cis_Increase_DownRegulated,13,0.44,scrande_SA1035_52,scrande_SA1035_52_SA1035_UTTTT_G_UUUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:G vs. UnRx:E,X8,Pt6,SA1035,G,E,cis
+In_cis_Increase_UpRegulated,52,1.75,scrande_SA1035_52,scrande_SA1035_52_SA1035_UTTTT_G_UUUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:G vs. UnRx:E,X8,Pt6,SA1035,G,E,cis
+In_trans_DownRegulated,1949,65.42,scrande_SA1035_52,scrande_SA1035_52_SA1035_UTTTT_G_UUUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:G vs. UnRx:E,X8,Pt6,SA1035,G,E,trans
+In_trans_UpRegulated,801,26.89,scrande_SA1035_52,scrande_SA1035_52_SA1035_UTTTT_G_UUUUU_E_logfc_results.csv,Rx_expand_vs_UnRx,X8 Rx:G vs. UnRx:E,X8,Pt6,SA1035,G,E,trans
+In_cis_Decrease_DownRegulated,64,4.36,scrande_SA1035_201,scrande_SA1035_201_SA1035_UTTT_I_UUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X7 Rx:I vs. UnRx:E,X7,Pt6,SA1035,I,E,cis
+In_cis_Decrease_UpRegulated,2,0.14,scrande_SA1035_201,scrande_SA1035_201_SA1035_UTTT_I_UUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X7 Rx:I vs. UnRx:E,X7,Pt6,SA1035,I,E,cis
+In_cis_Increase_DownRegulated,1,0.07,scrande_SA1035_201,scrande_SA1035_201_SA1035_UTTT_I_UUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X7 Rx:I vs. UnRx:E,X7,Pt6,SA1035,I,E,cis
+In_cis_Increase_UpRegulated,139,9.46,scrande_SA1035_201,scrande_SA1035_201_SA1035_UTTT_I_UUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X7 Rx:I vs. UnRx:E,X7,Pt6,SA1035,I,E,cis
+In_trans_DownRegulated,469,31.93,scrande_SA1035_201,scrande_SA1035_201_SA1035_UTTT_I_UUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X7 Rx:I vs. UnRx:E,X7,Pt6,SA1035,I,E,trans
+In_trans_UpRegulated,765,52.08,scrande_SA1035_201,scrande_SA1035_201_SA1035_UTTT_I_UUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X7 Rx:I vs. UnRx:E,X7,Pt6,SA1035,I,E,trans
+In_cis_Decrease_DownRegulated,91,5.1,scrande_SA1035_202,scrande_SA1035_202_SA1035_UTTTT_I_UUUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:I vs. UnRx:E,X8,Pt6,SA1035,I,E,cis
+In_cis_Decrease_UpRegulated,8,0.45,scrande_SA1035_202,scrande_SA1035_202_SA1035_UTTTT_I_UUUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:I vs. UnRx:E,X8,Pt6,SA1035,I,E,cis
+In_cis_Increase_DownRegulated,13,0.73,scrande_SA1035_202,scrande_SA1035_202_SA1035_UTTTT_I_UUUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:I vs. UnRx:E,X8,Pt6,SA1035,I,E,cis
+In_cis_Increase_UpRegulated,63,3.53,scrande_SA1035_202,scrande_SA1035_202_SA1035_UTTTT_I_UUUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:I vs. UnRx:E,X8,Pt6,SA1035,I,E,cis
+In_trans_DownRegulated,1006,56.33,scrande_SA1035_202,scrande_SA1035_202_SA1035_UTTTT_I_UUUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:I vs. UnRx:E,X8,Pt6,SA1035,I,E,trans
+In_trans_UpRegulated,567,31.75,scrande_SA1035_202,scrande_SA1035_202_SA1035_UTTTT_I_UUUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:I vs. UnRx:E,X8,Pt6,SA1035,I,E,trans
+In_cis_Decrease_DownRegulated,66,6.24,scrande_SA1035_203,scrande_SA1035_203_SA1035_UTTT_C_UUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X7 Rx:C vs. UnRx:E,X7,Pt6,SA1035,C,E,cis
+In_cis_Decrease_UpRegulated,25,2.36,scrande_SA1035_203,scrande_SA1035_203_SA1035_UTTT_C_UUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X7 Rx:C vs. UnRx:E,X7,Pt6,SA1035,C,E,cis
+In_cis_Increase_UpRegulated,67,6.33,scrande_SA1035_203,scrande_SA1035_203_SA1035_UTTT_C_UUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X7 Rx:C vs. UnRx:E,X7,Pt6,SA1035,C,E,cis
+In_trans_DownRegulated,285,26.94,scrande_SA1035_203,scrande_SA1035_203_SA1035_UTTT_C_UUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X7 Rx:C vs. UnRx:E,X7,Pt6,SA1035,C,E,trans
+In_trans_UpRegulated,584,55.2,scrande_SA1035_203,scrande_SA1035_203_SA1035_UTTT_C_UUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X7 Rx:C vs. UnRx:E,X7,Pt6,SA1035,C,E,trans
+In_cis_Decrease_DownRegulated,102,12.04,scrande_SA1035_204,scrande_SA1035_204_SA1035_UTTTT_C_UUUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:C vs. UnRx:E,X8,Pt6,SA1035,C,E,cis
+In_cis_Decrease_UpRegulated,15,1.77,scrande_SA1035_204,scrande_SA1035_204_SA1035_UTTTT_C_UUUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:C vs. UnRx:E,X8,Pt6,SA1035,C,E,cis
+In_cis_Increase_DownRegulated,1,0.12,scrande_SA1035_204,scrande_SA1035_204_SA1035_UTTTT_C_UUUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:C vs. UnRx:E,X8,Pt6,SA1035,C,E,cis
+In_cis_Increase_UpRegulated,18,2.13,scrande_SA1035_204,scrande_SA1035_204_SA1035_UTTTT_C_UUUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:C vs. UnRx:E,X8,Pt6,SA1035,C,E,cis
+In_trans_DownRegulated,306,36.13,scrande_SA1035_204,scrande_SA1035_204_SA1035_UTTTT_C_UUUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:C vs. UnRx:E,X8,Pt6,SA1035,C,E,trans
+In_trans_UpRegulated,384,45.34,scrande_SA1035_204,scrande_SA1035_204_SA1035_UTTTT_C_UUUUU_E_logfc_results.csv,Rx_shrink_vs_UnRx,X8 Rx:C vs. UnRx:E,X8,Pt6,SA1035,C,E,trans

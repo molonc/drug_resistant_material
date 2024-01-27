@@ -284,7 +284,7 @@ viz_total_correlation <- function(){
   dim(summary_stat)
   data.table::fwrite(summary_stat, paste0(save_dir, 'summary_stat_10x_dlp_subsetSA609.csv'))
   summary_stat <- data.table::fread(paste0(save_dir, 'summary_stat_10x_dlp_subsetSA609.csv')) %>% as.data.frame()
-  
+  dim(summary_stat)
   # Remove X9 SA535
   summary_stat <- summary_stat %>%
     dplyr::filter(!sample_id %in% c('SA535X9XB03617', 'SA535X9XB03616'))
@@ -311,10 +311,24 @@ viz_total_correlation <- function(){
   for(pd in unique(summary_stat$PDX)){
     tmp <- stat %>%
       dplyr::filter(PDX==pd)
-    cr <- round(cor(tmp$DLP,tmp$clonealign, method = "pearson"),2)
-    corr_stat <- dplyr::bind_rows(corr_stat, tibble::tibble(PDX=pd, correlation=cr))
+    # cr <- round(cor(tmp$DLP,tmp$clonealign, method = "pearson"),2)
+    out <- cor.test(tmp$DLP,tmp$clonealign, method = "pearson")
+    cr <- round(out$estimate,2)
+    pval <- out$p.value
+    corr_stat <- dplyr::bind_rows(corr_stat, tibble::tibble(PDX=pd, correlation=cr, pval=pval))
   }  
+  dim(corr_stat)
+  sum(corr_stat$pval<0.05) 
+  out <- cor.test(stat$DLP,stat$clonealign, method = "pearson")
+  
+  corr_stat$is_pval_signf <- ifelse(corr_stat$pval<0.05,'signf','not signf')
+  data.table::fwrite(corr_stat, paste0(save_dir, 'pval_clonealign_corr.csv'))
+  ## manuscript: 
+  # Pearson correlation coefficient r>0.7 for all but 1 patient, average correlation r=0.77+-0.14 for all patients, 
+  # average correlation in three treatment series was greater when cells were under treatment  r=0.8+-0.11. 
+  # View(corr_stat)
   corr_stat <- as.data.frame(corr_stat)
+  View(corr_stat)
   dim(stat)
   stat <- stat %>% inner_join(corr_stat, by='PDX')
   # stat$PDX <- paste0(stat$PDX,' (r=',stat$correlation,')')

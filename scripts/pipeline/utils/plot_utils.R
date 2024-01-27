@@ -1171,10 +1171,10 @@ plot_CNV <- function(df_cnv_fn, clones, meta_genes=NULL){
   #!chr %in% c("X","Y")
   
   # Just in case of SA609
-  df_cnv$clone <- ifelse(df_cnv$clone=='R','A',df_cnv$clone)
-  if(clones[1]=='R'){
-    clones[1] <- 'A'
-  }
+  # df_cnv$clone <- ifelse(df_cnv$clone=='R','A',df_cnv$clone)
+  # if(clones[1]=='R'){
+  #   clones[1] <- 'A'
+  # }
   
   df_cnv$clone <- factor(df_cnv$clone, levels = c(clones[2],clones[1]))
   print(summary(df_cnv$clone))

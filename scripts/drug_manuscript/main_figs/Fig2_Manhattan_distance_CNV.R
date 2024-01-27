@@ -1,8 +1,11 @@
+library(dplyr)
+
 script_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/scripts/'
 source(paste0(script_dir,'drug_manuscript/cnv_viz_utils.R'))
 
 
 results_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/cell_clones/'
+
 save_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/dlp_cnv/medianCNV_MainFig2/'
 if(!dir.exists(save_dir)){
   dir.create(save_dir)
@@ -31,7 +34,8 @@ for(datatag in series){
 rm(tmp)
 
 datatag <- 'SA609'
-copynumber_fn <- paste0(results_dir, datatag, '_total_merged_filtered_states.csv.gz')
+copynumber_fn <- '/home/htran/storage/datasets/drug_resistance/rna_results/SA609_rna/cnv/sa609_total_merged_filtered_states.csv'
+# copynumber_fn <- paste0(results_dir, datatag, '_total_merged_filtered_states.csv.gz')
 cellclone_fn <- paste0(results_dir, datatag, '_cell_clones.csv.gz')
 res <- get_median_genotype_v2(datatag, save_dir, copynumber_fn, cellclone_fn,
                               calcul_distance=T, distance_type='Manhattan')
@@ -41,6 +45,21 @@ res <- get_median_genotype_v2(datatag, save_dir, copynumber_fn, cellclone_fn,
 print(min(res$out_mtx$CNA_Distance))
 print(max(res$out_mtx$CNA_Distance))
 print(dim(res$dist_to_median))
+pt4_df <- res$out_mtx
+dim(pt4_df)
+head(pt4_df)
+pt4_df$CNA_Distance <- as.numeric(pt4_df$CNA_Distance)
+median_distance=round(median(pt4_df$CNA_Distance),2)
+mean_distance=round(mean(pt4_df$CNA_Distance),2)
+sd_distance=round(sd(pt4_df$CNA_Distance),2)
+stat1 <- pt4_df %>%
+  # select(-SourceClone,-TargetClone)%>%
+  # group_by(datatag)%>%
+  summarise(median_distance=round(median(CNA_Distance),2),
+            sd=round(sd(CNA_Distance),2))
+stat1
+
+
 res_total[[datatag]] <- res
 
 # res$hm
@@ -63,9 +82,20 @@ unique(stat$treatment_status)
 unique(stat$datatag)
 data.table::fwrite(stat, paste0(save_dir,'total_stat_median_CN_distance_6series.csv.gz'))
 
-# stat <- data.table::fread(paste0(save_dir,'total_stat_median_CN_distance_6series.csv')) %>% as.data.frame()
-
-
+# save_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/'
+# p <- readRDS(paste0(save_dir,'/manuscript/clonealign_plot/median_CN_distance_6series.rds'))
+# stat <- p$data %>% as.data.frame()
+# # stat <- data.table::fread(paste0(save_dir,'total_stat_median_CN_distance_6series.csv')) %>% as.data.frame()
+# dim(stat)
+# head(stat)
+# t <- stat %>%
+#   dplyr::filter(datatag=='Pt6') %>%
+#   # dplyr::group_by(datatag) %>%
+#   dplyr::summarise(median_dist=round(median(CNA_Distance),2),
+#                    sd_dist=round(sd(CNA_Distance),2))
+# dim(t)
+# t
+unique(t$datatag)
 stat$CNA_Distance <- as.numeric(stat$CNA_Distance)
 # series <- c('SA501','SA530','SA604','SA609','SA535','SA1035')
 # stat$datatag <- factor(stat$datatag, levels = series)
@@ -120,3 +150,5 @@ stat2$idx <- paste0(stat2$datatag, stat2$SourceClone, stat2$TargetClone)
 stat3 <- stat2 %>%
   filter(idx %in% c('SA609AH','SA609HA','SA535AG','SA535GA','SA1035HE','SA1035EH'))
 View(stat3)
+
+

@@ -176,3 +176,32 @@ df5 <- df5 %>%
 df4$order
 
 View(df5)
+
+
+
+library(dplyr)
+input_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/comparisons/'
+df <- data.table::fread(paste0(input_dir, 'comparisons_across_treatments_revision35.csv')) %>% as.data.frame()
+colnames(df)
+df$result_fn[1]
+df$file_header <- sapply(strsplit(df$result_fn, '_'), function(x){
+  return(paste0(x[1],'_',x[2],'_',x[3]))
+})
+
+df$datatag <- sapply(strsplit(df$result_fn, '_'), function(x){
+  return(as.character(x[2]))
+})
+# unique(df$datatag)
+df$clone1 <- sapply(strsplit(df$result_fn, '_'), function(x){
+  return(as.character(x[6]))
+})
+unique(df$clone1)
+df$clone2 <- sapply(strsplit(df$result_fn, '_'), function(x){
+  return(as.character(x[8]))
+})
+unique(df$clone2)
+df$clone2 <- ifelse(df$clone2=='B-C','B',df$clone2)
+df$labels_detailed <- gsub('/','vs.',df$labels_detailed)
+# View(df)
+data.table::fwrite(df, paste0(input_dir, 'comparisons_across_treatments_revision35.csv'))
+

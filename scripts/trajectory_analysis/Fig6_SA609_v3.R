@@ -185,6 +185,7 @@ plot_heatmap_gene_modules <- function(){
   rownames(cistrans_anno) <- NULL
   # cistrans_anno$gene_type <- paste0("in ",cistrans_anno$gene_type)
   summary(as.factor(cistrans_anno$gene_type))
+  head(cistrans_anno)
   meta_clone_lg <- data.table::fread(paste0(input_dir,datatag,'_meta_clone_lineages.csv')) %>% as.data.frame()
   meta_clone_lg <- meta_clone_lg[!duplicated(meta_clone_lg$lineage),]
   

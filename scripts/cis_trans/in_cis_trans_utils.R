@@ -14,7 +14,7 @@ suppressPackageStartupMessages({
 # fonts()
 # library(extrafont)
 # font_import(prompt=F, paths ='/usr/share/fonts/truetype/myfonts/') # import Helvetica font
-fonts()
+# fonts()
 
 # stat_df: ks statistical tests, and metasample info
 # de_df: df of logFC values
@@ -1147,9 +1147,10 @@ get_gene_type_stat_v3 <- function(pair_groups, input_dir, save_dir)
       stat_de <- de %>%
         dplyr::group_by(Gene_Type) %>%
         dplyr::summarise(nb_genes=n(),
-                         pct_genes=round(n()/dim(de)[1]*100,2),
-                         avgLogFC=round(mean(abs(logFC)),2),
-                         sdLogFC=round(sd(logFC),2)) %>%
+                         pct_genes=round(n()/dim(de)[1]*100,2)#,
+                         # avgLogFC=round(mean(abs(logFC)),2),
+                         # sdLogFC=round(sd(logFC),2)
+                         ) %>%
         dplyr::rename(gene_type=Gene_Type) %>%
         dplyr::mutate(file_header=idx)
       

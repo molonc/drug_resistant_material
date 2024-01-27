@@ -85,6 +85,10 @@ process_old_clone_labels <- function(cell_clones, datatag){
         TRUE  ~  clone_id
       ))
   }
+  if(datatag=='SA501'){
+    cell_clones <- cell_clones %>%
+      dplyr::filter(clone_id %in% c('C','B','R','D','G','H'))
+  }
   return(cell_clones)
 }
 

@@ -1,0 +1,31 @@
+gt,comp_type,series,avg_pct_genes,sd_pct_genes
+cis gene,Rx expand vs Rx shrink,Pt4,59.35,
+cis gene,Rx expand vs Rx shrink,Pt5,61.36,4.33
+cis gene,Rx expand vs Rx shrink,Pt6,25.92,10.78
+cis gene,Rx expand vs UnRx,Pt4,53.55,1.56
+cis gene,Rx expand vs UnRx,Pt5,37.27,3.13
+cis gene,Rx expand vs UnRx,Pt6,7.05,1.9
+cis gene,Rx shrink vs UnRx,Pt4,53.33,
+cis gene,Rx shrink vs UnRx,Pt5,34.26,0.85
+cis gene,Rx shrink vs UnRx,Pt6,13.71,2.73
+cis gene,RxH vs UnRx,Pt4,53.73,0.39
+cis gene,RxH vs UnRx,Pt5,41.13,1.53
+cis gene,RxH vs UnRx,Pt6,12.05,2.31
+cis gene,UnRx vs UnRx,Pt4,41.84,14.1
+cis gene,UnRx vs UnRx,Pt5,58.52,3.09
+cis gene,UnRx vs UnRx,Pt6,31.08,5.02
+trans gene,Rx expand vs Rx shrink,Pt4,36.81,
+trans gene,Rx expand vs Rx shrink,Pt5,36.58,3.61
+trans gene,Rx expand vs Rx shrink,Pt6,72.61,10.01
+trans gene,Rx expand vs UnRx,Pt4,43.37,1.76
+trans gene,Rx expand vs UnRx,Pt5,60.01,3.48
+trans gene,Rx expand vs UnRx,Pt6,90.21,1.85
+trans gene,Rx shrink vs UnRx,Pt4,44.25,
+trans gene,Rx shrink vs UnRx,Pt5,62.97,0.37
+trans gene,Rx shrink vs UnRx,Pt6,83.92,2.97
+trans gene,RxH vs UnRx,Pt4,43.08,0.06
+trans gene,RxH vs UnRx,Pt5,56.48,2.26
+trans gene,RxH vs UnRx,Pt6,84.35,2.49
+trans gene,UnRx vs UnRx,Pt4,54.76,14.12
+trans gene,UnRx vs UnRx,Pt5,39.2,2.73
+trans gene,UnRx vs UnRx,Pt6,66.34,5.73
