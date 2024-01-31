@@ -1,4 +1,4 @@
-# Summarize how many genes changed over treatment and how many reversed
+# Summarize how many genes changed over treatment and how many reversed - Fig 4
 
 library(reshape2)
 library(dplyr)
@@ -204,30 +204,30 @@ get_bar_data <- function(data, series, type="transient") {
       rx <- mp[mp$passage==pa & mp$group==group & mp$comp=="TvsU","clone1"]
       rxh <- mp[mp$passage==pa & mp$group==group & mp$comp=="TvsH","clone2"]
       if (type=="transient") {
-        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Towards UnRx cis", group=group,
+        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Towards UnRx cis", cis_or_trans="cis", group=group,
                                    UnRx=un, Rx=rx, RxH=rxh,
                                    number=nrow(data[data$patient==series & data$passage==pa & data$group==group & data$direction=="Towards UnRx" & data$cistrans=="cis",])))
-        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Towards UnRx trans", group=group,
+        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Towards UnRx trans", cis_or_trans="trans", group=group,
                                    UnRx=un, Rx=rx, RxH=rxh,
                                    number=nrow(data[data$patient==series & data$passage==pa & data$group==group & data$direction=="Towards UnRx" & data$cistrans=="trans",])))
-        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Away from UnRx cis", group=group,
+        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Away from UnRx cis", cis_or_trans="cis", group=group,
                                    UnRx=un, Rx=rx, RxH=rxh,
                                    number=nrow(data[data$patient==series & data$passage==pa & data$group==group & data$direction=="Away from UnRx" & data$cistrans=="cis",])))
-        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Away from UnRx trans", group=group,
+        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Away from UnRx trans", cis_or_trans="trans", group=group,
                                    UnRx=un, Rx=rx, RxH=rxh,
                                    number=nrow(data[data$patient==series & data$passage==pa & data$group==group & data$direction=="Away from UnRx" & data$cistrans=="trans",])))
       
       } else {
-        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Induced cis", group=group,
+        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Induced cis", cis_or_trans="cis", group=group,
                                    UnRx=un, Rx=rx, RxH=rxh,
                                    number=nrow(data[data$patient==series & data$passage==pa & data$group==group & data$direction=="Induced" & data$cistrans=="cis",])))
-        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Induced trans", group=group,
+        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Induced trans", cis_or_trans="trans", group=group,
                                    UnRx=un, Rx=rx, RxH=rxh,
                                    number=nrow(data[data$patient==series & data$passage==pa & data$group==group & data$direction=="Induced" & data$cistrans=="trans",])))
-        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Repressed cis", group=group,
+        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Repressed cis", cis_or_trans="cis", group=group,
                                    UnRx=un, Rx=rx, RxH=rxh,
                                    number=nrow(data[data$patient==series & data$passage==pa & data$group==group & data$direction=="Repressed" & data$cistrans=="cis",])))
-        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Repressed trans", group=group,
+        df <- rbind(df, data.frame(series=series, passage=pa, title=title, direction="Repressed trans", cis_or_trans="trans", group=group,
                                    UnRx=un, Rx=rx, RxH=rxh,
                                    number=nrow(data[data$patient==series & data$passage==pa & data$group==group & data$direction=="Repressed" & data$cistrans=="trans",])))
       }
@@ -331,7 +331,9 @@ make_plot <- function (type="transient") {
   
 
   write.csv(file=paste0("manuscript_files/data_file_", type,".csv"), data, quote = FALSE)
+  write.csv(file=paste0("manuscript_files/bar_data_", type,".csv"), df, quote = FALSE)
   
+  head(df)
   
   ggplot(data=df, aes(x=title, y=number, fill=direction)) +
     geom_bar(stat="identity") + 
@@ -431,4 +433,85 @@ d2 <- read.csv("manuscript_files/data_file_transient.csv")
 d2$type <- "Genes that change after drug withdrawal"
 d <- rbind(d1,d2)
 write.csv(file=paste0("manuscript_files/dynamic_genes.csv"), d, quote = FALSE)
+
+
+
+
+
+##########################################################################
+#### Answering question 2.9
+
+fixed <- read.csv("manuscript_files/bar_data_nontransient.csv")
+fixed$id <- paste0(fixed$series, " ", fixed$title)
+
+changed <- read.csv("manuscript_files/bar_data_transient.csv")
+changed$id <- paste0(changed$series, " ", changed$title)
+away <- changed[changed$direction %in% c("Away from UnRx cis","Away from UnRx trans"),]
+
+unreverted <- rbind(fixed, away)[,c("id", "number")]
+
+unreverted_agg <- aggregate(. ~ id, data=unreverted, FUN=sum)
+unreverted_agg$type <- "unreverted"
+
+toward <- changed[changed$direction %in% c("Towards UnRx cis","Towards UnRx trans"),]
+reverted <- toward[,c("id","number")]
+reverted_agg <- aggregate(. ~ id, data=reverted, FUN=sum)
+reverted_agg$type <- "reverted"
+
+data <- rbind(unreverted_agg, reverted_agg)
+data_agg <- aggregate(.~id, data=data[,c("id","number")], FUN=sum)
+data_sum <- rbind(data_agg, data_agg)
+data$prop <- data$number / data_sum$number * 100
+data$series <- substring(data$id, first = 1, last = 3)
+data$title <- substring(data$id, first = 5)
+
+
+ggplot(data=data, aes(x=title, y=prop, fill=type)) +
+  geom_bar(stat="identity") + 
+  labs(y = "Percentage", x = "Sample") +
+  #thesis_theme + 
+  scale_fill_manual(values = c("coral4","cadetblue4")) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  theme(legend.position = "none") +    # no legend
+  #scale_y_continuous(limits = c(0, 2000)) + 
+  #theme(axis.title.x=element_blank(),
+  #  axis.text.x=element_blank()) + 
+  facet_grid(~ series, scales="free_x", space="free") 
+
+ggsave(paste0("manuscript_files/percent_reverted_vs_not.pdf"), width=2.95, heigh=3.2, useDingbats=FALSE)
+
+
+fixed_cis <- fixed[fixed$cis_or_trans=="cis",]
+fixed_trans <- fixed[fixed$cis_or_trans=="trans",]
+fcis_agg <- aggregate(.~id, data=fixed_cis[,c("id","number")], FUN=sum)
+fcis_agg$type <- "cis"
+ftrans_agg <- aggregate(.~id, data=fixed_trans[,c("id","number")], FUN=sum)
+ftrans_agg$type <- "trans"
+s <- fcis_agg$number + ftrans_agg$number
+fcis_agg$percent <- fcis_agg$number / s * 100
+ftrans_agg$percent <- ftrans_agg$number / s * 100
+df <- rbind(fcis_agg,ftrans_agg)
+df$series <- substring(df$id, first = 1, last = 3)
+df$title <- substring(df$id, first = 5)
+
+
+ggplot(data=df, aes(x=title, y=percent, fill=type)) +
+  geom_bar(stat="identity") + 
+  labs(y = "Percentage", x = "Sample") +
+  #thesis_theme + 
+  scale_fill_manual(values = c("chocolate4","burlywood3")) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  #theme(legend.position = "none") +    # no legend
+  #scale_y_continuous(limits = c(0, 2000)) + 
+  #theme(axis.title.x=element_blank(),
+  #  axis.text.x=element_blank()) + 
+  facet_grid(~ series, scales="free_x", space="free") 
+
+
+ggsave(paste0("manuscript_files/percent_cis_vs_trans.pdf"), width=2.95, heigh=3.2, useDingbats=FALSE)
+
+
+
 
