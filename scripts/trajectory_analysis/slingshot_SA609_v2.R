@@ -23,18 +23,21 @@ save_dir <- paste0('/home/htran/storage/datasets/drug_resistance/rna_results/',d
 #                              corrected_mtx_fn=NULL, datatag, 
 #                              return_sce=F, save_data=T)
 # sce <- readRDS(paste0(input_dir,'slingshot_trajectory/BE_mtx_v2/SA609_norm_BE_sce.rds'))
-print(dim(sce))
-assayNames(sce)
 output_dir <- save_dir
 prepare_data_Seurat(sce, output_dir, datatag, save_srt=FALSE)
 sce <- readRDS(paste0(save_dir,'SA609_3000_rd_sce.rds'))
+print(dim(sce))
+assayNames(sce)
+
 # sce$clone[1]
 # summary(as.factor(sce$clone))
-metacells <- data.table::fread(paste0(output_dir,'SA609_3000_meta_cells.csv')) %>% as.data.frame()
+metacells <- data.table::fread(paste0(output_dir,'SA609_meta_cells.csv.gz')) %>% as.data.frame() #SA609_3000_meta_cells.csv
 dim(metacells)
+colnames(metacells)
 
 meta_info <- data.table::fread(paste0(output_dir,'BE_mtx_v2/SA609_meta_info.csv')) %>% as.data.frame()
 dim(meta_info)
+colnames(meta_info)
 
 umap_df <- data.table::fread(paste0(output_dir, "withBE_SA609_v2/SA609_3000_norm_umap.csv")) %>% as.data.frame()
 dim(umap_df)
@@ -90,6 +93,8 @@ prepare_data_Seurat(sce, output_dir, datatag, save_srt)
 
 
 
+
+
 # Load data for trajectory plotting
 viz_all_trajectories <- function(){
   script_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/scripts/trajectory_analysis/'
@@ -114,6 +119,9 @@ viz_all_trajectories <- function(){
   nfeatures_use <- 3000
   crv_umap_embed <- readRDS(paste0(save_dir, "slingshot_",datatag,'_',paste(start_cls, collapse='_'),"_UMAP_embed_crv.rds"))
   # crv1 <- readRDS(paste0(save_dir, "slingshot_pseudotime_SA609_10_PCA_crv.rds"))
+  
+  ## To Do: get unique labels from here, and change labels in sce file? 
+  # data.table::fwrite(umap_df, '/home/htran/storage/datasets/drug_resistance/rna_results/SA609_rna/slingshot_trajectory/withBE_SA609_v2/clone_labels_unique_SA609.csv.gz')
   
   res <- plot_all_lingeages(sce, crv_umap_embed, output_dir, datatag)
   

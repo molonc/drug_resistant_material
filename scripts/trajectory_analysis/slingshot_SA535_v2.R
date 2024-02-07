@@ -57,6 +57,10 @@ sce$treatmentSt <- sce$treat
 # sce$treat[1]
 # saveRDS(sce, paste0(output_dir, datatag,'_',nfeatures_use,'_rd_sce_clones.rds'))
 # saveRDS(sce, paste0(output_dir, datatag,'_',nfeatures_use,'_rd_sce.rds'))
+
+## For pseudotime clonal labels, revision manuscript
+# data.table::fwrite(umap_df, '/home/htran/storage/datasets/drug_resistance/rna_results/SA535_rna/slingshot_trajectory/clone_labels_unique_SA535.csv.gz')
+
 plot_all_lingeages(sce, crv_umap_embed, output_dir, datatag)
 
 segment_CNV_fn <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/dlp_cnv/SA535_cnv_mat.csv'

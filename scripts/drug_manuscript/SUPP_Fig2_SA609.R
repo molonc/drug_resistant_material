@@ -134,7 +134,7 @@ plot_10x_UMAP <- function()
 {  
   
   base_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/'
-  # source(paste0(base_dir, 'scripts/drug_manuscript/viz_umap_figs/viz_umaps.R'))
+  source(paste0(base_dir, 'scripts/drug_manuscript/viz_umap_figs/viz_umaps.R'))
   
   input_dir <- paste0(base_dir, 'materials/umap_figs/')
   output_dir <- paste0(base_dir, 'materials/umap_figs/figs_rna/')
@@ -164,7 +164,13 @@ plot_10x_UMAP <- function()
   umap_df <- umap_df %>%
     dplyr::mutate(clone = get_unique_clone_id(clone)) %>%
     dplyr::mutate(clone = case_when(clone=='R' ~ 'A',
-                                       TRUE  ~ clone)) 
+                                       TRUE  ~ clone))
+  dim(umap_df)
+  
+  ## For pseudotime clonal labels, revision manuscript
+  # data.table::fwrite(umap_df, '/home/htran/storage/datasets/drug_resistance/rna_results/SA609_rna/slingshot_trajectory/withBE_SA609_v2/clone_labels_unique_SA609.csv.gz')
+  
+  
   res_prop10x_SA609 <- plot_fill_barplot_wholedataset_rnaseq(umap_df, cols_use, output_dir, 
                                                              datatag, plottitle=NULL, plotlegend=F, facet_order='vertical')
   

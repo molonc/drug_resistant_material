@@ -400,11 +400,14 @@ plot_mainFig2 <- function(){
   for(datatag in series){
     collapse_trees[[datatag]] <- readRDS(paste0(output_dir, datatag,'_summary_tree.rds'))
   }
+  output_dir <- "/home/htran/Projects/farhia_project/backup/drug_resistant_material_3_Aug_2023/materials/umap_figs/main_fig2/"
   res_barDLP_609 <- readRDS(paste0(output_dir, "SA609_barplot_DLP_v2.rds"))
   res_barDLP_535 <- readRDS(paste0(output_dir, "SA535_barplot_DLP_v2.rds"))
   res_barDLP_1035 <- readRDS(paste0(output_dir, "SA1035_barplot_DLP_v2.rds"))
-  
+  res_barDLP_609$p
+  t <- cowplot::plot_grid(res_barDLP_609$p)
   ## Loading tumour growth status 
+  library(ggplot2)
   tg_609 <- readRDS(paste0(output_dir, 'Pt4_tumour_growth_status.rds'))
   tg_535 <- readRDS(paste0(output_dir, 'Pt5_tumour_growth_status.rds'))
   tg_1035 <- readRDS(paste0(output_dir, 'Pt6_tumour_growth_status.rds'))
@@ -455,7 +458,8 @@ plot_mainFig2 <- function(){
   
   
   
-  pDLP_tree <- cowplot::plot_grid(pDLP_tree1, p_manhattan, nrow=1, rel_widths = c(1,0.2), hjust = 0, label_size=12, labels = c('a',' b')) + #p_manhattan
+  pDLP_tree <- cowplot::plot_grid(pDLP_tree1, p_manhattan, nrow=1, 
+                                  rel_widths = c(1,0.2), hjust = 0, label_size=12, labels = c('a',' b')) + #p_manhattan
     theme(plot.background = element_rect(fill = "white", colour = "white"))
   
   # ptotal_DLP <- cowplot::plot_grid(pDLP_tree, pRxDLP, nrow=2,rel_heights = c(2.2,2))

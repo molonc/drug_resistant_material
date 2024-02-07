@@ -91,14 +91,34 @@ plot_10x_UMAP <- function()
     dplyr::select(cell_id, unique_clone)%>%
     dplyr::rename(clone=unique_clone)
   colnames(clonealign_stat)
+  dim(clonealign_stat)
+  clonealign_stat$cell_id[1]
+  summary(as.factor(clonealign_stat$clone))
   # rm(umap_df)
 
   # umap_df <- data.table::fread(paste0(input_dir,datatag,'_norm_umap.csv.gz')) %>% as.data.frame()
   umap_df <- data.table::fread(paste0(input_dir,datatag,'_norm_umap_filtered_outliers.csv.gz')) %>% as.data.frame()
   dim(umap_df)
   unique(umap_df$clone)
+  summary(as.factor(umap_df$treatmentSt))
+  sids <- sapply(strsplit(umap_df$cell_id,'_'), function(x){
+    return(x[1])
+  })  
+  umap_df$sample_id <- as.character(sids)
+  table(umap_df$treatmentSt, umap_df$sample_id)
+  table(umap_df$clone, umap_df$sample_id)
+  umap_df <- umap_df %>%
+    dplyr::filter(timepoint=='X4')
+  
+  # umap_df <- umap_df %>%
+  #   dplyr::filter(timepoint=='X4')
+  # dim(umap_df)
+  # summary(as.factor(umap_df$clone))
   umap_df <- umap_df %>%
     dplyr::mutate(clone=get_unique_clone_id(clone))
+  sum(umap_df$cell_id %in% clonealign_stat$cell_id)
+  ## For pseudotime clonal labels, revision manuscript
+  # data.table::fwrite(umap_df, '/home/htran/storage/datasets/drug_resistance/rna_results/SA1035_rna/slingshot_trajectory/clone_labels_unique_SA1035.csv.gz')
   
   # filtered_cells_dir <- paste0('/home/htran/storage/datasets/drug_resistance/rna_results/',datatag,'_rna/slingshot_trajectory/')
   # sce <- readRDS(paste0(output_dir, datatag,'_3000_rd_sce_v2.rds'))

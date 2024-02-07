@@ -588,16 +588,16 @@ viz_genes_exp_lineages_cistrans_anno_hm <- function(exp_mtx, obs_genes_df, obs_c
   dim(cistrans_anno_df)
   
   ## Revision
-  cistrans_anno_df$ens_gene_id <- rownames(cistrans_anno_df)
-  cistrans_anno_df <- cistrans_anno_df %>%
-    dplyr::left_join(obs_genes_df, by='ens_gene_id')
-  head(cistrans_anno_df)
-  cistrans_anno_df$clone <- NULL
+  # cistrans_anno_df$ens_gene_id <- rownames(cistrans_anno_df)
+  # cistrans_anno_df <- cistrans_anno_df %>%
+  #   dplyr::left_join(obs_genes_df, by='ens_gene_id')
+  # # head(cistrans_anno_df)
+  # cistrans_anno_df$clone <- NULL
   # # summary(as.factor(cistrans_anno_df$`L3-Rx`))
   # summary(as.factor(cistrans_anno_df$`L2-RxH`))
   # summary(as.factor(cistrans_anno_df$`L1-UnRx`))
   # datatag
-  data.table::fwrite(cistrans_anno_df, paste0('/home/htran/Projects/farhia_project/drug_resistant_material/materials/trajectory_genes/cis_trans_genes_lineages/',datatag,'_genes_cis_trans_lineages.csv.gz'))
+  # data.table::fwrite(cistrans_anno_df, paste0('/home/htran/Projects/farhia_project/drug_resistant_material/materials/trajectory_genes/cis_trans_genes_lineages/',datatag,'_genes_cis_trans_lineages.csv.gz'))
   
   
   # anno_row <- ComplexHeatmap::rowAnnotation(

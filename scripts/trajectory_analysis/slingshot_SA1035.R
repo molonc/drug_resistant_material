@@ -42,10 +42,10 @@ nfeatures_use <- 3000
 # saveRDS(sce, paste0(output_dir, datatag,'_',nfeatures_use,'_rd_sce_v2.rds')) # the most updated
 sce <- readRDS(paste0(output_dir, datatag,'_',nfeatures_use,'_rd_sce_v2.rds'))
 
-summary(as.factor(sce$clone))
-summary(as.factor(sce$cluster_label))
-print(dim(sce))
-table(sce$cluster_label, sce$clone)
+# summary(as.factor(sce$clone))
+# summary(as.factor(sce$cluster_label))
+# print(dim(sce))
+# table(sce$cluster_label, sce$clone)
 start_cls <- '0'
 # get_slingshot_pseudotime_v2(sce, save_dir, datatag, start_cls=NULL, cl=NULL, rd_use='PCA')
 crv_umap_embed <- readRDS(paste0(save_dir, "slingshot_output/slingshot_SA1035_0_UMAP_embed_crv.rds"))
@@ -53,6 +53,9 @@ output_figs_dir <- paste0(output_dir,'figs_v3/')
 if(!dir.exists(output_figs_dir)){
   dir.create(output_figs_dir) 
 }
+## For pseudotime clonal labels, revision manuscript
+# data.table::fwrite(umap_df, '/home/htran/storage/datasets/drug_resistance/rna_results/SA1035_rna/slingshot_trajectory/clone_labels_unique_SA1035.csv.gz')
+
 plot_all_lingeages(sce, crv_umap_embed, output_figs_dir, datatag)
 
 

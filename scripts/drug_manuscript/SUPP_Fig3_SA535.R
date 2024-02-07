@@ -110,6 +110,10 @@ plot_10x_UMAP <- function()
   unique(umap_df$clone)
   umap_df <- umap_df %>%
     dplyr::rename(treatmentst = treat)
+  
+  ## For pseudotime clonal labels, revision manuscript
+  # data.table::fwrite(umap_df, '/home/htran/storage/datasets/drug_resistance/rna_results/SA535_rna/slingshot_trajectory/clone_labels_unique_SA535.csv.gz')
+  
   res_prop10x_SA535 <- plot_fill_barplot_wholedataset_rnaseq(umap_df, cols_use, output_dir, 
                                                              datatag, plottitle=NULL, plotlegend=F, facet_order='vertical')
   

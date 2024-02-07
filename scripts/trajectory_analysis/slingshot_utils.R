@@ -88,6 +88,182 @@ get_slingshot_pseudotime_v2 <- function(sce, save_dir, datatag,
   # plot_lineages_colorby_treatmentSt(crv_umap_embed, umaps, meta_info, datatag, save_dir)
   
 } 
+
+plot_whole_lineages_clones <- function(pt, rd, 
+                                            curves, df_cls_centers, 
+                                            output_dir, datatag, 
+                                            downsample_ratio=0.25, cols_use=NULL,
+                                            x_plt='UMAP_1', y_plt='UMAP_2'){
+  col_plt <- 'clone'
+  
+  # pt <- pseudo_out 
+  # rd_backup <- rd 
+  # curves, df_cls_centers, 
+  # save_figs_dir, datatag, cols_use=NULL,
+  # x_plt='UMAP_1'
+  # y_plt='UMAP_2'
+  # head(curves)
+  if(is.null(cols_use)){
+    # res1 <- set_color_clones(rd$clone)
+    # cols_use <- res1$clone_palette
+    cols_use <- get_color_clones_v2(datatag, unique(rd$clone))
+  }
+  cols_use <- c(cols_use, 'NA'='#E8E8E8')
+  
+  ls_startp <- list()
+  ls_endp <- list()
+  for(lid in unique(curves$ligneage_id)){
+    curves_tmp <- curves %>% 
+      dplyr::filter(ligneage_id==lid)
+    # print(dim(curves_tmp))
+    obs_cls <- unique(c(curves_tmp$cls1, curves_tmp$cls2))
+    df_cls_centers_tmp <- df_cls_centers %>% 
+      dplyr::filter(cluster_label %in% obs_cls)
+    # class(pt) dim(pt) colnames(pt)
+    # print(dim(df_cls_centers_tmp))
+    startp <- df_cls_centers_tmp %>% 
+      dplyr::filter(cluster_label == curves_tmp$cls1[1])
+    ls_startp[[curves_tmp$cls1[1]]] <- startp
+    endp <- df_cls_centers_tmp %>% 
+      dplyr::filter(cluster_label == curves_tmp$cls2[dim(curves_tmp)[1]])
+    ls_endp[[curves_tmp$cls2[dim(curves_tmp)[1]]]] <- endp
+    if(!lid %in% colnames(pt)){
+      stop('Do not exist any results corresponding to given lineage, double check input data')
+    }
+  }
+  
+  # head(df_cls_centers)
+  
+  
+  # View(head(pt))
+  # head(rd)
+  
+  pt$cell_id <- rownames(pt)
+  if(!'cell_id' %in% colnames(rd)){
+    rd$cell_id <- rownames(rd)
+  }
+  if(downsample_ratio>0){
+    print('Before downsampling')
+    print(dim(rd))
+    ## Original version
+    # cells_use <- rd %>%
+    #   # dplyr::filter(cluster_label %in% obs_cls)%>%
+    #   dplyr::pull(cell_id)
+    
+    ## Downsample data, make plot clearer
+    cells_use <- downsample_by_cluster_label_treatmentSt(rd, downsample_ratio=downsample_ratio) #0.15
+    # rd$cell_id <- rownames(rd)
+    # cells_use <- rd$cell_id
+    print(length(cells_use))
+    pt <- pt %>%
+      dplyr::filter(cell_id %in% cells_use)
+  }
+  
+  # rd <- rd %>% left_join(pt, by=c('cell_id'))
+  rd <- rd %>% inner_join(pt, by=c('cell_id'))
+  # print('After downsampling')
+  print(dim(rd))
+  # colors <- pal[cut(rd[,lid], breaks = 100)]
+  # rd$treatmentSt <- ifelse(!is.na(rd[,lid]),rd$treatmentSt,'NA')
+  
+  # length(colors)
+  df_cls_centers1 <- df_cls_centers # clusters center
+  # Just to avoid overlap with cluster centers
+  # df_cls_centers$x1 <- df_cls_centers$x1 + runif(dim(df_cls_centers)[1], -0.5, 0.5)
+  # df_cls_centers$y1 <- df_cls_centers$y1 + runif(dim(df_cls_centers)[1], -0.5, 0.5)
+  
+  # Just to avoid overlap with cluster centers
+  df_cls_centers$x1 <- df_cls_centers$x1 + 0.5
+  df_cls_centers$y1 <- df_cls_centers$y1 - 0.2
+  
+  # Just for easy observe output in visualization
+  if(datatag=='SA609'){
+    # unique(df_cls_centers$cluster_label)
+    meta_cluster <- data.frame(cluster_label=c('10','6','1','7','9','4','8','0','5','3','2'),
+                               cls_lb=c('0','1','2','3','4','5','6','7','8','9','10'))
+    df_cls_centers <- df_cls_centers %>% inner_join(meta_cluster, by=c('cluster_label'))
+  }
+  else if(datatag=='SA535'){
+    meta_cluster <- data.frame(cluster_label=c('0','1','2','3','4','5','6','7','8','9','10'),
+                               cls_lb=c('8','5','2','7','9','6','10','0','4','3','1'))
+    df_cls_centers <- df_cls_centers %>% inner_join(meta_cluster, by=c('cluster_label'))
+  }else if(datatag=='SA1035'){
+    # meta_cluster <- data.frame(cluster_label=c('0','1','2','3','4','5','6','7','8'),
+    #                            cls_lb=c('1','0','6','5','3','8','4','7','2')) # version 1 
+    meta_cluster <- data.frame(cluster_label=c('0','1','10','6','3','7','9','5','11','4','2','8'),
+                               cls_lb=c('0','1','2','3','4','5','6','7','8','9','10','11'))
+    df_cls_centers <- df_cls_centers %>% inner_join(meta_cluster, by=c('cluster_label'))
+    # df_cls_centers$cls_lb <- df_cls_centers$cluster_label
+  }else{
+    print('Using default clone labels in visualization')
+    df_cls_centers$cls_lb <- df_cls_centers$cluster_label
+  }
+  if(col_plt=='cluster_label' | grepl('Lineage',col_plt)){
+    cls_col <- 'black'
+  }else{
+    cls_col <- 'red'
+  }
+  patient_names <- data.frame(datatag=c('SA609','SA535','SA1035'),
+                              pt_names=c('Pt4','Pt5','Pt6'))
+  rownames(patient_names) <- patient_names$datatag
+  my_font <- "Helvetica"
+  plttitle <- patient_names[datatag,'pt_names']
+  
+  
+  p <- ggplot(rd, aes_string(x=x_plt, y=y_plt, color=col_plt)) +
+    geom_point(size=1.1, alpha=0.9, shape=21) + #size=0.4
+    # viridis::scale_color_viridis(discrete=F, alpha=0.8) +
+    scale_color_manual(values = cols_use) +
+    theme(plot.title = element_text(color="black", size=17, family=my_font),
+          panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+          axis.text = element_blank(),
+          # axis.title = element_text(color="black", size=11),
+          axis.title = element_blank(),
+          legend.position = 'none',
+          axis.line = element_blank(),
+          axis.ticks = element_blank(),
+          panel.background = element_rect(fill = "white",colour = "white")) #+ 
+  # labs(title = plttitle)
+  p <- p + geom_curve(
+    aes(x = x1, y = y1, xend = x2, yend = y2),
+    data = curves, inherit.aes = F,
+    curvature = 0.25, size = 0.6, colour = "#2F4F4F",alpha=0.8,
+    arrow = arrow(length = unit(0.04, "npc"))
+  )
+  # Draw cluster labels
+  # p <- p + annotate("text", x = df_cls_centers$x1, y = df_cls_centers$y1, 
+  #                   label = df_cls_centers$cls_lb, size=6, color=cls_col)
+  
+  # Draw cluster centers
+  for(startp in ls_startp){
+    p <- p + annotate(geom="point", startp$x1, y = startp$y1, 
+                      colour = "green", size = 6.5, alpha=0.3) # starting point
+  }
+  for(endp in ls_endp){
+    p <- p + annotate(geom="point", endp$x1, y = endp$y1, 
+                      colour = "red", size = 6, alpha=0.3) # end point
+  }
+  
+  p <- p + annotate(geom="point", df_cls_centers1$x1, y = df_cls_centers1$y1, 
+                    colour = "#2F4F4F", size = 2.5, alpha=0.6) 
+  # 
+  # p
+  
+  # png(paste0(output_dir,"ts_slingshot_out_wholedataset_",datatag,".png"), height = 2*400, width=2*600,res = 2*72)
+  # print(p)
+  # dev.off()
+  # ggsave(paste0(save_figs_dir,"umaps_lineages_",datatag,".png"),
+  #        plot = p,
+  #        height = 4,
+  #        width = 5.5,
+  #        # useDingbats=F,
+  #        dpi=250)
+  
+  saveRDS(p, paste0(output_dir,"ts_slingshot_out_wholedataset_clones_",datatag,".rds"))
+  return(p)
+}
+
+
 plot_whole_lineages_treatmentSt <- function(pt, rd, 
                                            curves, df_cls_centers, 
                                            output_dir, datatag, 
@@ -767,7 +943,8 @@ plot_all_lingeages <- function(sce, crv_umap_embed, output_dir, datatag){
   # output_dir <- "/home/htran/storage/datasets/drug_resistance/rna_results/SA1035_rna/slingshot_trajectory/slingshot_output_400/"
   # dir.create(output_dir)
   # save_figs_dir <- paste0(output_dir,'figs_v4/')
-  save_figs_dir <- paste0(output_dir,'figs_v5/')
+  # save_figs_dir <- paste0(output_dir,'figs_v5/')
+  save_figs_dir <- paste0(output_dir,'figs_revision/')
   if(!dir.exists(save_figs_dir)){
     dir.create(save_figs_dir)
   }  
@@ -778,9 +955,41 @@ plot_all_lingeages <- function(sce, crv_umap_embed, output_dir, datatag){
   umaps <- reducedDims(sce)[['UMAP']] %>% as.data.frame()
   umaps$cluster_label <- sce$cluster_label
   umaps$cluster_label <- as.factor(umaps$cluster_label)
-  umaps$clone <- sce$clone
   # umaps$treatmentSt <- colData(sce)[rownames(umaps),'treatmentSt']
   umaps$treatmentSt <- sce$treatmentSt
+  
+  # umaps$clone <- sce$clone
+  dim(umaps)
+  umaps$cell_id <- rownames(umaps)
+  umaps$cell_id[1]
+  
+  
+  ## Revision, need unique clonal labels here. 
+  ## To Do: get unique labels from here, and change labels in sce file? 
+  ## SA609
+  clonal_df <- data.table::fread('/home/htran/storage/datasets/drug_resistance/rna_results/SA609_rna/slingshot_trajectory/withBE_SA609_v2/clone_labels_unique_SA609.csv.gz')
+  ## SA535
+  # clonal_df <- data.table::fread('/home/htran/storage/datasets/drug_resistance/rna_results/SA535_rna/slingshot_trajectory/clone_labels_unique_SA535.csv.gz')
+
+  ## SA1035
+  # clonal_df <- data.table::fread('/home/htran/storage/datasets/drug_resistance/rna_results/SA1035_rna/slingshot_trajectory/clone_labels_unique_SA1035.csv.gz')
+  # dim(clonal_df)
+  
+  # colnames(clonal_df)
+  # clonal_df$cell_id[1]
+  # unique(clonal_df$clone)
+  clonal_df <- clonal_df %>%
+    dplyr::select(cell_id, clone) %>%
+    dplyr::mutate(
+      clone = case_when(
+        clone=='unassigned' ~ 'None', 
+        TRUE ~ clone
+      )
+    )
+  umaps <- umaps %>%
+    dplyr::inner_join(clonal_df, by='cell_id')
+  dim(umaps)
+  unique(umaps$clone)
   
   # Draw clusters
   res <- set_color_clusters(umaps$cluster_label)
@@ -791,11 +1000,13 @@ plot_all_lingeages <- function(sce, crv_umap_embed, output_dir, datatag){
                     x_plt='UMAP_1', y_plt='UMAP_2')
   
   # Draw clone label
-  res1 <- set_color_clones(umaps$clone)
-  lg1 <- plot_colors(res1$clone_palette, save_figs_dir, legend_label='clone')
-  cols_use <- res1$clone_palette
+  # res1 <- set_color_clones(umaps$clone)
+  cols_use_clones <- get_color_clones_v2(datatag, unique(umaps$clone))
+  # cols_use <- res1$clone_palette
+  lg1 <- plot_colors(cols_use_clones, save_figs_dir, legend_label='clone')
+  
   pcl <- plot_curves(datatag, umaps, unique_curves_ls, 
-                     ls_lineages$curves, cols_use, save_figs_dir, col_plt='clone', 
+                     ls_lineages$curves, cols_use_clones, save_figs_dir, col_plt='clone', 
                      x_plt='UMAP_1', y_plt='UMAP_2')
   
   # Draw treatment
@@ -862,6 +1073,8 @@ plot_all_lingeages <- function(sce, crv_umap_embed, output_dir, datatag){
   
   plttlts <- get_lineage_plot_label(datatag)
   lgs <- unique(curves$ligneage_id)
+  
+  ## Plotting each lineage
   plt_ts_ls <- list()
   for(i in rep(1:length(lgs),1)){
     lid <- lgs[i]
@@ -899,8 +1112,14 @@ plot_all_lingeages <- function(sce, crv_umap_embed, output_dir, datatag){
                                   save_figs_dir, datatag, 
                                   downsample_ratio=0.3, cols_use=NULL,
                                   x_plt='UMAP_1', y_plt='UMAP_2')
+  p <- plot_whole_lineages_clones(pseudo_out, rd, 
+                                   curves, df_cls_centers, 
+                                   save_figs_dir, datatag, 
+                                   downsample_ratio=0.2, cols_use=cols_use_clones,
+                                   x_plt='UMAP_1', y_plt='UMAP_2')
   # p
-  # SA609
+  # p_total <- p + lg1
+  # p_total
   ggsave(paste0(save_figs_dir,"SUPP_Fig11_trajectory_SA1035_plg_lineage.svg"),
          plot = p,
          height = 2.5,
@@ -1040,10 +1259,52 @@ plot_curves <- function(datatag, rd, curves, df_annot, cols_use, output_dir, col
   dev.off()
   return(p)
 }
+get_color_clones_v2 <- function(tag, clones_ls, color_fn=NULL){
+  if(is.null(color_fn)){
+    base_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/'
+    color_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v4.csv.gz')  
+  }
+  color_df <- data.table::fread(color_fn)
+  # color_df <- data.table::fread(paste0(output_dir,'colorcode_total.csv'))
+  color_df <- color_df %>%
+    dplyr::filter(datatag==tag)
+  
+  if(dim(color_df)[1] > 0){
+    cols_use <- color_df$colour
+    names(cols_use) <- color_df$clone_id
+    if(length(clones_ls)>length(cols_use)){
+      print('Double check, lack of defined clones in the color file!!!')
+      print('List of clones: ')
+      print(clones_ls)
+      print('List of defined colors: ')
+      print(cols_use)
+    }
+    clones_ls <- clones_ls[clones_ls %in% names(cols_use)]
+    cols_use <- cols_use[clones_ls]
+    if(!'None' %in% names(cols_use)){
+      cols_use['None'] <- '#D3D3D3'  
+    }
+    # if('None' %in% names(cols_use)){
+    #     
+    # }
+    
+  }else{
+    # cols_use <- make_clone_palette(obs_clones)
+    stop('Error, check color mapping')
+  }
+  print("Color setting: ")
+  print(cols_use)
+  return(cols_use)
+}
+
 set_color_clones <- function(clusters_labels){
   clusters_label <- gtools::mixedsort(unique(clusters_labels))
   print(clusters_label)
-  colorcode_fn <- "/home/htran/storage/datasets/metastasis_results/SA919X7_new_encoding/SA919_Tyler_wholedata/config/colorcode.csv"
+  # colorcode_fn <- "/home/htran/storage/datasets/metastasis_results/SA919X7_new_encoding/SA919_Tyler_wholedata/config/colorcode.csv"
+  base_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/'
+  colorcode_fn <- paste0(base_dir,'materials/umap_figs/colorcode_total_v4.csv.gz')
+  
+  
   if(file.exists(colorcode_fn)){
     color_df <- data.table::fread(colorcode_fn)
     color_df <- color_df %>%
