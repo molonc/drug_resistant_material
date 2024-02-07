@@ -69,7 +69,7 @@ We'll add SA501, SA530, SA604 here too.
 
 
 ### Reference gene sets
-Reference genes sets are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/biodatabase/)
+Reference genes sets are at [materials/reference_gene_sets/](https://github.com/molonc/drug_resistant_material/tree/main/materials/reference_gene_sets/)
 - COSMIC cancer-related reference gene set
 - Curated cisplatin reference gene set 
 
