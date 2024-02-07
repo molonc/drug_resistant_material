@@ -52,14 +52,14 @@ Here are all materials that are used in this manuscript.
 ### Meta data
 Noted: patient ID: Pt1, Pt2, Pt3, Pt4, Pt5, Pt6 correspond to the series id SA501, SA530, SA604, SA609, SA535, SA1035 in fitness previously published paper. 
 - Library infos, drug treatment status and time series - passages are noted at [materials/metadata_drug_resistance](https://github.com/molonc/drug_resistant_material/tree/main/materials/metadata_drug_resistance/). 
-[comment]: <> - Add SA501, SA530, SA604 here TODO
+[comment]: <> (- Add SA501, SA530, SA604 here TODO)
 
 
 ### Fitness coefficient results
 *Clonal fitness inferred from time-series modelling of single-cell cancer genomes* [published paper](http://dx.doi.org/10.1038/s41586-021-03648-3)
 
-- Fitness coefficient [file](https://github.com/molonc/drug_resistant_material/tree/main/materials/fitness_paper_DLP/SUPP_Table2_fitness_coefficients.csv.gz)
-- Fitness coefficient with full details of all results from fitness paper[file](https://github.com/molonc/drug_resistant_material/tree/main/materials/fitness_paper_DLP/master_file_fitness_materials_373358_2_data_set_3595534_qnqbt5_results.xlsx)
+- Fitness coefficient file [materials/fitness_paper_DLP/SUPP_Table2_fitness_coefficients.csv.gz](https://github.com/molonc/drug_resistant_material/tree/main/materials/fitness_paper_DLP/SUPP_Table2_fitness_coefficients.csv.gz)
+- Fitness coefficient file with full details of all results from fitness paper [materials/fitness_paper_DLP/master_file_fitness_materials_373358_2_data_set_3595534_qnqbt5_results.xlsx](https://github.com/molonc/drug_resistant_material/tree/main/materials/fitness_paper_DLP/master_file_fitness_materials_373358_2_data_set_3595534_qnqbt5_results.xlsx)
 
 
 ### Phylogenetic tree results
