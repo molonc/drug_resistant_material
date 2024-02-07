@@ -470,6 +470,24 @@ small_ct <- small_ct[small_ct$Term2 %in% small_ptable$Term2,]
 small_ct$Term2 <- factor(small_ct$Term2, levels = pathway_order)
 small_ct$dataset <- factor(small_ct$dataset, levels = unique(small_ct$dataset))
 
+library(stringr)
+ct_summary <- read.csv("revision_35_summary.csv")
+p4_avg <- ct_summary[ct_summary$series=="Pt4",]$avg_pct_genes
+p4_sd <- ct_summary[ct_summary$series=="Pt4",]$sd_pct_genes
+p5_avg <- ct_summary[ct_summary$series=="Pt5",]$avg_pct_genes
+p5_sd <- ct_summary[ct_summary$series=="Pt5",]$sd_pct_genes
+p6_avg <- ct_summary[ct_summary$series=="Pt6",]$avg_pct_genes
+p6_sd <- ct_summary[ct_summary$series=="Pt6",]$sd_pct_genes
+
+ct_summary <- ct_summary[ct_summary$comp_type=="Rx expand vs UnRx" & ct_summary$gt=="trans gene",]
+
+small_ct[str_detect(small_ct$series,"Pt4"),]$dashline1 <- (p4_avg - p4_sd*3)/100
+small_ct[str_detect(small_ct$series,"Pt4"),]$dashline2 <- (p4_avg + p4_sd*3)/100
+small_ct[str_detect(small_ct$series,"Pt5"),]$dashline1 <- (p5_avg - p5_sd*3)/100
+small_ct[str_detect(small_ct$series,"Pt5"),]$dashline2 <- (p5_avg + p5_sd*3)/100
+small_ct[str_detect(small_ct$series,"Pt6"),]$dashline1 <- (p6_avg - p6_sd*3)/100
+small_ct[str_detect(small_ct$series,"Pt6"),]$dashline2 <- (p6_avg + p6_sd*3)/100
+
 ggplot(data=small_ct, aes(x=Proportion, y=Term2, fill=type)) +
   geom_bar(stat="identity") +
   #coord_flip() +
