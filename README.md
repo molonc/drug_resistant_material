@@ -80,7 +80,7 @@ Cell clone assignment results
 - Input data for Main Figure 2 are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/clonealign_plot)
 
 ### Tissue screening
-- TMA score results for TMA microarray tissue screening are at [file](https://github.com/molonc/drug_resistant_material/blob/main/materials/metadata_drug_resistance/TMA20-001%20TMA_FK3%20with%20scores.xls) and from previous [published paper](http://dx.doi.org/10.1038/s41586-021-03648-3)
+- TMA score results for TMA microarray tissue screening are at file  [materials/metadata_drug_resistance/TMA20-001%20TMA_FK3%20with%20scores.xls](https://github.com/molonc/drug_resistant_material/blob/main/materials/metadata_drug_resistance/TMA20-001%20TMA_FK3%20with%20scores.xls) and from previous [published paper](http://dx.doi.org/10.1038/s41586-021-03648-3)
 
 ### Cis trans genes 
 - DE analysis are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/cis_trans/) 
