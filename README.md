@@ -87,17 +87,17 @@ Cell clone assignment results
 - Pathway analysis results are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/pathway)
 
 ### Main Figures 
-- Figure files at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/main_figures/) 
-- UMAP files at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/umap_figs/) 
+- Figure files at [materials/main_figures/](https://github.com/molonc/drug_resistant_material/tree/main/materials/main_figures/) 
+- UMAP files at [materials/umap_figs/](https://github.com/molonc/drug_resistant_material/tree/main/materials/umap_figs/) 
 
 ### Supplementary figures 
-- Supplementary figure files at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/supplementary_figures/) 
+- Supplementary figure files at [materials/supplementary_figures/](https://github.com/molonc/drug_resistant_material/tree/main/materials/supplementary_figures/) 
 
 ### Supplementary tables
-- All tables in manuscript are uploaded into [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/supplementary_tables/) 
+- Supplementary tables at [materials/supplementary_tables/](https://github.com/molonc/drug_resistant_material/tree/main/materials/supplementary_tables/) 
 
 ### Pseudotime analysis results
-- Significant genes across pseudotime analysis are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/trajectory_genes/)
+- Significant genes across pseudotime analysis are at [materials/trajectory_genes/](https://github.com/molonc/drug_resistant_material/tree/main/materials/trajectory_genes/)
 
 
 ## Scripts
