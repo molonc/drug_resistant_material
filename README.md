@@ -52,7 +52,7 @@ Here are all materials that are used in this manuscript.
 ### Meta data
 Noted: patient ID: Pt1, Pt2, Pt3, Pt4, Pt5, Pt6 correspond to the series id SA501, SA530, SA604, SA609, SA535, SA1035 in fitness previously published paper. 
 - Library infos, drug treatment status and time series - passages are noted at [materials/metadata_drug_resistance](https://github.com/molonc/drug_resistant_material/tree/main/materials/metadata_drug_resistance/)
-[//]: # (- Add SA501, SA530, SA604 here TODO)
+We'll add SA501, SA530, SA604 here too.
 
 
 ### Fitness coefficient results
@@ -64,8 +64,8 @@ Noted: patient ID: Pt1, Pt2, Pt3, Pt4, Pt5, Pt6 correspond to the series id SA50
 
 ### Phylogenetic tree results
 
-- The inferred sitka phylogeny trees for patient Pt4, Pt5, Pt6 (corresponding to SA609, SA535, SA1035) are downloaded from previously [published paper](http://dx.doi.org/10.1038/s41586-021-03648-3). [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/fitness_paper_DLP/)
-- The inferred sitka phylogeny trees for patient Pt1, Pt2, Pt3 (corresponding to SA501, SA530, SA604) are generated in this manuscript using sitka Bayesian inference algorithm from [sitka published paper](https://peercommunityjournal.org/articles/10.24072/pcjournal.292/), [sitka git repo](https://github.com/UBC-Stat-ML/sitkatree/) and results newick tree are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/fitness_paper_DLP/)
+- The inferred sitka phylogeny trees for patient Pt4, Pt5, Pt6 (corresponding to SA609, SA535, SA1035) are downloaded from previously [published paper](http://dx.doi.org/10.1038/s41586-021-03648-3), see directory [materials/DLP_trees/](https://github.com/molonc/drug_resistant_material/tree/main/materials/DLP_trees/)
+- The inferred sitka phylogeny trees for patient Pt1, Pt2, Pt3 (corresponding to SA501, SA530, SA604) are generated in this manuscript using sitka Bayesian inference algorithm from [sitka published paper](https://peercommunityjournal.org/articles/10.24072/pcjournal.292/), [sitka git repo](https://github.com/UBC-Stat-ML/sitkatree/) and results newick trees are at directory [materials/DLP_trees/](https://github.com/molonc/drug_resistant_material/tree/main/materials/DLP_trees/)
 
 
 ### Reference gene sets
