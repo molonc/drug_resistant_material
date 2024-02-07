@@ -51,8 +51,8 @@ Here are all materials that are used in this manuscript.
 
 ### Meta data
 Noted: patient ID: Pt1, Pt2, Pt3, Pt4, Pt5, Pt6 correspond to the series id SA501, SA530, SA604, SA609, SA535, SA1035 in fitness previously published paper. 
-- Library infos, drug treatment status and time series - passages are noted at [materials/metadata_drug_resistance](https://github.com/molonc/drug_resistant_material/tree/main/materials/metadata_drug_resistance/). 
-[comment]: <> (- Add SA501, SA530, SA604 here TODO)
+- Library infos, drug treatment status and time series - passages are noted at [materials/metadata_drug_resistance](https://github.com/molonc/drug_resistant_material/tree/main/materials/metadata_drug_resistance/)
+[//]: # (- Add SA501, SA530, SA604 here TODO)
 
 
 ### Fitness coefficient results
