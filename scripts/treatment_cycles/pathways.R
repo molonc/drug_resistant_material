@@ -1,6 +1,9 @@
 ## May 18, 2021
 # modifying to incorporate many samples et
 
+
+
+
 library(reshape2)
 library(ggplot2)
 library(pheatmap)
@@ -24,8 +27,8 @@ ver <- 'v6'
 what <- "all_pathways_by_clone_scran"
 
 #minfc <- "0.0"
-#minfc <- "0.25"
-minfc <- "0.5"
+minfc <- "0.25"    ## IN the paper Fig 5 we used log2 fold change 0.25
+#minfc <- "0.5"
 pfdr <- 0.05
 #pfdr <- 0.5
 #pfdr <- 0.01
@@ -331,6 +334,8 @@ Pt4_cnv <- get_cnv(file="../../materials/dlp_cnv/Fig5_Mirela_cnv/SA609_cnv_mat.c
 Pt5_cnv <- get_cnv(file="../../materials/dlp_cnv/Fig5_Mirela_cnv/SA535_cnv_mat.csv.gz")
 Pt6_cnv <- get_cnv(file="../../materials/dlp_cnv/Fig5_Mirela_cnv/SA1035_cnv_mat.csv.gz")
 
+pathway_genes <- NULL
+
 prepare_cis_trans <- function(cnv_df, series, data_num, clone1, clone2, type="Rx") {
   
   #degenes <- read.csv(de_file)
@@ -351,6 +356,8 @@ prepare_cis_trans <- function(cnv_df, series, data_num, clone1, clone2, type="Rx
     # select only the columns I need
     cistrans <- na.omit(cistrans[,c(clone1,clone2,"Symbol")])
     cistrans$genetype <- ifelse(cistrans[,1] == cistrans[,2],"trans","cis")
+    cistrans$series <- series
+    cistrans$pathway <- term
     
     prop_cis <- sum(cistrans$genetype=="cis")/nrow(cistrans)
     prop_trans <- sum(cistrans$genetype=="trans")/nrow(cistrans)
@@ -358,6 +365,9 @@ prepare_cis_trans <- function(cnv_df, series, data_num, clone1, clone2, type="Rx
     genes_cis <- paste(mygenes[cistrans$genetype=="cis"],collapse = ";")
     genes_trans <- paste(mygenes[cistrans$genetype=="trans"],collapse = ";")
     #nes <- pathway[pathway$Term==term,]$nes
+    
+    pathway_genes <- rbind(pathway_genes, cistrans[,c("series","pathway","Symbol","genetype")])
+    print(head(pathway_genes))
 
     ## all pathways together
     ct <- rbind(ct, data.frame(term=term, series=series, whichpath="all", dataset=dataset, Proportion=prop_cis, type=paste0(type, " in cis")))  #, genes=genes_cis))
@@ -416,6 +426,105 @@ ct <- prepare_cis_trans(cnv_df=Pt6_cnv, series="Pt6 X8H", data_num=25, clone1="H
 
 ct_all <- ct[ct$whichpath=="all",]
 ct_up_down <- ct[ct$whichpath!="all",]
+
+
+###### Plot only the last time point, for a supplementary figure that includes cis/trans proportions per pathway
+
+small_ptable <- m3[m3$group %in% c("Pt4\nX7","Pt5\nX10","Pt6\nX8G","Pt6\nX8H"),]
+uniq <- small_ptable[!is.na(small_ptable$value),]
+small_ptable <- small_ptable[small_ptable$Term2 %in% unique(uniq$Term2),]
+
+ggplot(data = small_ptable, aes(variable2, Term2, fill = value))+
+  geom_tile(color = "white")+
+  #scale_fill_gradient2(low = "blue", high = "red", mid = "grey95", 
+  #                     midpoint = 0, space = "Lab", 
+  #                     name="NES") +
+  scale_fill_gradientn(colours = myPalette(100), na.value = "grey95", name="NES") + 
+  #theme_minimal()+ 
+  thesis_theme + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust = 1))+
+  #coord_fixed() +
+  theme(axis.title.x=element_blank(),
+        axis.title.y=element_blank()) +
+  #scale_x_discrete(position = "top") +
+  #facet_wrap(. ~ group, scales="free_x")
+  facet_grid(. ~ group, scales="free_x", space="free") +
+  theme(panel.spacing = unit(0.5, "mm", data = NULL))
+
+ggsave(paste0("manuscript_files/pathways_late.pdf"), width=4.4, heigh=5.5, useDingbats=FALSE)
+
+
+## Plot the cis and trans proportions of genes for each pathway above
+small_ct <-ct[ct$series %in% c("Pt4 X7","Pt5 X9+1","Pt6 X7G+1","Pt6 X8H"),]
+small_ct <- small_ct[small_ct$whichpath=="all",]
+small_ct[small_ct$type=="Rx in cis",]$type <- "in cis"
+small_ct[small_ct$type=="Rx in trans",]$type <- "in trans"
+small_ct[small_ct$type=="RxH in cis",]$type <- "in cis"
+small_ct[small_ct$type=="RxH in trans",]$type <- "in trans"
+
+for (i in 1:nrow(small_ct)) {
+  small_ct[i,"Term2"] <- gsub('HALLMARK_', '', small_ct$term[i])
+}
+
+small_ct <- small_ct[small_ct$Term2 %in% small_ptable$Term2,]
+small_ct$Term2 <- factor(small_ct$Term2, levels = pathway_order)
+small_ct$dataset <- factor(small_ct$dataset, levels = unique(small_ct$dataset))
+
+library(stringr)
+ct_summary <- read.csv("revision_35_summary.csv")
+p4_avg <- ct_summary[ct_summary$series=="Pt4",]$avg_pct_genes
+p4_sd <- ct_summary[ct_summary$series=="Pt4",]$sd_pct_genes
+p5_avg <- ct_summary[ct_summary$series=="Pt5",]$avg_pct_genes
+p5_sd <- ct_summary[ct_summary$series=="Pt5",]$sd_pct_genes
+p6_avg <- ct_summary[ct_summary$series=="Pt6",]$avg_pct_genes
+p6_sd <- ct_summary[ct_summary$series=="Pt6",]$sd_pct_genes
+
+ct_summary <- ct_summary[ct_summary$comp_type=="Rx expand vs UnRx" & ct_summary$gt=="trans gene",]
+
+small_ct[str_detect(small_ct$series,"Pt4"),]$dashline1 <- (p4_avg - p4_sd*3)/100
+small_ct[str_detect(small_ct$series,"Pt4"),]$dashline2 <- (p4_avg + p4_sd*3)/100
+small_ct[str_detect(small_ct$series,"Pt5"),]$dashline1 <- (p5_avg - p5_sd*3)/100
+small_ct[str_detect(small_ct$series,"Pt5"),]$dashline2 <- (p5_avg + p5_sd*3)/100
+small_ct[str_detect(small_ct$series,"Pt6"),]$dashline1 <- (p6_avg - p6_sd*3)/100
+small_ct[str_detect(small_ct$series,"Pt6"),]$dashline2 <- (p6_avg + p6_sd*3)/100
+
+ggplot(data=small_ct, aes(x=Proportion, y=Term2, fill=type)) +
+  geom_bar(stat="identity") +
+  #coord_flip() +
+  # geom_text(
+  #   aes(x = term, y = prop, label = prop, group = dataset), 
+  #   hjust = -0.5, size = 2,
+  #   position = position_dodge(width = 1),
+  #   inherit.aes = TRUE
+  # ) + 
+  #geom_tile(color="white") +
+  #theme_minimal() + 
+  thesis_theme + 
+  theme(axis.text.x = element_text(vjust = 1, hjust = 1))+
+  #geom_text(size = 3, position = position_stack(hjust = 0.5)) +
+  #geom_text(aes(label = prop, x = pos), size = 3) + 
+  #scale_color_manual("Gene type", breaks = c(in-cis, in-trans),
+  #                   values=c("red3", "royalblue3")) +
+  #scale_fill_manual("Gene type", values = c("in cis" = "brown", "in trans" = "cornflowerblue")) +
+  scale_fill_manual("Gene type", values = c("in cis" = "brown", "in trans" = "cornflowerblue")) +
+  #coord_fixed() +
+  theme(axis.title.y=element_blank()) +
+  #geom_vline(aes(xintercept=dashline1), linetype="dashed", color = "orange") +
+  #geom_vline(aes(xintercept=dashline2), linetype="dashed", color = "orange") +
+  facet_grid(. ~ dataset, scales="free_x", space="free") +
+  theme(panel.spacing = unit(0.5, "mm", data = NULL)) +
+  scale_x_continuous(breaks = c(0,1))
+  #theme(axis.text.y = element_blank(),
+  #      axis.ticks.y = element_blank(),
+  #      axis.title.y = element_blank() )
+
+
+ggsave(paste0("manuscript_files/pathways_cis_trans.pdf"), width=5.7, heigh=4.7, useDingbats=FALSE)
+
+
+
+############# Making the boxplots for Figure 5 panel b
+
 
 ggplot(ct_all, aes(x = dataset, y = Proportion)) + 
   geom_boxplot(aes(fill=type, color=type)) +
