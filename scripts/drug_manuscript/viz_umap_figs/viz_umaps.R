@@ -108,6 +108,111 @@ get_color_clones <- function(tag, color_fn){
 }
 
 
+viz_umap_obs_clones_testing <- function(umap_df, tmp, cols_use, datatag, output_dir, 
+                                obs_treatment, obs_passage=NULL, plottitle='', plotlegend=F){
+  xl <- c(min(umap_df$UMAP_1),max(umap_df$UMAP_1))
+  yl <- c(min(umap_df$UMAP_2),max(umap_df$UMAP_2))
+  
+  my_font <- "Helvetica"
+  if(!'treatmentSt' %in% colnames(umap_df)){
+    if('treat' %in% colnames(umap_df)){
+      umap_df <- umap_df %>%
+        dplyr::rename(treatmentSt=treat)
+    }else if('treatmentst' %in% colnames(umap_df)){
+      umap_df <- umap_df %>%
+        dplyr::rename(treatmentSt=treatmentst)
+    }
+    else{
+      stop('Please check input treatmentSt')
+    }
+  }
+  
+  umap_df <- umap_df %>%
+    dplyr::mutate(clone=replace(clone, is.na(clone),'None'))
+  # umap_df$treatmentSt <- umap_df$treat
+ 
+  obs_clones <- sort(unique(tmp$clone))
+  unassign_clones <- c('unassigned','Unassigned','Un','un','None')
+  obs_clones <- obs_clones[!obs_clones %in% unassign_clones]
+  # print(obs_clones)
+  # if(is.null(obs_clones)){
+  #   
+  # }
+  cols_use <- cols_use[obs_clones]
+  other_clones <- '#F0F0F0'
+  names(other_clones) <- 'Others'
+  cols_use <- c(cols_use,other_clones)
+  # print(cols_use)
+  # umap_df <- umap_df %>%
+  #   dplyr::mutate(clone=replace(clone, !clone %in% obs_clones,'Others'))
+  
+  rownames(umap_df) <- umap_df$cell_id
+  
+  # umap_df[cells_excluded,'clone'] <- 'Others'
+  # umap_df$alpha_val <- 1
+  # umap_df[cells_excluded,'alpha_val'] <- 0.03
+  # umap_df <- umap_df %>%
+  #   dplyr::filter(cell_id %in% tmp$cell_id)
+  # print(summary(as.factor(umap_df$clone)))
+  
+  
+  umap_df$clone <- factor(umap_df$clone, levels = sort(unique(umap_df$clone)))
+  p <- ggplot(umap_df, aes(UMAP_1, UMAP_2)) + 
+    geom_point(color='#e0e0e0') +  # grey color for all cells landscape displaying in background
+    geom_point(data=tmp, aes(color=clone), size=0.7, shape=1) + 
+    scale_color_manual(values=cols_use, name='') + 
+    labs(title = plottitle, x=' ') +
+    xlim(xl[1], xl[2]) + 
+    ylim(yl[1], yl[2])
+  
+  thesis_theme <- ggplot2::theme(
+    text = element_text(color="black",size = 8, hjust = 0.5, family=my_font),
+    # axis.title.x = element_text(color="black",size=8, hjust = 0.5, family=my_font),
+    # axis.title.y = element_text(color="black",size=8, hjust = 0.5, family=my_font),
+    # axis.text.x = element_text(color="black",size=7, hjust = 0.5, family=my_font, angle = 90),
+    # axis.text.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.placement = "outside",
+    # axis.line = element_line(colour = "black"),
+    axis.line = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    plot.title = element_text(color="black",size=11, face="bold",family=my_font, hjust = 0.5),
+    # legend.title=element_text(color="black",size=7, hjust = 0.5, family=my_font),
+    # legend.text=element_text(color="black",size=7, hjust = 0.5, family=my_font),
+    strip.text.x = element_text(color="black",size=11, family=my_font),
+    strip.text.y = element_text(color="black",size=11, family=my_font),
+    # legend.position = lg_pos,
+    legend.margin=margin(0,0,0,0),
+    legend.box.margin=margin(-2,-2,-2,-2),
+    panel.background = element_blank(),
+    panel.border = element_rect(colour = "grey50", fill=NA, size=0.5),
+    panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+    plot.margin = unit(c(0, 0, 0, 0), "null")
+  )
+  p <- p + thesis_theme
+  # lg <- cowplot::get_legend(p + guides(color = guide_legend(nrow = 1, 
+  #                                                           title.position = "left", 
+  #                                                           override.aes = list(size=2))))
+  # plg <- cowplot::ggdraw() + cowplot::draw_plot(lg)
+  if(!plotlegend){
+    lg_pos <- "none"
+    p <- p + ggplot2::theme(legend.position = lg_pos)  
+  }else{
+    lg_pos <- "bottom"
+    p <- p + ggplot2::theme(legend.position = lg_pos)  
+  }
+  
+  results <- list(p=p, cols_use=cols_use)
+  # basename <- paste0(datatag,"_", gsub(' ','',plottitle))
+  # saveRDS(results, paste0(output_dir, basename, ".rds"))
+  # 
+  # png(paste0(output_dir,basename,".png"), height = 2*350, width=2*500,res = 2*72)
+  # print(p)
+  # dev.off()
+  return(results)
+  
+}
 
 viz_umap_obs_clones <- function(umap_df, cols_use, datatag, output_dir, 
                                 obs_treatment, obs_passage=NULL, plottitle='', plotlegend=F){

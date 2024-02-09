@@ -81,7 +81,8 @@ plot_10x_UMAP <- function()
   
   input_dir <- paste0(base_dir, 'materials/umap_figs/')
   output_dir <- paste0(base_dir, 'materials/umap_figs/figs_rna/')
-  
+  # output_dir <- paste0(base_dir, 'materials/umap_figs/testing/')
+  # dir.create(output_dir)
   datatag <- 'SA1035'
   basename <- datatag
   clonealign_stat <- data.table::fread(paste0(input_dir,'clonealign_labels.csv.gz'))
@@ -90,10 +91,10 @@ plot_10x_UMAP <- function()
     dplyr::filter(datatag==basename)%>%
     dplyr::select(cell_id, unique_clone)%>%
     dplyr::rename(clone=unique_clone)
-  colnames(clonealign_stat)
-  dim(clonealign_stat)
-  clonealign_stat$cell_id[1]
-  summary(as.factor(clonealign_stat$clone))
+  # colnames(clonealign_stat)
+  # dim(clonealign_stat)
+  # clonealign_stat$cell_id[1]
+  # summary(as.factor(clonealign_stat$clone))
   # rm(umap_df)
 
   # umap_df <- data.table::fread(paste0(input_dir,datatag,'_norm_umap.csv.gz')) %>% as.data.frame()
@@ -105,10 +106,11 @@ plot_10x_UMAP <- function()
     return(x[1])
   })  
   umap_df$sample_id <- as.character(sids)
-  table(umap_df$treatmentSt, umap_df$sample_id)
-  table(umap_df$clone, umap_df$sample_id)
-  umap_df <- umap_df %>%
-    dplyr::filter(timepoint=='X4')
+  # table(umap_df$treatmentSt, umap_df$sample_id)
+  # table(umap_df$clone, umap_df$sample_id)
+  # unique(umap_df$sample_id)
+  # umap_df <- umap_df %>%
+  #   dplyr::filter(timepoint=='X4')
   
   # umap_df <- umap_df %>%
   #   dplyr::filter(timepoint=='X4')
@@ -116,7 +118,7 @@ plot_10x_UMAP <- function()
   # summary(as.factor(umap_df$clone))
   umap_df <- umap_df %>%
     dplyr::mutate(clone=get_unique_clone_id(clone))
-  sum(umap_df$cell_id %in% clonealign_stat$cell_id)
+  # sum(umap_df$cell_id %in% clonealign_stat$cell_id)
   ## For pseudotime clonal labels, revision manuscript
   # data.table::fwrite(umap_df, '/home/htran/storage/datasets/drug_resistance/rna_results/SA1035_rna/slingshot_trajectory/clone_labels_unique_SA1035.csv.gz')
   
@@ -153,8 +155,9 @@ plot_10x_UMAP <- function()
   # res_prop10x_SA1035$p
   saveRDS(res_prop10x_SA1035, paste0(output_dir, datatag, "_prevalence_clone_clonealign10x.rds"))
   
-  
-  
+  # summary(as.factor(t$clone))
+  # summary(as.factor(ass_10$clone))
+  # summary(as.factor(ass_50$clone))
   tps <- gtools::mixedsort(unique(umap_df$timepoint))
   unique(tps)
   rna_SA1035 <- list()
@@ -170,11 +173,11 @@ plot_10x_UMAP <- function()
       res <- viz_umap_obs_clones(umap_df, cols_use, datatag, 
                                  output_dir, obs_treatment, obs_passage, 
                                  plottitle, F)
+      
       rna_SA1035[[paste0(obs_treatment,'_',obs_passage)]] <- res
     }
   }
-  
-  
+  # res$p
   saveRDS(rna_SA1035, paste0(output_dir,datatag,"_umap_plt.rds"))
   # rna_SA1035$UnRx_X4$p
   # clone_plg <- plot_clone_color_legend(datatag, base_dir, ncols_grid=2)
