@@ -508,16 +508,26 @@ plot_clonealign_correlation <- function(){
   pSA609_clonealign <- cowplot::plot_grid(p_corr_all,  res$colplt, res$sizeplt + 
                                             theme(legend.title = element_blank())
                                           , ncol = 1, rel_heights = c(4,0.4,0.4))
+  
+  pSA609_clonealign <- cowplot::plot_grid(p_corr_all,  NULL, NULL + 
+                                            theme(legend.title = element_blank())
+                                          , ncol = 1, rel_heights = c(4,0.4,0.4))
   fig2_part2 <- cowplot::plot_grid(pSA609_clonealign, p_corr, ncol = 2, rel_widths = c(1,1), 
-                                   hjust = 0, label_size=12, labels = c('e','f'))+
-    theme(plot.background = element_rect(fill = "white", colour = "white"))
+                                   hjust = 0, label_size=12, labels = c('e',''))#+
+    # theme(plot.background = element_rect(fill = "white", colour = "white"))
+  
+  fig2_part2 <- cowplot::plot_grid(pSA609_clonealign, NULL, ncol = 2, rel_widths = c(1,1), 
+                                   hjust = 0, label_size=12, labels = c('e',''))
   
   
   ## TO DO add legend here 
   plg_tg <- readRDS(paste0(output_dir, 'tumour_growth_legend.rds'))
   p_fig2 <- cowplot::plot_grid(pDLP_tree, pRxDLP, plg_tg, fig2_part2, ncol = 1, 
-                               rel_heights = c(0.6,0.6,0.1,0.8))+
-    theme(plot.background = element_rect(fill = "white", colour = "white"))
+                               rel_heights = c(0.6,0.6,0.1,0.8))#+
+    # theme(plot.background = element_rect(fill = "white", colour = "white"))
+  
+  p_fig2 <- cowplot::plot_grid(NULL, NULL, NULL, fig2_part2, ncol = 1, 
+                               rel_heights = c(0.6,0.6,0.1,0.8))
   
   base_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/'
   output_dir <- paste0(base_dir,'umap_figs/main_fig2/')
@@ -530,9 +540,9 @@ plot_clonealign_correlation <- function(){
          dpi=150
   )
   # BiocManager::install('svglite')
-  ggsave(paste0(output_dir,"Fig2_DLPtree_clonealign_correlation_v2.svg"),
+  ggsave(paste0(output_dir,"Fig2_DLPtree_clonealign_correlation_revision.svg"),
          plot = p_fig2,
-         height = 12,
+         height = 13,
          width = 8,
          # type = "cairo-png",
          dpi=250

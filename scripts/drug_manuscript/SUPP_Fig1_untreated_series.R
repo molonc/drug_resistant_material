@@ -67,8 +67,9 @@ plot_10x_UMAP <- function()
   ##-----------------------------------SA501 10x UMAP, barplot prevalence clonealign-------
   datatag <- 'SA501'
   basename <- datatag
-  clonealign_stat <- data.table::fread(paste0(input_dir,'clonealign_labels.csv.gz'))
   
+  # clonealign_stat <- data.table::fread(paste0(input_dir,'clonealign_labels.csv.gz'))
+  colnames(clonealign_stat)
   # unique(clonealign_stat$unique_clone)
   clonealign_stat <- clonealign_stat %>%
     dplyr::filter(datatag==basename)%>%
@@ -166,11 +167,22 @@ plot_10x_UMAP <- function()
   
   ##---------------------------------------------------------------------------------------
   ##-----------------------------------SA604 10x UMAP, barplot prevalence clonealign-------
+  base_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/'
+  source(paste0(base_dir, 'scripts/drug_manuscript/viz_umap_figs/viz_umaps.R'))
+  
   input_dir <- paste0(base_dir, 'materials/umap_figs/')
   output_dir <- paste0(base_dir, 'materials/umap_figs/figs_rna/')
+  if(!dir.exists(output_dir)){
+    dir.create(output_dir)
+  }
   datatag <- 'SA604'
   tag <- 'Pt3'
   basename <- datatag
+  ## Revision, change clonealign results
+  # clonealign_dir <- paste0('/home/htran/Projects/farhia_project/drug_resistant_material/materials/clonealign_plot/clonealign/extra-tnbc-v6/')
+  # clonealign_stat <- data.table::fread(paste0(clonealign_dir,'extra-tnbc-v6_clonealign_labels_total.csv.gz'))
+  
+  ## First submission
   clonealign_stat <- data.table::fread(paste0(input_dir,'clonealign_labels.csv.gz'))
   
   # unique(clonealign_stat$unique_clone)
@@ -178,9 +190,7 @@ plot_10x_UMAP <- function()
     dplyr::filter(datatag==basename)%>%
     dplyr::select(cell_id, unique_clone)%>%
     dplyr::rename(clone=unique_clone)
-  colnames(clonealign_stat)
   
-  # rm(umap_df)
   umap_df <- data.table::fread(paste0(input_dir,datatag,'_norm_umap.csv.gz')) %>% as.data.frame()
   dim(umap_df)
   umap_df$cell_id[1]
@@ -402,7 +412,11 @@ plot_SUPP_fig1 <- function(){
   # clone_plg_604
   ##rna_umap_SA604$UnRx_X6 ## noted exclude X6 - 10x data from analysis
   
+  ## First submission
   p604_part1 <- cowplot::plot_grid(NULL, res_barDLP_604$p, res_prop10x_SA604$p, rel_heights = c(1,1,1), ncol=1)
+  
+  ##  Revision
+  # p604_part1 <- cowplot::plot_grid(NULL, NULL, res_prop10x_SA604$p, rel_heights = c(1,1,1), ncol=1)
   p604_part2 <- cowplot::plot_grid(rna_umap_SA604$UnRx_X7$p, rna_umap_SA604$UnRx_X8$p, 
                                    rna_umap_SA604$UnRx_X9$p, ncol=1) #+ 
     # theme(plot.background = element_rect(fill = "white", colour = "white")) 
@@ -413,10 +427,14 @@ plot_SUPP_fig1 <- function(){
   
     
   supp_fig1_rightside <- cowplot::plot_grid(p501_total,p530_total, p604_total, rel_heights = c(1,1,3), ncol=1)#+ #labels=pts_lb, 
+  supp_fig1_rightside <- cowplot::plot_grid(NULL,NULL, p604_total, rel_heights = c(1,1,3), ncol=1)#+ #labels=pts_lb, 
     # theme(plot.background = element_rect(fill = "white", colour = "white"))
   ## The best way is defining a layout using plot_grid function but it takes time...
   
   supp_fig1 <- cowplot::plot_grid(supp_fig1_leftside, supp_fig1_rightside, rel_widths = c(0.9,1), ncol=2)+ 
+    theme(plot.background = element_rect(fill = "white", colour = "white"))
+  
+  supp_fig1 <- cowplot::plot_grid(NULL, supp_fig1_rightside, rel_widths = c(0.9,1), ncol=2)+ 
     theme(plot.background = element_rect(fill = "white", colour = "white"))
   
   # ggsave(paste0(output_dir,"SUPPFig1_3untreated_series.pdf"),
@@ -427,7 +445,7 @@ plot_SUPP_fig1 <- function(){
   #        dpi = 150
   # )
   
-  ggsave(paste0(output_dir,"SUPPFig1_3untreated_series.svg"),
+  ggsave(paste0(output_dir,"SUPPFig1_3untreated_series_revision.svg"),
          plot = supp_fig1,
          height = 12,
          width = 12,

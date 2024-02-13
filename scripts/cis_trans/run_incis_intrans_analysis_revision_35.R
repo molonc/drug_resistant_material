@@ -1,6 +1,17 @@
 source("/home/htran/Projects/farhia_project/drug_resistant_material/scripts/cis_trans/in_cis_trans_utils.R")
 source("/home/htran/Projects/farhia_project/drug_resistant_material/scripts/cis_trans/viz_utils.R")
 
+data_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/cis_trans/'
+dlp_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/dlp_cnv/'
+input_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/comparisons/'
+pair_groups_fn <- paste0(data_dir,'comparisons_drug_res_v5.csv')
+datatag <- 'SA604'
+cnv_fn <- paste0(dlp_dir,datatag,'_cnv_mat.csv.gz')
+res <- load_data(pair_groups_fn, datatag, cnv_fn)
+dim(res$pair_groups)
+res <- get_gene_type_edgeR_v2(res$pair_groups, res$cnv_mat, 
+                              datatag, input_dir, save_dir,
+                              FDR_cutoff=0.05, minLogFC=0.25, pValueThrs=0.05)
 
 
 data_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/cis_trans/'

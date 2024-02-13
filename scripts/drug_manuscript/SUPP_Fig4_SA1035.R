@@ -85,6 +85,23 @@ plot_10x_UMAP <- function()
   # dir.create(output_dir)
   datatag <- 'SA1035'
   basename <- datatag
+  
+  ## Revision, change clonealign results
+  clonealign_dir <- paste0('/home/htran/Projects/farhia_project/drug_resistant_material/materials/clonealign_plot/clonealign/SA1035-v6/')
+  clonealign_stat <- data.table::fread(paste0(clonealign_dir,'SA1035-v6_clonealign_labels_total.csv.gz'))
+  dim(clonealign_stat)
+  ## First submission
+  # t <- data.table::fread(paste0(input_dir,'clonealign_labels.csv.gz'))
+  # dim(t)
+  # unique(t$clone)
+  # t <- t %>%
+  #   dplyr::filter(datatag=="SA1035" & clone!="unassigned")
+  # dim(clonealign_stat)
+  # unique(clonealign_stat$clone)
+  # clonealign_stat <- clonealign_stat %>%
+  #   dplyr::filter(clone!="unassigned")
+  
+  # sum(t$cell_id %in% umap_df$cell_id)
   clonealign_stat <- data.table::fread(paste0(input_dir,'clonealign_labels.csv.gz'))
   # unique(clonealign_stat$unique_clone)
   clonealign_stat <- clonealign_stat %>%
@@ -100,8 +117,21 @@ plot_10x_UMAP <- function()
   # umap_df <- data.table::fread(paste0(input_dir,datatag,'_norm_umap.csv.gz')) %>% as.data.frame()
   umap_df <- data.table::fread(paste0(input_dir,datatag,'_norm_umap_filtered_outliers.csv.gz')) %>% as.data.frame()
   dim(umap_df)
-  unique(umap_df$clone)
+  summary(as.factor(umap_df$clone))
+  umap_df$clone <- NULL ## revision, update new data
+  umap_df$cell_id[1]
+  clonealign_stat$cell_id[1]
+  # sum(clonealign_stat$cell_id %in% umap_df$cell_id)
+  dim(clonealign_stat)
+  umap_df <- umap_df %>%
+    dplyr::left_join(clonealign_stat, by='cell_id') %>%
+    dplyr::mutate(clone = 
+                    case_when(
+                      is.na(clone) ~ 'None', 
+                      TRUE ~ clone
+                    ))
   summary(as.factor(umap_df$treatmentSt))
+  summary(as.factor(umap_df$clone))
   sids <- sapply(strsplit(umap_df$cell_id,'_'), function(x){
     return(x[1])
   })  
@@ -118,6 +148,8 @@ plot_10x_UMAP <- function()
   # summary(as.factor(umap_df$clone))
   umap_df <- umap_df %>%
     dplyr::mutate(clone=get_unique_clone_id(clone))
+  
+  # summary(as.factor(umap_df$treatmentSt))
   # sum(umap_df$cell_id %in% clonealign_stat$cell_id)
   ## For pseudotime clonal labels, revision manuscript
   # data.table::fwrite(umap_df, '/home/htran/storage/datasets/drug_resistance/rna_results/SA1035_rna/slingshot_trajectory/clone_labels_unique_SA1035.csv.gz')
@@ -155,9 +187,7 @@ plot_10x_UMAP <- function()
   # res_prop10x_SA1035$p
   saveRDS(res_prop10x_SA1035, paste0(output_dir, datatag, "_prevalence_clone_clonealign10x.rds"))
   
-  # summary(as.factor(t$clone))
-  # summary(as.factor(ass_10$clone))
-  # summary(as.factor(ass_50$clone))
+  # dim(umap_df)
   tps <- gtools::mixedsort(unique(umap_df$timepoint))
   unique(tps)
   rna_SA1035 <- list()
@@ -168,7 +198,6 @@ plot_10x_UMAP <- function()
     #                            obs_treatment, F)
     # rna_SA535[[paste0(obs_treatment,'_total')]] <- res
     for(obs_passage in tps){
-      # obs_passage <- 'X6' # just for testing
       plottitle= paste0(obs_treatment,': ',obs_passage)
       res <- viz_umap_obs_clones(umap_df, cols_use, datatag, 
                                  output_dir, obs_treatment, obs_passage, 
@@ -179,7 +208,8 @@ plot_10x_UMAP <- function()
   }
   # res$p
   saveRDS(rna_SA1035, paste0(output_dir,datatag,"_umap_plt.rds"))
-  # rna_SA1035$UnRx_X4$p
+  # rna_SA1035 <- readRDS(paste0(output_dir,datatag,"_umap_plt.rds"))
+  # rna_SA1035$UnRx_X5$p
   # clone_plg <- plot_clone_color_legend(datatag, base_dir, ncols_grid=2)
   
   # p1035_total <- cowplot::plot_grid(rna_SA1035$UnRx_X5$p,rna_SA1035$UnRx_X6$p, rna_SA1035$UnRx_X7$p, rna_SA1035$UnRx_X8$p,
@@ -241,7 +271,7 @@ plot_DLP_barplot <- function(){
 
 
 
-## Eric
+
 plot_SUPP_fig2 <- function(){
   base_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/'
   input_dir <- paste0(base_dir, 'materials/cell_clones/')
@@ -285,9 +315,14 @@ plot_SUPP_fig2 <- function(){
                                    clone_plg, rna_SA1035$RxH_X6$p, rna_SA1035$RxH_X7$p, rna_SA1035$RxH_X8$p,
                                    ncol=4, align = 'hv')#+
     # theme(plot.background = element_rect(fill = "white", colour = "white"))
-  p_prevalence <- cowplot::plot_grid(res_prop10x_SA1035$p, res_barDLP_1035$p, rel_widths = c(1, 1), nrow=1)
+  
+  # p_prevalence <- cowplot::plot_grid(res_prop10x_SA1035$p, res_barDLP_1035$p, rel_widths = c(1, 1), nrow=1)
+  p_prevalence <- cowplot::plot_grid(res_prop10x_SA1035$p, NULL, rel_widths = c(1, 1), nrow=1)
+  
   p_prevalence1 <- cowplot::plot_grid(NULL, p_prevalence, rel_heights = c(0.04, 1), ncol=1)
+  
   p_bottom <- cowplot::plot_grid(p_leftside, NULL, p_prevalence1, rel_widths = c(4,0.05,2), nrow=1) #+ 
+  
     # theme(plot.background = element_rect(fill = "white", colour = "white"))
   # p_total <- cowplot::plot_grid(top_plt, p_bottom, rel_heights = c(2,3.5), ncol=1) + 
   #   theme(plot.background = element_rect(fill = "white", colour = "white"))
@@ -298,7 +333,11 @@ plot_SUPP_fig2 <- function(){
   
   p_total <- cowplot::plot_grid(top_plt, p_bottom1, p_bottom, rel_heights = c(2,0.13,3.5), ncol=1) + 
     theme(plot.background = element_rect(fill = "white", colour = "white"))
-  ggsave(paste0(output_dir,"SUPPFig4_",datatag, ".svg"),
+  
+  p_total <- cowplot::plot_grid(NULL, NULL, p_bottom, rel_heights = c(2,0.13,3.5), ncol=1) #+ 
+    # theme(plot.background = element_rect(fill = "white", colour = "white"))
+  
+  ggsave(paste0(output_dir,"SUPPFig4_",datatag, "_revision.svg"),
          plot = p_total,
          height = 12,
          width = 11,

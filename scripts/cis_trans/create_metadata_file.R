@@ -175,7 +175,7 @@ df5 <- df5 %>%
 
 df4$order
 
-View(df5)
+# View(df5)
 
 
 
@@ -183,7 +183,7 @@ library(dplyr)
 input_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/comparisons/'
 df <- data.table::fread(paste0(input_dir, 'comparisons_across_treatments_revision35.csv')) %>% as.data.frame()
 colnames(df)
-df$result_fn[1]
+# df$result_fn[1]
 df$file_header <- sapply(strsplit(df$result_fn, '_'), function(x){
   return(paste0(x[1],'_',x[2],'_',x[3]))
 })

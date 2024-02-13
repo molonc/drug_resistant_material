@@ -3,9 +3,9 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(ggplot2)
 })
-library(extrafont)
-font_import(prompt=F, paths ='/usr/share/fonts/truetype/myfonts/') # import Helvetica font
-fonts()
+# library(extrafont)
+# font_import(prompt=F, paths ='/usr/share/fonts/truetype/myfonts/') # import Helvetica font
+# fonts()
 
 get_unique_clone_id <- function(clone_labels){
   set.seed(42) 
@@ -40,11 +40,11 @@ thesis_theme <- ggplot2::theme(
   strip.placement = "outside",
   # axis.line = element_line(colour = "black"),
   # axis.line = element_blank(),
-  axis.text = element_text(size=10, face="bold",family=my_font, hjust = 0.5),#color="black",
+  axis.text = element_text(size=8, face="bold",family=my_font, hjust = 0.5),#color="black",
   axis.title = element_text(size=10, face="bold",family=my_font, hjust = 0.5),
   plot.title = element_text(size=11, face="bold",family=my_font), #, hjust = 0.5
   legend.title=element_text(size=9, hjust = 0.5, family=my_font),
-  # legend.text=element_text(color="black",size=7, hjust = 0.5, family=my_font),
+  legend.text=element_text(size=11, color="black", family=my_font, hjust = 0.5),
   strip.text.x = element_text(size=9, family=my_font),
   strip.text.y = element_text(size=9, family=my_font),
   # legend.position = lg_pos,
@@ -54,6 +54,49 @@ thesis_theme <- ggplot2::theme(
   panel.border = element_rect(colour = "grey50", fill=NA, size=0.5),
   panel.grid.major = element_blank(), panel.grid.minor = element_blank()
 )
+#datatag <- 'extra-tnbc-v6'
+# datatag <- 'SA1035-v6'
+# tag <- 'SA1035'
+
+datatag <- 'SA535-v7'
+tag <- 'SA535'
+datatag <- 'SA609-v6'
+tag <- 'SA609'
+
+load_clonealign_results <- function(datatag, tag){
+  
+  base_dir <- '/home/htran/Projects/farhia_project/drug_resistant_material/materials/'
+  clonealign_dir <- paste0(base_dir,'clonealign_plot/clonealign/',datatag,'/')
+  
+  fns <- list.files(clonealign_dir)    
+  fns <- fns[grepl('*csv*',fns)]
+  fns <- fns[!grepl('*first_submission*',fns)]
+  print(fns)
+  clonealign_df <- tibble::tibble()
+  for(f in fns){
+    if(!file.exists(paste0(clonealign_dir,f))){
+      stop('File does not exist: ')
+      print(f)
+    }
+    
+    # First clonealign output
+    tmp <- data.table::fread(paste0(clonealign_dir,f)) %>% as.data.frame()
+    # tmp$datatag <- stringr::str_sub(f,1,5)
+    tmp$datatag <- tag
+    if(!'library_id' %in% colnames(tmp)){
+      lib <- gsub('.cache/','',tmp$Sample)
+      lib <- gsub('/filtered_feature_bc_matrix','',lib)
+      tmp$library_id <- lib
+      tmp$Sample <- NULL  
+    }
+    
+    clonealign_df <- dplyr::bind_rows(clonealign_df, tmp)
+  }
+  clonealign_df$unique_clone <- get_unique_clone_id(clonealign_df$clone)
+  data.table::fwrite(clonealign_df, paste0(clonealign_dir, datatag, '_clonealign_labels_total.csv.gz'))
+  
+}
+
 
 viz_clonealign_correlation <- function(){
   base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/clonealign_plot/'
@@ -256,6 +299,7 @@ viz_correlation_SA609 <- function(){
 
 
 viz_total_correlation <- function(){
+  library(dplyr)
   base_dir <- '/home/htran/storage/datasets/drug_resistance/rna_results/manuscript/clonealign_plot/'
   save_dir <- base_dir
   summary_stat <- data.table::fread(paste0(save_dir, 'summary_stat_10x_dlp.csv')) %>% as.data.frame()
@@ -264,7 +308,8 @@ viz_total_correlation <- function(){
   summary_stat$PDX <- stringr::str_sub(summary_stat$sample_id,1,6)
   summary_stat$PDX <- gsub('X','',summary_stat$PDX)
   unique(summary_stat$PDX)
-  
+  # View(head(summary_stat))
+  unique(summary_stat$sample_id)
   #Replicates excluded!!!
   obs_samples <- c('SA609X3XB01584','SA609X4XB03080','SA609X5XB03223',
                    'SA609X6XB03447','SA609X7XB03554','SA609X4XB003083',
@@ -292,7 +337,9 @@ viz_total_correlation <- function(){
   # metadata <- data.table::fread(paste0(test_dir, 'SA535_10x.csv')) %>% as.data.frame()
   # metadata <- metadata %>%
   #   filter(PDX=='SA535_CY' & passage=='X9')
-  summary_stat$desc <- paste0(summary_stat$PDX,'_',summary_stat$sample_id,'_',summary_stat$clone)
+  summary_stat$desc <- paste0(summary_stat$PDX,'_',
+                              summary_stat$sample_id,'_',
+                              summary_stat$clone)
   stat <- summary_stat %>% 
     dplyr::mutate(data_type1=replace(data_type1,data_type1=='10x','clonealign'))%>% 
     tidyr::pivot_wider(id_cols = 'desc',names_from = 'data_type1', values_from = 'freq')%>% 
@@ -308,7 +355,9 @@ viz_total_correlation <- function(){
   stat <- stat %>% inner_join(pt_idx, by='PDX')
   
   corr_stat <- tibble::tibble()
-  for(pd in unique(summary_stat$PDX)){
+  # unique(summary_stat$PDX)
+  # c("SA609", "SA1035", "SA535")
+  for(pd in c("SA501","SA530", "SA604")){
     tmp <- stat %>%
       dplyr::filter(PDX==pd)
     # cr <- round(cor(tmp$DLP,tmp$clonealign, method = "pearson"),2)
@@ -318,41 +367,46 @@ viz_total_correlation <- function(){
     corr_stat <- dplyr::bind_rows(corr_stat, tibble::tibble(PDX=pd, correlation=cr, pval=pval))
   }  
   dim(corr_stat)
+  round(mean(corr_stat$correlation), 2)
+  round(sd(corr_stat$correlation), 2)
   sum(corr_stat$pval<0.05) 
+  # View(corr_stat)
   out <- cor.test(stat$DLP,stat$clonealign, method = "pearson")
-  
+  round(out$estimate, 2)
   corr_stat$is_pval_signf <- ifelse(corr_stat$pval<0.05,'signf','not signf')
   data.table::fwrite(corr_stat, paste0(save_dir, 'pval_clonealign_corr.csv'))
   ## manuscript: 
-  # Pearson correlation coefficient r>0.7 for all but 1 patient, average correlation r=0.77+-0.14 for all patients, 
+  # Pearson correlation coefficient r>0.72 for all but 1 patient, average correlation r=0.77+-0.14 for all patients, 
   # average correlation in three treatment series was greater when cells were under treatment  r=0.8+-0.11. 
   # View(corr_stat)
   corr_stat <- as.data.frame(corr_stat)
-  View(corr_stat)
-  dim(stat)
+  # View(corr_stat)
+  # dim(stat)
   stat <- stat %>% inner_join(corr_stat, by='PDX')
   # stat$PDX <- paste0(stat$PDX,' (r=',stat$correlation,')')
   stat$PDX <- paste0(stat$pt,' (r=',stat$correlation,')')
   unique(stat$PDX)  
   data.table::fwrite(stat, paste0(save_dir, '10x_dlp_stat_correlation.csv'))
   
-  stat <- data.table::fread(paste0(save_dir, '10x_dlp_stat_correlation.csv')) %>% as.data.frame()
+  # stat <- data.table::fread(paste0(save_dir, '10x_dlp_stat_correlation.csv')) %>% as.data.frame()
   stat$Pt <- stat$PDX
   my_font <- "Helvetica"
   p <- ggplot(stat, aes(x = DLP, y = clonealign)) + 
     geom_point(aes(color = Pt, shape=Pt), alpha=0.9, size=3)  #, size=2*log10(pct_genes)size=4.5
   
   p <- p + thesis_theme
-  # lg_pos <- "bottom"
-  lg_pos <- c(0.7, 0.2)
+  lg_pos <- "top"
+  # lg_pos <- c(0.7, 0.2)
   p <- p + ggplot2::theme(legend.position = lg_pos,
                           legend.title = element_blank()) +
     labs(x='Clonal proportion DLP', y='Clonal proportion clonealign 10x', 
-         title = '6 patients - Clonal proportions')
+         title = ' ') #'6 patients - Clonal proportions'
   
-  p <- p + guides(color = guide_legend(nrow = 3, override.aes = list(size=3.5)))
+  p <- p + guides(color = guide_legend(nrow = 2, override.aes = list(size=3.5)))
   saveRDS(p, paste0(save_dir,'clonealign_correlation_all_patients.rds'))
+  # p <- readRDS(paste0(save_dir,'clonealign_correlation_all_patients.rds'))
   p_corr <- cowplot::plot_grid(p, pSA609_clonealign, ncol = 2, labels = c('b','c'))
+  p_corr <- cowplot::plot_grid(p, NULL, ncol = 2, labels = c('b','c'))
   
   
   # p_corr

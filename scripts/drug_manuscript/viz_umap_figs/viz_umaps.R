@@ -6,6 +6,7 @@ suppressPackageStartupMessages({
   require("Seurat")
   # require("sctransform")
   require("dplyr")
+  require("ggplot2")
   require("inlmisc")
 })
 options(dplyr.summarise.inform = FALSE)
@@ -400,6 +401,7 @@ plot_fill_barplot_wholedataset_rnaseq <- function(umap_df, cols_use,
   
   cns <- colnames(umap_df)
   tid <- cns[grepl('treatment',cns)]
+  tid
   # if(nchar(tid)==0){
   #   tid <- cns[grepl('treat',cns)] ## sometimes column name is 'treat'
   #   if(is.null(tid)){
@@ -431,7 +433,7 @@ plot_fill_barplot_wholedataset_rnaseq <- function(umap_df, cols_use,
     as.data.frame()
   # cls_df <- cls_df[gtools::mixedsort(cls_df$clone_id),]
   # dim(cls_df)
-  
+  unique(cls_df$treatment_desc)
   
   cls_df$timepoint <- factor(cls_df$timepoint, levels=gtools::mixedsort(unique(cls_df$timepoint)))
   cls_df$clone_id <- factor(cls_df$clone_id, levels=sort(unique(cls_df$clone_id)))
@@ -449,7 +451,8 @@ plot_fill_barplot_wholedataset_rnaseq <- function(umap_df, cols_use,
     cls_df$treatment_desc <- factor(cls_df$treatment_desc, levels=paste0(pts_lb[datatag],':','10x-',c(ts1, ts3, ts2)))
   }
   unique(cls_df$treatment_desc)
-  cls_df$treatment_desc <- factor(cls_df$treatment_desc, levels=paste0(pts_lb[datatag],':','10x-',c(ts1, ts3, ts2)))
+  # cls_df$treatment_desc <- factor(cls_df$treatment_desc, levels=paste0(pts_lb[datatag],':','10x-',c(ts1, ts3, ts2)))
+  cls_df$treatment_desc <- factor(cls_df$treatment_desc, levels=paste0('10x-',c(ts1, ts3, ts2)))
   my_font <- "Helvetica"
   p <- ggplot(cls_df, aes(fill=clone_id, y=Freq, x=timepoint)) + 
     geom_bar(position="fill", stat="identity",width=0.55) 
