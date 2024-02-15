@@ -88,7 +88,7 @@ if (!exists("Pt6_cnv_whole")) {
 
 #### Use the meta file
 #meta <- read.csv("../../materials/comparisons/comparisons_transient.csv")
-meta <- read.csv("../../materials/comparisons/comparisons_transient_all.csv")   ## having H for Pt4
+meta <- read.csv("../../materials/comparisons/meta_files/comparisons_transient_all.csv")   ## having H for Pt4
 #meta <- read.csv("../../materials/comparisons/comparisons_transient_all2.csv")  ## having C for Pt4 
 dir <- "../../materials/comparisons/"
 
@@ -298,7 +298,7 @@ make_gene_plot <- function(info, type="transient", title) {
 }
 
 
-make_plot <- function (type="transient") {
+make_plot <- function (type="transient", draw_gene_plots="No") {
   
   data <- NULL
   
@@ -348,7 +348,7 @@ make_plot <- function (type="transient") {
     #  axis.text.x=element_blank()) + 
     facet_grid(~ series, scales="free_x", space="free") 
   
-  ggsave(paste0("manuscript_files/", type, "_genes_clone", clone, "_logfc", logfc_threshold, ".pdf"), width=2.95, heigh=3.2, useDingbats=FALSE)
+  ggsave(paste0("manuscript_files/", type, "_genes_clone", clone, "_logfc", logfc_threshold, ".pdf"), width=2.95, heigh=3.3, useDingbats=FALSE)
 
   #######################
   # Now make the annotation heatmap  
@@ -388,7 +388,7 @@ make_plot <- function (type="transient") {
   }
   
   
-  if (FALSE) {
+  if (draw_gene_plots=="Yes") {
     for (pt in unique(data$patient)) {
       print(pt)
       for (pass in unique(data[data$patient==pt,"passage"])) {
@@ -411,8 +411,8 @@ make_plot <- function (type="transient") {
 }
 
 
-make_plot(type="transient")
-make_plot(type="nontransient")
+make_plot(type="transient", draw_gene_plots="Yes")
+make_plot(type="nontransient", draw_gene_plots="Yes")
 
 
 
@@ -432,6 +432,8 @@ d2 <- read.csv("manuscript_files/data_file_transient.csv")
 #d2$type <- "Treatment holiday diverged"
 d2$type <- "Genes that change after drug withdrawal"
 d <- rbind(d1,d2)
+
+### This is Supplementary Table 7
 write.csv(file=paste0("manuscript_files/dynamic_genes.csv"), d, quote = FALSE)
 
 

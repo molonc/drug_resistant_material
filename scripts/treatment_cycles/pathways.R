@@ -88,17 +88,15 @@ if (what == "all_pathways_by_clone_scran") {
               "X7 Rx:A / UnRx:H",
               "X7 RxH:A / UnRx:H",
 
-              #"X6 Rx:AG / UnRx:G",
-              #"X7 Rx:AEJ / UnRx:G",
-              #"X7 RxH:AEJ / UnRx:G",
               "X8 Rx:A / UnRx:G",
               "X8 RxH:D / UnRx:G",
               "X10 Rx:A / UnRx:G",
               "X10 RxH:A / UnRx:G",
               "X10 RxH:E / UnRx:G",
 
-              #"X5 Rx / UnRx",
-              "X5 Rx:D / UnRx:A",
+              # Feb 11, 2024: replaced clone D with B
+              # "X5 Rx:D / UnRx:A",
+              "X5 Rx:B / UnRx:A",
               "X6 Rx:G / UnRx:G",
               "X6 RxH:B / UnRx:G",
               "X7 Rx:G / UnRx:E",
@@ -280,42 +278,11 @@ ggsave(paste0("manuscript_files/", filename), width=7.1, heigh=4.7, useDingbats=
 m4 <- m3[,c("variable2","Term2","group","value")]
 colnames(m4) <- c("comparison", "pathway", "group", "NES")
 m4$group <- gsub('\n', ' ', m4$group)
+
+# This is Supplementary Table 8
 write.csv(file=paste0("manuscript_files/pathways.csv"), m4, quote = FALSE)
 
-# 
-# ### Plot for Fig 1
-# m4 <- m3[m3$group %in% c("Pt4\nX4","Pt4\nX5","Pt4\nX6","Pt4\nX7"),]
-# # These are the most enriched in Pt4
-# #m4 <- m4[m4$Term2 %in% c("APOPTOSIS","EPITHELIAL_MESENCHYMAL_TRANSITION","TNFA_SIGNALING_VIA_NFKB","HYPOXIA","OXIDATIVE_PHOSPHORYLATION","MYC_TARGETS_V1","MYC_TARGETS_V2"),]
-# # These are the common pathways in Pt4 between DE and trajectory
-# m4 <- m4[m4$Term2 %in% c("SPERMATOGENESIS","MITOTIC_SPINDLE","HYPOXIA","EPITHELIAL_MESENCHYMAL_TRANSITION","APOPTOSIS"),]  #,"OXIDATIVE_PHOSPHORYLATION","MYC_TARGETS_V1","MYC_TARGETS_V2"),]
-# 
-# ggplot(data = m4, aes(variable2, Term2, fill = value))+
-#   geom_tile(color = "white")+
-#   scale_fill_gradient2(low = "blue", high = "red", mid = "grey95", 
-#                        midpoint = 0, space = "Lab", 
-#                        name="NES") +
-#   #scale_fill_gradientn(colours = myPalette(100), na.value = "grey95", name="NES") + 
-#   theme_minimal()+ 
-#   thesis_theme + 
-#   #theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust = 1))+
-#   #coord_fixed() +
-#   theme(axis.title.x=element_blank(),
-#         axis.title.y=element_blank()) +
-#   #scale_x_discrete(position = "top") +
-#   #facet_wrap(. ~ group, scales="free_x")
-#   facet_grid(. ~ group, scales="free_x", space="free") +
-#   theme(panel.spacing = unit(0.5, "mm", data = NULL))
-# #ggsave(paste0("pathways", set, "-", scol, "-", sthr ,"-", ver, ".pdf"), width=6.5, heigh=7, useDingbats=FALSE)
-# #print(plot1)
-# 
-# #legend1 <- get_legend(plot1)
-# #as_ggplot(legend1)
-# #ggsave("legend1.pdf")
-# 
-# 
-# ggsave("pathways_fig1_v3.pdf", width=4.5, heigh=2.5, useDingbats=FALSE)
-# 
+
 
 
 #### Now add the cis/trans
@@ -366,7 +333,9 @@ prepare_cis_trans <- function(cnv_df, series, data_num, clone1, clone2, type="Rx
     genes_trans <- paste(mygenes[cistrans$genetype=="trans"],collapse = ";")
     #nes <- pathway[pathway$Term==term,]$nes
     
-    pathway_genes <- rbind(pathway_genes, cistrans[,c("series","pathway","Symbol","genetype")])
+    pathway_genes <<- rbind(pathway_genes, data.frame(cistrans[,c("series","pathway","Symbol","genetype")], 
+                                                      clone_Rx_or_RxH=clone1, clone_UnRx=clone2, 
+                                                      comparison=paste0(type, " vs. UnRx")))
     print(head(pathway_genes))
 
     ## all pathways together
@@ -420,6 +389,14 @@ ct <- prepare_cis_trans(cnv_df=Pt6_cnv, series="Pt6 X8H", data_num=24, clone1="H
 ct <- prepare_cis_trans(cnv_df=Pt6_cnv, series="Pt6 X8H", data_num=25, clone1="H", clone2="E", type="RxH")
 
 
+# correcting the series labels so it makes more sense
+pathway_genes[pathway_genes$series=="Pt5 X9+1",]$series <- "Pt5 X10"
+pathway_genes[pathway_genes$series=="Pt6 X7G+1",]$series <- "Pt6 X8G"
+### This is Supplementary Table 7
+write.csv(file=paste0("manuscript_files/pathway_genes.csv"), pathway_genes, quote = FALSE)
+
+
+
 ### plot data
 
 ## plot all pathways
@@ -428,6 +405,8 @@ ct_all <- ct[ct$whichpath=="all",]
 ct_up_down <- ct[ct$whichpath!="all",]
 
 
+
+##### SUpplementary Figure 12
 ###### Plot only the last time point, for a supplementary figure that includes cis/trans proportions per pathway
 
 small_ptable <- m3[m3$group %in% c("Pt4\nX7","Pt5\nX10","Pt6\nX8G","Pt6\nX8H"),]
@@ -481,12 +460,19 @@ p6_sd <- ct_summary[ct_summary$series=="Pt6",]$sd_pct_genes
 
 ct_summary <- ct_summary[ct_summary$comp_type=="Rx expand vs UnRx" & ct_summary$gt=="trans gene",]
 
-small_ct[str_detect(small_ct$series,"Pt4"),]$dashline1 <- (p4_avg - p4_sd*3)/100
-small_ct[str_detect(small_ct$series,"Pt4"),]$dashline2 <- (p4_avg + p4_sd*3)/100
-small_ct[str_detect(small_ct$series,"Pt5"),]$dashline1 <- (p5_avg - p5_sd*3)/100
-small_ct[str_detect(small_ct$series,"Pt5"),]$dashline2 <- (p5_avg + p5_sd*3)/100
-small_ct[str_detect(small_ct$series,"Pt6"),]$dashline1 <- (p6_avg - p6_sd*3)/100
-small_ct[str_detect(small_ct$series,"Pt6"),]$dashline2 <- (p6_avg + p6_sd*3)/100
+## Not using dashlines any more
+#small_ct[str_detect(small_ct$series,"Pt4"),]$dashline1 <- (p4_avg - p4_sd*3)/100
+#small_ct[str_detect(small_ct$series,"Pt4"),]$dashline2 <- (p4_avg + p4_sd*3)/100
+#small_ct[str_detect(small_ct$series,"Pt5"),]$dashline1 <- (p5_avg - p5_sd*3)/100
+#small_ct[str_detect(small_ct$series,"Pt5"),]$dashline2 <- (p5_avg + p5_sd*3)/100
+#small_ct[str_detect(small_ct$series,"Pt6"),]$dashline1 <- (p6_avg - p6_sd*3)/100
+#small_ct[str_detect(small_ct$series,"Pt6"),]$dashline2 <- (p6_avg + p6_sd*3)/100
+
+
+small_ct[small_ct$type=="in cis",]$type <- "cis"
+small_ct[small_ct$type=="in trans",]$type <- "trans"
+
+small_ct$type <- factor(small_ct$type, levels=c("trans", "cis"))
 
 ggplot(data=small_ct, aes(x=Proportion, y=Term2, fill=type)) +
   geom_bar(stat="identity") +
@@ -506,7 +492,7 @@ ggplot(data=small_ct, aes(x=Proportion, y=Term2, fill=type)) +
   #scale_color_manual("Gene type", breaks = c(in-cis, in-trans),
   #                   values=c("red3", "royalblue3")) +
   #scale_fill_manual("Gene type", values = c("in cis" = "brown", "in trans" = "cornflowerblue")) +
-  scale_fill_manual("Gene type", values = c("in cis" = "brown", "in trans" = "cornflowerblue")) +
+  scale_fill_manual("Gene type", values = c("cis" = "chocolate", "trans" = "blue2")) +
   #coord_fixed() +
   theme(axis.title.y=element_blank()) +
   #geom_vline(aes(xintercept=dashline1), linetype="dashed", color = "orange") +
@@ -518,6 +504,15 @@ ggplot(data=small_ct, aes(x=Proportion, y=Term2, fill=type)) +
   #      axis.ticks.y = element_blank(),
   #      axis.title.y = element_blank() )
 
+
+mean(small_ct[small_ct$series=="Pt4 X7" & small_ct$type=="cis",]$Proportion)
+mean(small_ct[small_ct$series=="Pt5 X9+1" & small_ct$type=="cis",]$Proportion)
+mean(small_ct[small_ct$series %in% c("Pt6 X7G+1","Pt6 X8H") & small_ct$type=="cis",]$Proportion)
+
+# Find Pt4 pathway with max cis
+small_ct[small_ct$type=="cis" & small_ct$Proportion==max(small_ct[small_ct$series=="Pt4 X7" & small_ct$type=="cis",]$Proportion),]
+# Find Pt4 pathway with min cis
+small_ct[small_ct$type=="cis" & small_ct$Proportion==min(small_ct[small_ct$series=="Pt4 X7" & small_ct$type=="cis",]$Proportion),]
 
 ggsave(paste0("manuscript_files/pathways_cis_trans.pdf"), width=5.7, heigh=4.7, useDingbats=FALSE)
 
@@ -545,11 +540,22 @@ ggplot(ct_all, aes(x = dataset, y = Proportion)) +
   #scale_fill_manual(values = c("Rx Down" = "blue2", "Rx Up" = "darkred", "RxH Down" = "cornflowerblue", "RxH Up" = "coral1")) +
   facet_grid(~ series, scales="free_x", space="free")
 
+
+# Mean Pt4
+mean(ct_all[ct_all$series %in% c("Pt4 X4", "Pt4 X5", "Pt4 X6", "Pt4 X7") & ct_all$type %in% c("Rx in cis", "RxH in cis"),]$Proportion)
+# 33%
+
+mean(ct_all[ct_all$series %in% c("Pt5 X8", "Pt5 X9+1") & ct_all$type %in% c("Rx in cis", "RxH in cis"),]$Proportion)
+# 19%
+
+mean(ct_all[ct_all$series %in% c("Pt6 X5", "Pt6 X6", "Pt6 X7G", "Pt6 X7G+1", "Pt6 X7H", "Pt6 X8H") & ct_all$type %in% c("Rx in cis", "RxH in cis"),]$Proportion)
+# 3.7%
+     
 ggsave(paste0("manuscript_files/pathways_minfc",minfc,"_boxplots.pdf"), width=5.8, heigh=2.1, useDingbats=FALSE)
 
 ####################################
 ## Make a plot with the percentages of fixed/reverted/new holiday vs treated
-
+### Figure 5d
 
 calc_perc_reverted <- function (df, series, title, tr, hol) {
   valsT <- get(tr,all_pathways_m2)
@@ -617,6 +623,7 @@ ggsave(paste0("manuscript_files/pathways_minfc",minfc,"_reversed_pathways_clone"
 ###############################
 
 ## Now figuring out the number of pathways that evolved 
+## Figure 5e
 
 
 calc_num_pathways <- function (num, series, title, comp, type="Rx") {
@@ -650,7 +657,7 @@ if (clone=="aware") {
   num <- calc_num_pathways (num, series="Pt5 X9+1", title="Pt5 X9+1 GA", comp="X10 RxH:A / UnRx:G", type="RxH")
   num <- calc_num_pathways (num, series="Pt5 X9+1", title="Pt5 X9+1 GE", comp="X10 RxH:E / UnRx:G", type="RxH")
   
-  num <- calc_num_pathways (num, series="Pt6 X5", title="Pt6 X5 AD", comp="X5 Rx:D / UnRx:A", type="Rx")
+  num <- calc_num_pathways (num, series="Pt6 X5", title="Pt6 X5 AB", comp="X5 Rx:B / UnRx:A", type="Rx")
   num <- calc_num_pathways (num, series="Pt6 X6", title="Pt6 X6 GG", comp="X6 Rx:G / UnRx:G", type="Rx")
   num <- calc_num_pathways (num, series="Pt6 X6", title="Pt6 X6 GzB", comp="X6 RxH:B / UnRx:G", type="RxH")
   num <- calc_num_pathways (num, series="Pt6 X7G", title="Pt6 X7 EG", comp="X7 Rx:G / UnRx:E", type="Rx")
