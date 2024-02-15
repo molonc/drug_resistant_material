@@ -1698,6 +1698,111 @@
          d="m 103.99,207.71 h 38.33 v 17.21 h -38.33 z"
          id="path63367" />
     </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath8877">
+      <path
+         d="m 43.48,137.26 h 50.83 v 77.66 H 43.48 Z"
+         id="path8875" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath8949">
+      <path
+         d="m 99.79,137.26 h 38.72 v 77.66 H 99.79 Z"
+         id="path8947" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath9011">
+      <path
+         d="m 143.99,137.26 h 62.93 v 77.66 h -62.93 z"
+         id="path9009" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath9093">
+      <path
+         d="m 43.48,214.91 h 50.83 v 17.21 H 43.48 Z"
+         id="path9091" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath9107">
+      <path
+         d="m 43.48,214.91 h 50.83 v 17.21 H 43.48 Z"
+         id="path9105" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath9115">
+      <path
+         d="m 43.48,214.91 h 50.83 v 17.21 H 43.48 Z"
+         id="path9113" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath9123">
+      <path
+         d="m 43.48,214.91 h 50.83 v 17.21 H 43.48 Z"
+         id="path9121" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath9133">
+      <path
+         d="m 99.79,214.91 h 38.72 v 17.21 H 99.79 Z"
+         id="path9131" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath9147">
+      <path
+         d="m 99.79,214.91 h 38.72 v 17.21 H 99.79 Z"
+         id="path9145" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath9155">
+      <path
+         d="m 99.79,214.91 h 38.72 v 17.21 H 99.79 Z"
+         id="path9153" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath9163">
+      <path
+         d="m 99.79,214.91 h 38.72 v 17.21 H 99.79 Z"
+         id="path9161" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath9173">
+      <path
+         d="m 143.99,214.91 h 62.93 v 17.21 h -62.93 z"
+         id="path9171" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath9187">
+      <path
+         d="m 143.99,214.91 h 62.93 v 17.21 h -62.93 z"
+         id="path9185" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath9195">
+      <path
+         d="m 143.99,214.91 h 62.93 v 17.21 h -62.93 z"
+         id="path9193" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath9203">
+      <path
+         d="m 143.99,214.91 h 62.93 v 17.21 h -62.93 z"
+         id="path9201" />
+    </clipPath>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -1707,7 +1812,7 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="199.47001"
+     inkscape:cx="587.11042"
      inkscape:cy="383.38292"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -1717,8 +1822,8 @@
      inkscape:guide-bbox="true"
      inkscape:window-width="2345"
      inkscape:window-height="1304"
-     inkscape:window-x="186"
-     inkscape:window-y="25"
+     inkscape:window-x="203"
+     inkscape:window-y="64"
      inkscape:window-maximized="0" />
   <metadata
      id="metadata26525">
