@@ -3,10 +3,10 @@
 
 This repository contains all materials and scripts used in manuscript: 
 ```
-Farhia Kabeer, Hoa Tran, Mirela Andronescu, Gurdeep Singh, Hakwoo Lee, Sohrab Salehi, Beixi Wang, Justina Biele, Jazmine Brimhall, David Gee, Viviana Cerda, Ciara O'Flanagan, Teresa Algara, Takako Kono, Sean Beatty, Elena Zaikova, Daniel Lai, Eric Lee, Richard Moore, Andrew J. Mungall, IMAXT Consortium,  Marc William, Andrew Roth, Kieran R. Campbell, Sohrab P. Shah, Samuel Aparicio.
+Farhia Kabeer, Hoa Tran, Mirela Andronescu, Gurdeep Singh, Hakwoo Lee, Sohrab Salehi, Justina Biele, Jazmine Brimhall, David Gee, Viviana Cerda, Ciara O'Flanagan, Teresa Algara, Takako Kono, Sean Beatty, Elena Zaikova, Daniel Lai, Eric Lee, Richard Moore, Andrew J. Mungall, IMAXT Consortium,  Marc William, Andrew Roth, Kieran R. Campbell, Sohrab P. Shah, Samuel Aparicio.
 
-Longitudinal tracking of drug induced transcriptomic reprogramming in triple negative breast cancers
-Aparicio Lab August 2023. 
+Single-cell decoding of drug induced transcriptomic reprogramming in triple negative breast cancers
+Genome Biology June 2024. 
 
 ```
 
@@ -38,7 +38,6 @@ Aparicio Lab August 2023.
 ## Overview
 
 The encoding of resistance states in cancer reflects the contributions of genomic and non-genomic variation, however identifying the potential contributions of each has remained problematic. Here we show that **clonal and non-clonal transcriptional dynamics** of TNBC tumours serially exposed to platinum can separate different clonal responses. Pathway analysis shows that cis and trans transcripts converge on EMT and cytokine signaling states associated with resistance. We observe that copy number clones with strong genotype associated fitness under platinum may become fixed in their states, resulting in minimal transcriptional reversion on **drug withdrawal**. In contrast clones with weaker fitness undergo non-genomic transcriptional plasticity. Together the data show that copy number mediated and copy number independent processes contribute to chemotherapeutic drug resistance.
-The details of the method are described in the [pre-print](https://www.biorxiv.org/content/uploadme_TODO) 
 
 
 
@@ -51,7 +50,7 @@ Here are all materials that are used in this manuscript.
 
 ### Meta data
 Noted: patient ID: Pt1, Pt2, Pt3, Pt4, Pt5, Pt6 correspond to the series id SA501, SA530, SA604, SA609, SA535, SA1035 in fitness previously published paper. 
-- Library infos, drug treatment status and time series - passages are noted at [materials/metadata_drug_resistance](https://github.com/molonc/drug_resistant_material/tree/main/materials/metadata_drug_resistance/)
+- Library infos, drug treatment status and time series - passages are noted at [materials/metadata_drug_resistance](https://github.com/molonc/drug_resistant_material/tree/main/materials/metadata_drug_resistance/).
 We'll add SA501, SA530, SA604 here too.
 
 
@@ -76,7 +75,7 @@ Reference genes sets are at [materials/reference_gene_sets/](https://github.com/
 
 ### Clone alignment results
 Cell clone assignment results
-- Clonealign results for each sample are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/clonealign_results/clonealign/)
+- Clonealign results for each sample are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/clonealign_plot/clonealign/)
 - Input data for Main Figure 2 are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/clonealign_plot)
 
 ### Tissue screening
@@ -120,10 +119,10 @@ Cell clone assignment results
 
 ## Citation
 ```
-Farhia Kabeer, Hoa Tran, Mirela Andronescu, Gurdeep Singh, Hakwoo Lee, Sohrab Salehi, Beixi Wang, Justina Biele, Jazmine Brimhall, David Gee, Viviana Cerda, Ciara O'Flanagan, Teresa Algara, Takako Kono, Sean Beatty, Elena Zaikova, Daniel Lai, Eric Lee, Richard Moore, Andrew J. Mungall, IMAXT Consortium,  Marc William, Andrew Roth, Kieran R. Campbell, Sohrab P. Shah, Samuel Aparicio.
+Farhia Kabeer, Hoa Tran, Mirela Andronescu, Gurdeep Singh, Hakwoo Lee, Sohrab Salehi, Justina Biele, Jazmine Brimhall, David Gee, Viviana Cerda, Ciara O'Flanagan, Teresa Algara, Takako Kono, Sean Beatty, Elena Zaikova, Daniel Lai, Eric Lee, Richard Moore, Andrew J. Mungall, IMAXT Consortium,  Marc William, Andrew Roth, Kieran R. Campbell, Sohrab P. Shah, Samuel Aparicio.
 
-Longitudinal tracking of drug induced transcriptomic reprogramming in triple negative breast cancers
-Aparicio Lab 2023. 
+Single-cell decoding of drug induced transcriptomic reprogramming in triple negative breast cancers
+Genome Biology June 2024. 
 
 ```
 

@@ -6891,11 +6891,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.979899"
+     inkscape:zoom="2.8"
      inkscape:cx="520.15755"
-     inkscape:cy="549.22115"
+     inkscape:cy="448.2059"
      inkscape:document-units="mm"
-     inkscape:current-layer="g30311"
+     inkscape:current-layer="g30347"
      inkscape:document-rotation="0"
      showgrid="false"
      inkscape:window-width="2388"
@@ -43402,7 +43402,7 @@
                      y="0"><tspan
                        style="font-style:oblique;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:'Helvetica Oblique'">BOC</tspan></tspan></text>
                 <text
-                   transform="matrix(1,0,0,-1,56.92,36.71)"
+                   transform="matrix(1,0,0,-1,49.42,36.71)"
                    style="font-variant:normal;font-weight:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:Helvetica;writing-mode:lr-tb;white-space:pre;inline-size:25.87;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
                    id="text33691"
                    xml:space="preserve"><tspan
@@ -43425,14 +43425,6 @@
                      x="0"
                      y="0"><tspan
                        style="font-style:oblique;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:'Helvetica Oblique'">CHCHD10</tspan></tspan></text>
-                <text
-                   transform="matrix(1,0,0,-1,102.3,45.95)"
-                   style="font-variant:normal;font-weight:normal;font-size:3px;font-family:Helvetica;-inkscape-font-specification:Helvetica;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
-                   id="text33703"><tspan
-                     x="0 2.1659999 3.9990001 6.3330002"
-                     y="0"
-                     sodipodi:role="line"
-                     id="tspan33701">CTGF</tspan></text>
                 <text
                    transform="matrix(1,0,0,-1,104.86,123.79)"
                    style="font-variant:normal;font-weight:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:Helvetica;writing-mode:lr-tb;white-space:pre;inline-size:32.19;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
@@ -43466,13 +43458,13 @@
                      y="0"><tspan
                        style="font-style:oblique;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:'Helvetica Bold Oblique'">MEST</tspan></tspan></text>
                 <text
-                   transform="matrix(1,0,0,-1,86.93,51.83)"
-                   style="font-variant:normal;font-weight:normal;font-size:3px;font-family:Helvetica;-inkscape-font-specification:Helvetica;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
-                   id="text33723"><tspan
-                     x="0 2.3340001 4.335 6.5009999"
-                     y="0"
-                     sodipodi:role="line"
-                     id="tspan33721">OSR2</tspan></text>
+                   transform="matrix(1,0,0,-1,79.43,51.83)"
+                   style="font-variant:normal;font-weight:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:Helvetica;writing-mode:lr-tb;white-space:pre;inline-size:17.8777;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+                   id="text33723"
+                   xml:space="preserve"><tspan
+                     x="0"
+                     y="0"><tspan
+                       style="font-style:oblique;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:'Helvetica Oblique'">OSR2</tspan></tspan></text>
                 <text
                    transform="matrix(1,0,0,-1,47.62,109.96)"
                    style="font-variant:normal;font-weight:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:Helvetica;writing-mode:lr-tb;white-space:pre;inline-size:23.8;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
@@ -43482,30 +43474,21 @@
                      y="0"><tspan
                        style="font-style:oblique;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:'Helvetica Oblique'">PAX9</tspan></tspan></text>
                 <text
-                   transform="matrix(1,0,0,-1,88.63,36.58)"
-                   style="font-variant:normal;font-weight:normal;font-size:3px;font-family:Helvetica;-inkscape-font-specification:Helvetica;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
-                   id="text33731"><tspan
-                     x="0 2.1659999 4.5 6.5009999 8.1689997"
-                     y="0"
-                     id="tspan33729"
-                     sodipodi:role="line">RGS16</tspan></text>
-                <text
-                   transform="matrix(1,0,0,-1,69.55,45.93)"
-                   style="font-variant:normal;font-weight:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:Helvetica;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
-                   id="text33735"><tspan
-                     x="0 2.0009999 3.6689999 5.835 7.5029998 9.1709995 11.172"
-                     y="0"
-                     id="tspan33733"
-                     style="font-size:6px"
-                     sodipodi:role="line">SLC38A2</tspan></text>
+                   transform="matrix(1,0,0,-1,84.13,36.58)"
+                   style="font-variant:normal;font-weight:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:Helvetica;writing-mode:lr-tb;white-space:pre;inline-size:22.4872;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+                   id="text33731"
+                   xml:space="preserve"><tspan
+                     x="0"
+                     y="0"><tspan
+                       style="font-style:oblique;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:'Helvetica Oblique'">RGS16</tspan></tspan></text>
                 <text
                    transform="matrix(1,0,0,-1,119.98,42.06)"
-                   style="font-variant:normal;font-weight:normal;font-size:3px;font-family:Helvetica;-inkscape-font-specification:Helvetica;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
-                   id="text33739"><tspan
-                     x="0 2.0009999 4.1669998 6.3330002 8.6669998 10.335"
-                     y="0"
-                     id="tspan33737"
-                     sodipodi:role="line">SNHG25</tspan></text>
+                   style="font-variant:normal;font-weight:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:Helvetica;writing-mode:lr-tb;white-space:pre;inline-size:28.2794;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+                   id="text33739"
+                   xml:space="preserve"><tspan
+                     x="0"
+                     y="0"><tspan
+                       style="font-style:oblique;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:'Helvetica Oblique'">SNHG25</tspan></tspan></text>
                 <text
                    transform="matrix(1,0,0,-1,55.07,50.77)"
                    style="font-variant:normal;font-weight:normal;font-size:6px;font-family:Helvetica;-inkscape-font-specification:Helvetica;writing-mode:lr-tb;white-space:pre;inline-size:25.4549;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
