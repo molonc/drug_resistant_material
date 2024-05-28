@@ -42,7 +42,6 @@ The encoding of resistance states in cancer reflects the contributions of genomi
 
 
 ## Materials
-Here are all materials that are used in this manuscript. 
 
 ### Uploaded data link
 - scRNA-seq cellranger alignment libraries are at: [Uploaded Data URL](https://ega-archive.org/studies/EGAS00001007242)
@@ -75,15 +74,15 @@ Reference genes sets are at [materials/reference_gene_sets/](https://github.com/
 
 ### Clone alignment results
 Cell clone assignment results
-- Clonealign results for each sample are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/clonealign_plot/clonealign/)
-- Input data for Main Figure 2 are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/clonealign_plot)
+- Clonealign results for each sample are at [materials/clonealign_results/clonealign/](https://github.com/molonc/drug_resistant_material/tree/main/materials/clonealign_results/clonealign/)
+- Input data for Main Figure 2 are at [materials/clonealign_results](https://github.com/molonc/drug_resistant_material/tree/main/materials/clonealign_results)
 
 ### Tissue screening
 - TMA score results for TMA microarray tissue screening are at file  [materials/metadata_drug_resistance/TMA20-001%20TMA_FK3%20with%20scores.xls](https://github.com/molonc/drug_resistant_material/blob/main/materials/metadata_drug_resistance/TMA20-001%20TMA_FK3%20with%20scores.xls) and from previous [published paper](http://dx.doi.org/10.1038/s41586-021-03648-3)
 
 ### Cis trans genes 
-- DE analysis are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/cis_trans/) 
-- Pathway analysis results are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/materials/pathway)
+- DE analysis are at [materials/cis_trans/](https://github.com/molonc/drug_resistant_material/tree/main/materials/cis_trans/) 
+- Pathway analysis results are at [materials/pathway](https://github.com/molonc/drug_resistant_material/tree/main/materials/pathway)
 
 ### Main Figures 
 - Figure files at [materials/main_figures/](https://github.com/molonc/drug_resistant_material/tree/main/materials/main_figures/) 
@@ -102,18 +101,18 @@ Cell clone assignment results
 ## Scripts
 
 ### Preprocessing functions
-- Scripts are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/pipeline/utils/)
+- Preprocessing scripts are at [scripts/pipeline/utils/](https://github.com/molonc/drug_resistant_material/tree/main/scripts/pipeline/utils/)
 
 ### Clonealign execution script 
 - Scripts are clonealign Figure 2 are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/)
 ### Differential expression analysis
-- Scripts are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/de_edgeR/)
+- Scripts are at [scripts/de_edgeR/](https://github.com/molonc/drug_resistant_material/tree/main/scripts/de_edgeR/)
 ### Gene type identification
-- Scripts are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/cis_trans/)
+- Scripts are at [scripts/cis_trans/](https://github.com/molonc/drug_resistant_material/tree/main/scripts/cis_trans/)
 ### Treatment cycles
-- Scripts for Figures 4 and 5 at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/treatment_cycles/)
+- Scripts for Figures 4 and 5 at [scripts/treatment_cycles/](https://github.com/molonc/drug_resistant_material/tree/main/scripts/treatment_cycles/)
 ### Pseudotime analysis script
-- Scripts for Figure 6, and SUPP Figure 10, 11 are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/trajectory_analysis/)
+- Scripts for Figure 6, and Supplementary Figures S13, S14 are at [scripts/trajectory_analysis/](https://github.com/molonc/drug_resistant_material/tree/main/scripts/trajectory_analysis/)
 
 
 
