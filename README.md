@@ -33,6 +33,7 @@ Genome Biology June 2024.
   - [Treatment cycles](#treatment-cycles)
   - [Pseudotime analysis script](#pseudotime-analysis-script)
 - [Citation](#citation)
+- [Licence](#licence)
 
 
 ## Overview
@@ -125,4 +126,6 @@ Genome Biology June 2024.
 
 ```
 
+## Licence
+[Apache licence v2.0](https://github.com/molonc/drug_resistant_material/blob/main/LICENCE)
 
