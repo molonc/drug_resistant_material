@@ -1,0 +1,176 @@
+---
+title: "Explore SA609"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(scater)
+})
+```
+
+
+```{r}
+sce <- readRDS("../../results/v1/outputs/integrate/batch_correct/SA532.rds")
+```
+
+```{r}
+table(sce$id)
+```
+
+```{r}
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "total_counts")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "total_features_by_counts")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "id")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "pct_counts_mitochondrial")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "MALAT1")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "VIM")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "JUN")
+```
+
+
+```{r}
+sce$crap_clust <- 1 * ( reducedDim(sce, 'scanorama_TSNE')[,2] > 5 )
+markers <- scran::findMarkers(sce, sce$crap_clust)
+```
+
+
+```{r}
+hist(sce$pct_counts_mitochondrial, breaks = 100)
+```
+
+
+
+```{r}
+rownames(sce) <- scater::uniquifyFeatureNames(rowData(sce)$ID, rowData(sce)$Symbol)
+```
+
+```{r}
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "EPCAM")
+```
+
+
+
+# X2
+
+```{r}
+load("../../results/dumps/clonealign-dump-SA532X2XB00147.Rdata")
+```
+
+```{r}
+plotReducedDim(sce_tmp, "scanorama_TSNE", colour_by = "pct_counts_mitochondrial")
+```
+
+```{r}
+# sce_tmp <- sce_tmp[, reducedDim(sce_tmp, 'scanorama_TSNE')[,2] > 5]
+```
+
+
+```{r}
+devtools::load_all("/cellassign/clonealign/")
+
+gene_is_same <- matrixStats::rowVars(cnv_mat_remapped) == 0 
+
+keep_gene <- union(sample(which(gene_is_same), 50), which(!gene_is_same))
+
+sce2 <- sce_filtered[keep_gene,]
+
+sce2 <- sce2[, colSums(counts(sce2)) > 10]
+
+ca <- run_clonealign(sce2, 
+                     cnv_mat_remapped[rownames(sce2),],
+                     initial_shrinks = c(0, 2, 5), #args$initial_shrink,
+                     n_repeats = 1,
+                     mc_samples = 1,
+                     learning_rate = 0.1,
+                     max_iter = 1e3,
+                     data_init_mu = TRUE,
+                     clone_call_probability = 0.9)
+
+```
+
+
+```{r}
+sce_tmp$clone <- ca$clone
+
+
+# plotPCA(sce_tmp, colour_by = "clone")
+```
+
+
+
+
+```{r}
+load("../../data/external/recount2/rse_gene_breast.Rdata")
+
+sce_breast <- SingleCellExperiment(assays = list(counts = assay(rse_gene, 'counts')),
+                                   colData = colData(rse_gene),
+                                   rowData = rowData(rse_gene))
+
+sce_breast <- normalize(sce_breast)
+```
+
+```{r}
+rowData(sce_breast)$mean_exprs <- rowMeans(as.matrix(logcounts(sce_breast)))
+rowData(sce_filtered)$mean_exprs <- rowMeans(as.matrix(logcounts(sce_filtered)))
+```
+
+```{r}
+rowData(sce_breast)$symbol <- sapply(rowData(sce_breast)$symbol, `[[`, 1)
+
+df_exprs <- left_join(
+  dplyr::select(as.data.frame(rowData(sce_filtered)), Symbol, mean_exprs),
+  dplyr::select(as.data.frame(rowData(sce_breast)), Symbol = symbol, mean_exprs),
+  by = "Symbol",
+  suffix = c("_SA532", "_GTEX")
+)
+
+mm <- match(rowData(sce_filtered)$Symbol, df_exprs$Symbol)
+
+df_exprs <- df_exprs[mm,]
+```
+
+```{r}
+ggplot(df_exprs, aes(x = mean_exprs_GTEX, y = mean_exprs_SA532)) +
+  geom_point()
+```
+
+
+```{r}
+
+```
+
+
+
+
+```{r}
+devtools::load_all("/cellassign/clonealign")
+
+rowData(sce_filtered)$mean_exprs_GTEX <- x <- df_exprs$mean_exprs_GTEX
+rowData(sce_filtered)$mean_exprs_GTEX[is.na(x)] <- mean(x, na.rm=TRUE)
+
+ca1 <- run_clonealign(sce_filtered, 
+                     cnv_mat_remapped,
+                     initial_shrinks = c(0, 10, 20), #args$initial_shrink,
+                     n_repeats = 3,
+                     mc_samples = 1,
+                     learning_rate = 0.1,
+                     max_iter = 1e3,
+                     data_init_mu = TRUE,
+                     clone_call_probability = 0.9)
+
+ca2 <- run_clonealign(sce_filtered, 
+                     cnv_mat_remapped,
+                     initial_shrinks = c(0, 10, 20), #args$initial_shrink,
+                     n_repeats = 3,
+                     mc_samples = 1,
+                     learning_rate = 0.1,
+                     max_iter = 1e3,
+                     data_init_mu = rowData(sce_filtered)$mean_exprs_GTEX,
+                     clone_call_probability = 0.9)
+```
+
+

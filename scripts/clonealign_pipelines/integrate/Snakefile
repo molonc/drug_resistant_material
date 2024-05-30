@@ -1,0 +1,49 @@
+
+__author__      = "Allen Zhang"
+
+workflow_name = 'integrate'
+
+output_dir = os.path.join(config['outdir'], workflow_name)
+scratch_dir = os.path.join(config['scratchdir'], workflow_name)
+log_dir = os.path.join(config['logdir'], workflow_name)
+workspace_dir = config['workspaces'][workflow_name]
+
+
+rule batch_correct:
+    input:
+        sces=lambda wildcards: expand(
+            '{outdir}/sce_annotated/{{sample}}.rds'.format(
+                outdir=os.path.join(config['outdir'], 'preprocess')
+            ),
+            sample=config['integrate']['groups'][wildcards.group]
+        )
+    output:
+        '{outdir}/batch_correct/{{group}}.rds'.format(
+            outdir=output_dir
+        )
+    params:
+        name='batch-correct-{group}',
+        batch_variable=config['integrate']['batch_variable'],
+        method=config['integrate']['integration_method'],
+        cols_remove=config['integrate']['rowdata_cols_remove'],
+        conda_env=config['conda_environment'],
+        conda_path=config['conda_path'],
+        workspace=workspace_dir,
+    log:
+        '{outdir}/batch_correct/{{group}}.log'.format(
+            outdir=log_dir
+        ),
+    #benchmark:
+    #    '{outdir}/batch_correct/{{group}}.txt'.format(
+    #        outdir=log_dir
+    #    ),
+    shell:
+        'Rscript {params.workspace}/R/batch_correct.R '
+        '--sce {input.sces} '
+        '--batch_variable {params.batch_variable} '
+        '--method {params.method} '
+        '--rowdata_cols_remove {params.cols_remove} '
+        '--conda_env {params.conda_env} '
+        '--conda_path {params.conda_path} '
+        '--outfname {output} '
+        '>& {log}'

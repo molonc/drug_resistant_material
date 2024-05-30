@@ -1,0 +1,53 @@
+
+__author__      = "Allen Zhang"
+
+workflow_name = 'report'
+
+output_dir = os.path.join(config['outdir'], workflow_name)
+scratch_dir = os.path.join(config['scratchdir'], workflow_name)
+log_dir = os.path.join(config['logdir'], workflow_name)
+workspace_dir = config['workspaces'][workflow_name]
+
+def get_clonealign_fits(wildcards):
+    segment_samples = config['dlp_data']['segments'].keys()
+
+    samples = list(set(config['integrate']['groups'][wildcards.group]) & set(segment_samples))
+    
+    clonealign_fit_files = expand(
+        '{outdir}/clonealign_fit/{{sample}}.rds'.format(
+            outdir=os.path.join(config['outdir'], 'align_clones')
+        ), 
+        sample=samples
+    )
+
+    return clonealign_fit_files
+
+rule create_clonealign_report:
+    input:
+        clonealign_fits=get_clonealign_fits,
+        clone_prevalences='{outdir}/clone_prevalences/{{group}}.csv'.format(
+            outdir=os.path.join(config['outdir'], 'parse_cnv')
+        ),
+        sce='{outdir}/batch_correct/{{group}}.rds'.format(
+            outdir=os.path.join(config['outdir'], 'integrate')
+        ),
+    output:
+        '{outdir}/clonealign_reports/{{group}}.html'.format(
+            outdir=output_dir
+        )
+    params:
+        name='create-clonealign-report-{group}',
+        dimred_type=config['dimred_type'],
+        low_qc_cluster=lambda wildcards: config['report']['low_qc_cluster'][wildcards.group],
+        workspace=workspace_dir,
+    log:
+        '{outdir}/create_clonealign_report/{{group}}.log'.format(
+            outdir=log_dir
+        ),
+    benchmark:
+        '{outdir}/create_clonealign_report/{{group}}.txt'.format(
+            outdir=log_dir
+        ),
+    script:
+        '{params.workspace}/Rmd/clonealign_report.Rmd'
+

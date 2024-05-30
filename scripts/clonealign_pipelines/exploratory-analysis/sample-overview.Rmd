@@ -1,0 +1,138 @@
+---
+title: "Overview of sample"
+output:
+  html_document:
+  highlight: tango
+params:
+   rmd: "sample-overview.Rmd"
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(scater)
+  library(annotables)
+})
+```
+
+# Gene expression data
+
+```{r}
+# sce <- readRDS("../../results/v1/outputs/integrate/batch_correct/SA906b.rds")
+sce <- readRDS(snakemake@input[['sce']])
+```
+
+```{r}
+rownames(sce) <- scater::uniquifyFeatureNames(rowData(sce)$ID, rowData(sce)$Symbol)
+```
+
+
+```{r}
+print(sce)
+```
+
+
+```{r}
+table(sce$id)
+```
+
+## QC Metrics
+
+```{r fig.width = 9, fig.height = 3}
+cd <- as.data.frame(colData(sce)) %>% 
+  dplyr::select(id, total_counts, total_features_by_counts, pct_counts_mitochondrial)
+
+gather(cd, metric, value, -id) %>% 
+  ggplot(aes(x = id, y = value)) +
+  geom_boxplot() +
+  facet_wrap(~ metric, scales = "free_y", nrow = 1)
+```
+
+```{r, fig.width = 5, fig.height = 4}
+ggplot(cd, aes(x = id)) +
+  geom_bar() +
+  labs(x = "# cells")
+```
+
+
+## Reduced dimension plots
+
+
+```{r}
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "total_counts")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "total_features_by_counts")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "id")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "pct_counts_mitochondrial")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "MALAT1")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "VIM")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "CTNNB1")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "FN1")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "S100A4")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "JUN")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "EPCAM")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "CDH1")
+plotReducedDim(sce, "scanorama_TSNE", colour_by = "PTPRC")
+```
+
+
+# scWGS data
+
+```{r}
+# df <- read_tsv("../../results/v1/outputs/parse_cnv/gene_clone_cn/SA609.tsv")
+df <- read_tsv(snakemake@input[['cnv']])
+```
+
+```{r}
+annots <- annotables::grch37
+
+annots <- dplyr::select(annots, ensembl_gene_id = ensgene, chr, start, end) 
+
+df <- inner_join(df, annots)
+```
+
+```{r}
+df <- dplyr::select(df, ensembl_gene_id, chr, start) %>% 
+  group_by(chr) %>% 
+  dplyr::mutate(start_order = rank(start)) %>% 
+  ungroup() %>% 
+  inner_join(df)
+```
+
+```{r}
+chr_levels <- c(as.character(1:23), "X", "Y")
+
+df$chr <- factor(df$chr, levels = chr_levels)
+
+df <- drop_na(df)
+
+cnv_cols <- c("0" = "#2166ac",
+              "1" = "#92c5de", 
+              "2" = "grey80", 
+              "3" = "#f4a582", 
+              "4" = "#d6604d",
+              "5" = "#b2182b",
+              "6+" = "#67001f")
+
+# MA: adding this if in case the given file is empty
+# This happens to SA906b, to check why
+if (length(df$median_cnmode) > 0) {
+  df$cnv <- as.character(round(df$median_cnmode))
+  df$cnv[round(df$median_cnmode) >= 6] <- "6+"
+}
+```
+
+
+```{r fig.width = 12, fig.height = 4}
+
+if (length(df$median_cnmode) > 0) {
+  ggplot(df, aes(x = start_order, y = cluster, fill = cnv)) +
+    geom_raster() +
+    facet_wrap(~ chr, scales = "free_x", nrow = 1, switch = "x") +
+    theme(legend.position = "top", axis.text.x = element_blank()) +
+    scale_y_discrete(expand = c(0, 0)) +
+    scale_fill_manual(values = cnv_cols, name = "Copy number") +
+    labs(x = "chromosome")
+}
+```
+

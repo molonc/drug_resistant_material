@@ -1,0 +1,326 @@
+---
+title: "Differential expression report"
+author:
+  - "Kieran Campbell and Mirela Andronescu"
+output_file: "de_by_sample_SA000X6_SA000X7.html"
+params:
+  rmd: "differential-expression-by-sample.Rmd"
+  sample1: SA609X6XB03404
+  group1: SA000X6
+  label1: 2_SA000X6
+  sample2: SA609X7XB03505
+  group2: SA000X7
+  label2: 1_SA000X7
+  xlab: ""
+  output_fig_dir: "."
+  sce_dir: "../../mirela/data/scrna_human_normed/"
+  #sce_dir: "../../mirela/results/new-cut-v1/outputs/preprocess/sce_annotated/"
+  ca_dir: "../../mirela/results/new-cut-v1/outputs/align_clones/clonealign_fit/"
+  clone_dir: "../../mirela/results/new-cut-v1/outputs/parse_cnv/gene_clone_cn/"
+output: 
+  html_document:
+    highlight: tango
+    toc: true
+    toc_float: true
+    toc_depth: 4
+---
+
+
+```{r global_chunk_options, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy = TRUE, warning = FALSE, message = FALSE, cache = FALSE, cache.lazy = FALSE, fig.width = 8, fig.height = 4.5)
+```
+
+```{r, echo = FALSE}
+suppressPackageStartupMessages({
+  library(knitr)
+  library(tidyverse)
+  library(tensorflow)
+  library(SingleCellExperiment)
+  library(scater)
+  library(data.table)
+  library(pheatmap)
+  library(ggrepel)
+  library(grid)
+  library(scran)
+  library(yaml)
+  library(scales)
+  library(kableExtra)
+  library(dendextend)
+  library(edgeR)
+  library(org.Hs.eg.db)
+  library(Seurat)
+  library(pheatmap)
+  library(clonealign)
+  library(ggrepel)
+  library(annotables)
+  library(scales)
+  library(RColorBrewer)
+  library(fgsea)
+  
+  library(scrna.utils)
+  library(scrna.sceutils)
+  library(cellassign)
+  library(cellassign.utils)
+})
+
+theme_set(theme_cowplot(font_size = 11))
+```
+
+```{r}
+
+source("de-utils.R")
+```
+
+# Load data
+
+
+```{r}
+
+output_fig_dir <- params$output_fig_dir
+input_sce1 <- paste0(params$sce_dir, params$sample1, ".rdata")
+label1 <- params$label1
+
+input_sce2 <- paste0(params$sce_dir, params$sample2, ".rdata")
+label2 <- params$label2
+xlab <- params$xlab
+print(xlab)
+
+sample <- paste0(label1,"_", label2)
+
+# 3 Feb 2020, the genes from Fatemeh's latest files, these are genes unique to A*
+# However, these genes are not found "RP11-248J23.6", "LINC00661", "STEAP2-AS1", 
+# genes_to_plot <- c("MYC", "TMEM132B", "CAPRIN2", "TP53", "IGKV1D-8", "CYP39A1", "ARC", "DAB2IP", "AQP7", "USP51")
+# previous possible sets of genes
+genes_to_plot <- c("MYC", "TMEM132B", "CAPRIN2", "TP53", "IGKV1D-8", "CYP39A1", "ARC", "DAB2IP", "AQP7", "USP51", "CDK8", "SHISA2", "RNF6", "GPR12", "WASF3", "TMEM205")
+                   
+                   
+# CDK8, SHISA2, RNF6, GPR12, WASF3 are based on copy number gain
+# TMEM205, RAB8, GCF2, PCAF, G-catenin, Nrf2, HSP10, HSP27, HSP60, HSP70, HSP90 - genes directly related to cisplatin
+# Note the HSP genes were removed during qc, so I am removing them here too - I could add them back if needed
+
+
+sce1 <- readRDS(input_sce1)
+sce1 <- fixsce(sce1)
+colnames(sce1) <- sce1$Barcode
+sce_qc1 <- sce1
+sce_qc1$label <- label1
+# remove mitocondrial genes and other genes that are not of interest
+rowData(sce_qc1)$Symbol <- rownames(counts(sce_qc1))
+sce_qc1 <- sce_qc1[!grepl("^RP[L|S]|^MT-|^FOS|^JUN|^HSP", rowData(sce_qc1)$Symbol)]
+
+sce2 <- readRDS(input_sce2)
+sce2 <- fixsce(sce2)
+colnames(sce2) <- sce2$Barcode
+sce_qc2 <- sce2
+sce_qc2$label <- label2
+# remove mitocondrial genes and other genes that are not of interest
+rowData(sce_qc2)$Symbol <- rownames(counts(sce_qc2))
+sce_qc2 <- sce_qc2[!grepl("^RP[L|S]|^MT-|^FOS|^JUN|^HSP", rowData(sce_qc2)$Symbol)]
+
+if (sum(rowData(sce1)$ID!=rowData(sce2)$ID) > 0) {
+  stop("Ensemble gene names are different between the two sce samples!")
+}
+
+#ensgenes <- rowData(sce1)$ID
+
+# combine the two sces
+saveRowData <- rowData(sce_qc1)
+rowData(sce_qc1) <- rowData(sce_qc2) <- NULL
+sce_qc <- cbind(sce_qc1, sce_qc2)
+# Note: keeping the data for the first one, so mean_counts, log10_mean_counts will not be correct for the bind
+rowData(sce_qc) <- saveRowData
+
+
+```
+
+
+# View clones
+
+#```{r}
+#pheatmap(ca1$ml_params$clone_probs)
+#```
+
+
+
+
+```{r}
+
+
+# remove mitocondrial genes and other genes that are not of interest
+#sce_qc <- sce_qc[!grepl("^RP[L|S]|^MT-|^FOS|^JUN|^HSP", rowData(sce_qc)$Symbol)]
+```
+
+```{r}
+#plotTSNE(sce_qc, colour_by = "MALAT1")
+plotTSNE(sce_qc, colour_by = "total_features_by_counts")
+```
+
+
+```{r}
+#plotColData(sce_qc, x=  "total_counts", y = "total_features_by_counts", colour = "MALAT1") + 
+#  geom_density_2d() + geom_hline(yintercept = 3500, linetype = 2)
+```
+
+```{r}
+sce_qc <- sce_qc[, sce_qc$total_features_by_counts > 3500]
+```
+
+
+## Reduced dimension figures
+
+```{r}
+set.seed(123L)
+
+#This gives error, skipping it for now
+sce_qc <- runPCA(sce_qc, ncomponents = 20)
+sce_qc <- runTSNE(sce_qc)
+
+df_tsne <- as_tibble(reducedDim(sce_qc, 'TSNE')) %>% 
+  dplyr::rename(tSNE1 = V1, tSNE2 = V2) %>% 
+  dplyr::mutate(Clone = sce_qc$clone,
+                Cell_Cycle = sce_qc$Cell_Cycle)
+```
+
+
+
+
+```{r}
+# this doesn't show anything for some reason
+# dplyr::filter(df_tsne) %>% 
+#  ggplot(aes(x = tSNE1, y = tSNE2, colour = Clone)) +
+#  geom_point(alpha = 0.6) +
+#  scale_colour_manual(values = c(get_cluster_colours(), 'unassigned'='grey70')) +
+#  theme(#legend.position = c(0.07, 0.85),
+#        legend.box.background = element_rect(colour = 'black', size = .2))+
+#    labs(subtitle = sample)
+
+```
+
+```{r}
+#saveRDS(last_plot(), glue("{output_fig_dir}/{sample}_tsne_by_clone.rds"))
+```
+
+```{r}
+
+#dplyr::filter(df_tsne) %>% 
+#  ggplot(aes(x = tSNE1, y = tSNE2, colour = Cell_Cycle)) +
+#  geom_point(alpha = 0.6) +
+#  # scale_colour_manual(values = c(get_cluster_colours(), 'unassigned'='grey70')) +
+#  theme(#legend.position = c(0.07, 0.85),
+#        legend.box.background = element_rect(colour = 'black', size = .2))+
+#    labs(subtitle = sample)
+```
+
+```{r}
+# ggsave(glue("{output_fig_dir}/{sample}_tsne_by_cell_cycle.png"), width = 6, height =5)
+```
+
+
+## Plot important genes
+
+
+```{r}
+#for(g in genes_to_plot) {
+#  df_tsne[[g]] <- logcounts(sce_qc)[g,]
+#}
+```
+
+
+```{r}
+#for(g in genes_to_plot) {
+#  ggplot(df_tsne, aes_string(x = "tSNE1", y = "tSNE2", colour = g)) +
+#    geom_point() +
+#    scale_colour_viridis_c(name = glue("{g} expression\n(log normalized counts)")) +
+#    theme(legend.position = "top") +
+#    labs(subtitle = sample)
+#  saveRDS(last_plot(), glue("{output_fig_dir}/{sample}_tsne_gene_{g}.rds"))
+#}
+```
+
+```{r}
+#plotExpression(sce_qc, x = "clone", features = genes_to_plot, exprs_values = "counts")
+```
+
+
+# Differential expression between the two clones
+
+```{r}
+#sce_de <- sce_qc[, sce_qc$clone %in% clones_to_compare]
+# MA: we have already selected for the clones of interest
+sce_de <- sce_qc
+
+rs <- rowSums(as.matrix(counts(sce_qc)))
+qplot(rs, log='x') + geom_vline(xintercept = 100)
+
+sce_de <- sce_de[rowSums(as.matrix(counts(sce_de))) > 100, ]
+```
+
+
+
+With edgeR instead:
+
+```{r}
+dge <- convertTo(sce_de, type = 'edgeR')
+# dge <- calcNormFactors(dge)
+
+# which vs which ???
+d <- colData(sce_de)
+design <- model.matrix(~ label, data = d)
+
+# This describes the edgeR user manual
+# http://bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf
+
+dge <- estimateDisp(dge, design = design)
+#fit <- glmQLFit(dge, design = design)
+#qlf <- glmQLFTest(fit)
+fit <- glmFit(dge, design = design)
+qlf <- glmLRT(fit)
+
+tt <- topTags(qlf, n = Inf)
+#tt <- topTags(qlf, n = 50)
+
+tt <- as.data.frame(tt) %>% 
+  rownames_to_column("gene_symbol") %>% 
+  dplyr::mutate(ensembl_gene_id = rowData(sce_de)$ID) %>% 
+  as_tibble()
+  
+```
+
+```{r}
+saveRDS(tt, glue("{output_fig_dir}/{sample}_differential_expression.rds"))
+```
+
+```{r}
+df_annot <- top_n(tt, 100, -log10(FDR))
+
+png(paste0("volcano_",label1,"_",label2,".png"), width = 10, height = 5, units="in", res=300, pointsize=4)
+ggplot(tt, aes(x = logFC, y = -log10(FDR))) +
+  geom_point() +
+  geom_text_repel(data = df_annot, aes(label = gene_symbol), size=2) +
+  labs(x = paste0("log fold change of ", params$xlab))
+dev.off()
+```
+
+## Track plot
+
+```{r}
+
+plot_gex_cnv(tt, 
+             df_cnv, 
+             clones = c(label1,label2),
+             paste0(label1,"_",label2),
+             additional_genes = genes_to_plot)
+```
+
+
+```{r}
+saveRDS(last_plot(), glue("{output_fig_dir}/{sample}_gex_cnv_plot.rds"))
+```
+
+# Save image in case we need it
+
+```{r}
+save.image(glue("{output_fig_dir}/{sample}_image.rds"))
+```
+
+

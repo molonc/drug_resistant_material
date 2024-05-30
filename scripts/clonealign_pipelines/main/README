@@ -1,0 +1,54 @@
+
+
+
+######################################
+1. First we need to create the clonealign input files. 
+######################################
+This is done outside of the pipeline so we can use
+ package snpEnrichment, which is not installed in the current
+ docker. Future versions will include a docker with this library
+ installed. 
+
+Under the docker's rstudio, check if snpEnrichment library is installed.
+If not, run these in docker's rstudio R:
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install("snpStats")
+install.packages("snpEnrichment")
+
+When krcds is restarted, this installation will dissapear, so you need to install again.
+
+Run sh generate_gene_cell_cn.sh docker's Rstudio's terminal.
+
+######################################
+2. Run the pipeline 
+######################################  
+From terminal command prompt, run
+sh run-SA1035.sh
+
+## NOTE: for SA535, there are 2 lanes for UTU but I only used one, to come back to that!
+## Also, for X5 2895, it only has one clone in the dlp, so the clonalin .rds output is empty, but the csv one is correct
+
+######################################
+3. This doesn't run the twice scran normalization, running it afterwards in Rstudio pipelines/main
+######################################
+## MA: 9 Jan 2021: we found that this wasn't done correctly, redoing it on local Mac because it needs R 4
+## MA: Feb 9, 2024: we are not running this normalization any more, instead, Hoa runs SCtransform normalization separately, then copying them into "sce_twice_scran"
+
+
+
+# Make sure the input file is correct
+# First create the output dir preprocess/sce_twice_scran
+Rscript ../preprocess/R/two_step_normalization.R --input_csv ../../config/input_twice_scran-SA906a.csv --outdir ../../results/SA906a/outputs/preprocess/sce_twice_scran --meta_file ../../config/sample_metadata-SA906a.yaml
+
+Rscript ../preprocess/R/two_step_normalization.R --input_csv ../../config/input_twice_scran-SA906b.csv --outdir ../../results/SA906b/outputs/preprocess/sce_twice_scran --meta_file ../../config/sample_metadata-SA906b.yaml
+
+Rscript ../preprocess/R/two_step_normalization.R --input_csv ../../config/input_twice_scran-SA1035.csv --outdir ../../results/SA1035-v6/outputs/preprocess/sce_twice_scran --meta_file ../../config/sample_metadata-SA1035.yaml
+
+Rscript ../preprocess/R/two_step_normalization.R --input_csv ../../config/input_twice_scran-SA535.csv --outdir ../../results/SA535-v6/outputs/preprocess/sce_twice_scran --meta_file ../../config/sample_metadata-SA535.yaml
+
+Rscript ../preprocess/R/two_step_normalization.R --input_csv ../../config/input_twice_scran-SA535-v7.csv --outdir ../../results/SA535-v7/outputs/preprocess/sce_twice_scran --meta_file ../../config/sample_metadata-SA535-v7.yaml
+
+Rscript ../preprocess/R/two_step_normalization.R --input_csv ../../config/input_twice_scran-SA609.csv --outdir ../../results/SA609-v6/outputs/preprocess/sce_twice_scran --meta_file ../../config/sample_metadata-SA609.yaml
+

@@ -1,0 +1,356 @@
+---
+title: "CloneAlign report"
+author:
+  - "Allen Zhang"
+params:
+  rmd: "clonealign_report.Rmd"
+output: 
+  html_document:
+    highlight: tango
+    toc: true
+    toc_float: true
+    toc_depth: 4
+---
+
+```{r global_chunk_options, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy = TRUE, warning = FALSE, message = FALSE, cache = TRUE, cache.lazy = FALSE, fig.width = 8, fig.height = 4.5)
+```
+
+```{r, echo = FALSE}
+library(knitr)
+library(tidyverse)
+library(tensorflow)
+library(SingleCellExperiment)
+library(scater)
+library(data.table)
+library(pheatmap)
+library(ggrepel)
+library(grid)
+library(scran)
+library(yaml)
+library(scales)
+library(kableExtra)
+library(dendextend)
+
+library(Seurat)
+
+library(scrna.utils)
+library(scrna.sceutils)
+library(cellassign)
+library(cellassign.utils)
+```
+
+```{r, echo = FALSE}
+input <- snakemake@input
+parameters <- snakemake@params
+
+ca_fit_paths <- input$clonealign_fits
+sce_path <- input$sce
+clone_prevalence_path <- input$clone_prevalences
+dimred_type <- parameters$dimred_type
+low_qc_cluster <- parameters$low_qc_cluster
+```
+
+# Preprocessing
+
+```{r}
+sce <- readRDS(sce_path)
+
+clonealign_fits <- lapply(ca_fit_paths, function(x) {
+  readRDS(x)
+})
+
+clone_prevalences <- fread(clone_prevalence_path)
+```
+
+```{r}
+clone_assignments <- dplyr::bind_rows(lapply(clonealign_fits, function(x) {
+  x$clone_fit
+}))
+
+sce_annotated <- sce
+colData(sce_annotated) <- colData(sce_annotated) %>%
+  as.data.frame %>%
+  dplyr::left_join(clone_assignments) %>% 
+  DataFrame()
+
+sce_annotated_filtered <- sce_annotated %>%
+  scater::filter(!is.na(clone) & clone != "unassigned")
+
+sce_annotated_filtered <- sce_annotated_filtered %>%
+  scater::mutate(timepoint = factor(timepoint, levels = unique(timepoint)[order(as.numeric(str_extract(unique(timepoint), "[0-9]+")))]))
+```
+
+```{r}
+clone_colours <- get_colour_palette(sce_annotated_filtered$clone)
+```
+
+## Reprocess clone fits with uncertainty
+
+```{r}
+get_uncert_props <- function(cf) {
+  id <- cf$clone_fit$id[1]
+  
+  cp <- cf$ml_params$clone_probs
+  
+  bind_rows(apply(cp, 2, function(x) {
+    n = nrow(cp)
+    return(tibble(lower = sum(x > 0.99) / n, 
+                  median = sum(x > 0.95) / n, 
+                  upper = sum(x > 0.05) / n))
+  })) %>% 
+    dplyr::mutate(clone = colnames(cp), id = id) %>% 
+    dplyr::select(clone, id, everything())
+}
+
+df_rna_props <- lapply(clonealign_fits, get_uncert_props) %>% 
+  bind_rows()
+
+df_rna_props <- colData(sce_annotated_filtered) %>% 
+  as.data.frame() %>% 
+  dplyr::select(id, timepoint) %>% 
+  unique() %>% 
+  inner_join(df_rna_props)
+```
+
+
+# Expression data
+
+## QC params
+
+### Total counts
+
+```{r}
+plotReducedDim(sce_annotated_filtered, use_dimred = dimred_type, colour_by = "log10_total_counts") + 
+  xlab(paste0(dimred_type, "-1")) + 
+  ylab(paste0(dimred_type, "-2"))
+```
+
+### Mitochondrial percentage
+
+```{r}
+plotReducedDim(sce_annotated_filtered, use_dimred = dimred_type, colour_by = "pct_counts_mitochondrial") + 
+  xlab(paste0(dimred_type, "-1")) + 
+  ylab(paste0(dimred_type, "-2"))
+```
+
+Based on the QC pattern we might think that the low-left cluster is non-human (which should be validated by alignment to mouse).
+
+### Markers of mouse microenvironment cells
+
+```{r, fig.width = 7, fig.height = 5}
+marker_genes <- c("COL1A1", "SPARC", "AIF1", "C1QA")
+
+marker_plots <- lapply(marker_genes, function(gene) {
+  plotReducedDim(sce_annotated_filtered, use_dimred = dimred_type, colour_by = get_ensembl_id(gene, sce_annotated_filtered)) + 
+    xlab(paste0(dimred_type, "-1")) + 
+    ylab(paste0(dimred_type, "-2")) + 
+    ggtitle(gene) + 
+    guides(fill = guide_colorbar(title = ""))
+})
+
+cowplot::plot_grid(plotlist = marker_plots, align = 'hv', axis = 'tblr', ncol = 2)
+```
+
+## Clone mappings
+
+```{r, fig.width = 7, fig.height = 3}
+p_clone <- plotReducedDim(sce_annotated_filtered, use_dimred = dimred_type, colour_by = "clone", point_alpha = 0.3) + 
+  xlab(paste0(dimred_type, "-1")) + 
+  ylab(paste0(dimred_type, "-2")) + 
+  scale_fill_manual(values = clone_colours) + 
+  guides(fill = guide_legend(title = "Clone", override.aes = list(alpha = 1)))
+
+p_timepoint <- plotReducedDim(sce_annotated_filtered, use_dimred = dimred_type, colour_by = "timepoint", point_alpha = 0.3) + 
+  xlab(paste0(dimred_type, "-1")) + 
+  ylab(paste0(dimred_type, "-2")) + 
+  guides(fill = guide_legend(title = "Timepoint", override.aes = list(alpha = 1)))
+
+cowplot::plot_grid(p_timepoint, p_clone, ncol = 2, align = 'hv', axis = 'tblr')
+```
+
+
+## Unsupervised clustering
+
+```{r}
+set.seed(8080)
+scrna_clusters <- cluster_sce(sce_annotated_filtered, method = "seurat", resolution = 0.4, dimreduce_type = "scanorama_PCA")
+```
+
+```{r}
+sce_annotated_filtered$cluster <- scrna_clusters
+
+plotReducedDim(sce_annotated_filtered, use_dimred = dimred_type, colour_by = "cluster") + 
+  xlab(paste0(dimred_type, "-1")) + 
+  ylab(paste0(dimred_type, "-2"))
+```
+
+```{r, echo = FALSE}
+plot_viridis_heatmap <- function(mat, 
+                                 label_fill = "zscore",
+                                 label_text = NULL,
+                                 clustering_method = "ward.D2",
+                                 distance_method = "euclidean",
+                                 normalize_over = names(dimnames(mat))[1],
+                                 xlab = "Sample",
+                                 ylab = "Cluster") {
+  class_names <- names(dimnames(mat))
+  mat_melted <- reshape2::melt(mat) %>%
+    dplyr::group_by(!!as.name(normalize_over)) %>%
+    dplyr::mutate(zscore=(value-mean(value))/sd(value)) %>%
+    dplyr::ungroup()
+  
+  clusts1 <- hclust(proxy::dist(mat, method = distance_method), method = clustering_method)
+  clusts2 <- hclust(proxy::dist(mat %>% t, method = distance_method), method = clustering_method)
+  
+  dend_top <- ggplot(as.ggdend(as.dendrogram(clusts1) %>% set("branches_lwd", c(0.5))), labels = FALSE)
+  
+  mat_melted <- mat_melted %>%
+    dplyr::mutate(xvar = factor(!!as.name(class_names[1]), levels = clusts1$labels[clusts1$order]),
+                  yvar = factor(!!as.name(class_names[2]), levels = clusts2$labels[clusts2$order]))
+  
+  p <- ggplot(mat_melted, aes(x=xvar, y=yvar)) + 
+    geom_tile(aes_string(fill = label_fill)) +
+    theme_bw() + 
+    theme_Publication() + 
+    theme_nature() + 
+    scale_fill_viridis_c() + 
+    scale_x_discrete(expand = c(0,0)) + 
+    scale_y_discrete(expand = c(0,0)) + 
+    theme(legend.key.width = unit(2, "lines"),
+          axis.text.x = element_text(angle = 45, hjust = 1)) + 
+    ylab(ylab) +
+    xlab(xlab)
+  
+  if (!is.null(label_text)) {
+    p <- p + 
+      geom_text(aes(label = sprintf("%.2f", !!as.name(label_text))), size = 3, colour = 'black')
+  }
+  
+  combined_plot <- cowplot::plot_grid(dend_top + theme_nothing(), p + theme(plot.margin = unit(c(0, 5, 5, 5), "mm")), align = 'v', axis = 'lr', nrow = 2, rel_heights = c(0.1, 0.9))
+  
+  return(combined_plot)
+}
+```
+
+```{r}
+if (length(unique(scrna_clusters)) > 1) {
+  clone_cluster_table <- with(colData(sce_annotated_filtered), table(clone, cluster))
+  clone_cluster_proportions <- clone_cluster_table/rowSums(clone_cluster_table)
+  
+  plot_viridis_heatmap(clone_cluster_proportions, label_fill = "zscore", label_text = "value", clustering_method = "ward.D2", normalize_over = "clone", xlab = "Clone", ylab = "Cluster")
+}
+```
+
+## Cell cycle
+
+```{r}
+plotReducedDim(sce_annotated_filtered, use_dimred = dimred_type, colour_by = "Cell_Cycle") + 
+  xlab(paste0(dimred_type, "-1")) + 
+  ylab(paste0(dimred_type, "-2")) 
+```
+
+```{r}
+cell_cycle_clone_counts <- with(colData(sce_annotated_filtered), table(clone, Cell_Cycle))
+
+round(cell_cycle_clone_counts/rowSums(cell_cycle_clone_counts), 3)
+```
+
+```{r}
+cell_cycle_cluster_counts <- with(colData(sce_annotated_filtered), table(cluster, Cell_Cycle))
+
+round(cell_cycle_cluster_counts/rowSums(cell_cycle_cluster_counts), 3)
+```
+
+# Clone prevalences
+
+```{r}
+# cell_data <- colData(sce_annotated_filtered) %>%
+#   as.data.frame
+# 
+# rna_counts <- cell_data %>%
+#   dplyr::group_by(id, timepoint, clone) %>%
+#   dplyr::summarise(n_cells=n()) %>%
+#   dplyr::mutate(prop=n_cells/sum(n_cells)) %>%
+#   dplyr::ungroup() %>%
+#   dplyr::mutate(type = "RNA")
+# 
+# if (low_qc_cluster %in% unique(scrna_clusters)) {
+#   rna_counts_lowqc_remove <- cell_data %>%
+#     dplyr::filter(!cluster %in% low_qc_cluster) %>%
+#     dplyr::group_by(id, timepoint, clone) %>%
+#     dplyr::summarise(n_cells=n()) %>%
+#     dplyr::mutate(prop=n_cells/sum(n_cells)) %>%
+#     dplyr::ungroup() %>%
+#     dplyr::mutate(type = "RNA_2")
+# }
+```
+
+```{r}
+df_rna_props
+```
+
+
+
+```{r}
+combined_clones <- sort(unique(df_rna_props$clone))
+clone_mapping <- strsplit(combined_clones, "_")
+names(clone_mapping) <- combined_clones
+
+reverse_mapping <- reverseSplit(clone_mapping)
+```
+
+```{r}
+dna_counts <- clone_prevalences %>%
+  dplyr::mutate(clone=unlist(reverse_mapping[as.character(cluster)])) %>%
+  dplyr::rename(timepoint=time) %>%
+  dplyr::group_by(timepoint, clone) %>%
+  dplyr::summarise(freq=sum(freq)) %>%
+  dplyr::mutate(prop=freq/sum(freq)) %>%
+  dplyr::ungroup() %>%
+  dplyr::mutate(type = "DNA") %>% 
+  dplyr::select(-freq)
+
+
+df_rna_props <- dplyr::rename(df_rna_props, prop = median) %>% 
+  dplyr::mutate(type = "RNA") %>% 
+  dplyr::select(-id)
+
+dna_counts <- dplyr::mutate(dna_counts, 
+                            lower = NA,
+                            upper = NA)
+  
+  
+complete_counts <- bind_rows(dna_counts, df_rna_props)
+
+complete_counts <- dplyr::mutate(complete_counts, 
+                     timepoint = factor(timepoint,
+                                        levels = unique(timepoint)[order(as.numeric(str_extract(unique(timepoint), "[0-9]+")))]))%>%
+  complete(type, timepoint, clone, fill = list(prop = 0))
+```
+
+
+```{r fig.width = 4, fig.height = 7}
+ggplot(complete_counts, aes(x=timepoint, y=prop, group = clone)) + 
+  geom_point(aes(colour = clone), size = 1.5) + 
+  geom_line(aes(colour = clone), size = 1) + 
+  theme_bw() + 
+  theme_Publication() + 
+  theme_nature() + 
+  stripped_theme(strip_face = "bold") + 
+  xlab("Timepoint") + 
+  ylab("Proportion") + 
+  scale_colour_manual(values = clone_colours)  +
+  facet_grid(clone ~ type) +
+  geom_errorbar(aes(ymin = lower, ymax = upper, colour = clone), 
+                width = 0.4, 
+                size = 1)
+```
+
+
+
+# Differential expression
+
+To come later ...
+
+

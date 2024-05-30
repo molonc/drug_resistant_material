@@ -1,0 +1,105 @@
+
+__author__      = "Allen Zhang"
+
+workflow_name = 'parse_cnv'
+
+output_dir = os.path.join(config['outdir'], workflow_name)
+scratch_dir = os.path.join(config['scratchdir'], workflow_name)
+log_dir = os.path.join(config['logdir'], workflow_name)
+workspace_dir = config['workspaces'][workflow_name]
+gene_cell_dir = config['gene_cell_dir']
+
+
+# Using feather files instead
+#def list_segment_files(wildcards):
+#    segment_files = [
+#        config['dlp_data']['segments'][x]
+#        for x in config['integrate']['groups'][wildcards.group] 
+#        if x in config['dlp_data']['segments']
+#    ]
+#    
+#    return list(chain(*segment_files))
+
+# This is done outside by a script in the pipelines/main directory
+#rule compute_gene_cell_cn:
+#    input:
+#        segment_files=list_segment_files,
+#    output:
+#        '{outdir}/gene_cell_cn/{{group}}.feather'.format(
+#            outdir=output_dir
+#        )
+#    params:
+#        name='gene-cell-cn-{group}',
+#        workspace=workspace_dir,
+#    log:
+#        '{outdir}/compute_gene_cell_cn/{{group}}.log'.format(
+#            outdir=log_dir
+#        ),
+#    #benchmark:
+#    #    '{outdir}/compute_gene_cell_cn/{{group}}.txt'.format(
+#    #        outdir=log_dir
+#    #    ),
+#    shell:
+#        'Rscript {params.workspace}/R/format_segments.R '
+#        '--segment_file {input.segment_files} '
+#        '--outfname {output} '
+#        '>& {log}'
+
+rule select_genes:
+    input:
+        '{gene_cell}/{{group}}.feather'.format(
+            gene_cell=gene_cell_dir
+        )
+    output:
+        tsv='{outdir}/gene_clone_cn/{{group}}.tsv'.format(
+            outdir=output_dir
+        ),
+        fig='{outdir}/purity_figures/{{group}}.png'.format(
+            outdir=output_dir
+        ),
+    params:
+        name='select-genes-{group}',
+        pct_pure=lambda wildcards: config['select_genes'][wildcards.group]['pct_pure'],
+        workspace=workspace_dir,
+    log:
+        '{outdir}/select_genes/{{group}}.log'.format(
+            outdir=log_dir
+        ),
+    #benchmark:
+    #    '{outdir}/select_genes/{{group}}.txt'.format(
+    #        outdir=log_dir
+    #    ),
+    shell:
+        'Rscript {params.workspace}/R/select_genes-same-timepoint.R '
+        '--gene_cn {input} '
+        '--pct_pure {params.pct_pure} '
+        '--outfname {output.tsv} '
+        '--outfig {output.fig} '
+        '>& {log}'
+
+rule compute_clone_prevalences:
+    input:
+        #segment_files=list_segment_files,
+        feather_file='{gene_cell_dir}/{{group}}.feather'.format(gene_cell_dir=gene_cell_dir),
+    output:
+        '{outdir}/clone_prevalences/{{group}}.csv'.format(
+            outdir=output_dir
+        )
+    params:
+        name='compute-clone-prevalences-{group}',
+        workspace=workspace_dir,
+    log:
+        '{outdir}/compute_clone_prevalences/{{group}}.log'.format(
+            outdir=log_dir
+        ),
+    #benchmark:
+    #    '{outdir}/compute_clone_prevalences/{{group}}.txt'.format(
+    #        outdir=log_dir
+    #    ),
+    shell:
+        'Rscript {params.workspace}/R/compute_clone_prevalences.R '
+        '--feather_file {input.feather_file} '
+        '--outfname {output} '
+        '>& {log}'
+        
+       # '--segment_file {input.segment_files} '        

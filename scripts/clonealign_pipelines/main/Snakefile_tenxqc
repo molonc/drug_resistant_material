@@ -1,0 +1,40 @@
+import random
+from itertools import chain
+
+# Shared configuration
+configfile: "../../config/tenxqc.yaml"
+
+# Containerization
+singularity: "docker://kieranrcampbell/clonealign-analysis-master:v1.6"
+# MA: switching to the docker version that has snpEnrichment installed so it can use more memory
+# singularity: "docker://kieranrcampbell/clonealign-analysis-master:mem"
+
+def get_available_samples():
+    scrna_samples = (config['scrnaseq_data']['sce_library_id']).keys()
+
+    full_samples = list(set(scrna_samples))
+
+    return full_samples
+
+samples = get_available_samples()
+
+print(samples)
+
+# Sub-pipelines
+include: "../murine/murine.smk"
+include: "../preprocess/Snakefile"
+
+
+rule all:
+    input:
+        preprocessed_sces=expand(
+            '{outdir}/sce_annotated/{{sample}}.rds'.format(
+                outdir=os.path.join(config['outdir'], 'preprocess')
+            ),
+            sample=config['scrnaseq_data']['sce_library_id']
+        ),
+
+
+
+
+        

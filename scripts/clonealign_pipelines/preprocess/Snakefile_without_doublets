@@ -1,0 +1,191 @@
+
+workflow_name = 'preprocess'
+
+output_dir = os.path.join(config['outdir'], workflow_name)
+scratch_dir = os.path.join(config['scratchdir'], workflow_name)
+log_dir = os.path.join(config['logdir'], workflow_name)
+workspace_dir = config['workspaces'][workflow_name]
+
+rule compute_qc_stats:
+    input:
+        sce='{outdir}/murine/sces/{{sample}}.rds'.format(
+            outdir=config['outdir']
+        ),
+        metadata=ancient(config['metadata']['sample_metadata']),
+    output:
+        '{outdir}/sce_qc/{{sample}}.rds'.format(
+            outdir=scratch_dir
+        )
+    params:
+        name='qc-{sample}',
+        workspace=workspace_dir,
+        sample='{sample}',
+    log:
+        '{outdir}/qc/{{sample}}.log'.format(
+            outdir=log_dir
+        ),
+    shell:
+        'Rscript {params.workspace}/R/qc_stats.R '
+        '--sce_rds_input {input.sce} '
+        '--metadata {input.metadata} '
+        '--sample {params.sample} '
+        '--outfname {output} '
+        '>& {log}'
+
+rule filter_cells:
+    input:
+        '{outdir}/sce_qc/{{sample}}.rds'.format(
+            outdir=scratch_dir
+        )
+    output:
+        '{outdir}/sce_filtered/{{sample}}.rds'.format(
+            outdir=scratch_dir
+        )
+    params:
+        name='filter-cells-{sample}',
+        max_mito=config['qc']['max_mito'],
+        max_ribo=config['qc']['max_ribo'],
+        min_features=config['qc']['min_features'],
+        min_malat=config['qc']['min_malat'],
+        nmads=config['qc']['nmads'],
+        workspace=workspace_dir,
+    log:
+        '{outdir}/filter_cells/{{sample}}.log'.format(
+            outdir=log_dir
+        ),
+    #benchmark:
+    #    '{outdir}/filter_cells/{{sample}}.txt'.format(
+    #        outdir=log_dir
+    #    ),
+    shell:
+        'Rscript {params.workspace}/R/filter_cells.R '
+        '--sce {input} '
+        '--mito {params.max_mito} '
+        '--ribo {params.max_ribo} '
+        '--nmads {params.nmads} '
+        '--features {params.min_features} '
+        '--min_malat {params.min_malat} '
+        '--outfname {output} '
+        '>& {log}'
+
+#rule identify_doublets:
+#    input:
+#        '{outdir}/sce_filtered/{{sample}}.rds'.format(
+#            outdir=scratch_dir
+#        ),
+#    output:
+#        '{outdir}/sce_doublet_labeled/{{sample}}.rds'.format(
+#            outdir=scratch_dir
+#        )
+#    params:
+#        name='identify-doublets-{sample}',
+#        method=config['qc']['doublet_method'],
+#        conda_env=config['conda_environment'],
+#        conda_path=config['conda_path'],
+#        workspace=workspace_dir,
+#    log:
+#        '{outdir}/identify_doublets/{{sample}}.log'.format(
+#            outdir=log_dir
+#        ),
+#    #benchmark:
+#    #    '{outdir}/identify_doublets/{{sample}}.txt'.format(
+#    #        outdir=log_dir
+#    #    ),
+#    shell:
+#        'Rscript {params.workspace}/R/identify_doublets.R '
+#        '--sce {input} '
+#        '--method {params.method} '
+#        '--conda_env {params.conda_env} '
+#        '--conda_path {params.conda_path} '
+#        '--outfname {output} '
+#        '>& {log}'
+
+#rule normalize:
+#    input:
+#        '{outdir}/sce_filtered/{{sample}}.rds'.format(
+#            outdir=scratch_dir
+#        )
+#    output:
+#        '{outdir}/sce_normalized/{{sample}}.rds'.format(
+#            outdir=scratch_dir
+#        )
+#    params:
+#        name='normalize-{sample}',
+#        umap_neighbors=config['dimreduce']['umap_neighbors'],
+#        umap_min_dist=config['dimreduce']['umap_min_dist'],
+#        workspace=workspace_dir,
+#    log:
+#        '{outdir}/normalize/{{sample}}.log'.format(
+#            outdir=log_dir
+#        ),
+#    #benchmark:
+#    #    '{outdir}/normalize/{{sample}}.txt'.format(
+#    #        outdir=log_dir
+#    #    ),
+#    shell:
+#        'Rscript {params.workspace}/R/normalize.R '
+#        '--sce {input} '
+#        '--umap_neighbors {params.umap_neighbors} '
+#        '--umap_min_dist {params.umap_min_dist} '
+#        '--outfname {output} '
+#        '>& {log}'
+
+rule cell_cycle:
+    input:
+        '{outdir}/sce_filtered/{{sample}}.rds'.format(
+            outdir=scratch_dir
+        )
+    output:
+        '{outdir}/cyclone/{{sample}}.rds'.format(
+            outdir=output_dir
+        )
+    params:
+        name='cyclone-{sample}',
+        workspace=workspace_dir,
+    threads: 10
+    log:
+        '{outdir}/cell_cycle/{{sample}}.log'.format(
+            outdir=log_dir
+        ),
+    #benchmark:
+    #    '{outdir}/cell_cycle/{{sample}}.txt'.format(
+    #        outdir=log_dir
+    #    ),
+    shell:
+        'Rscript {params.workspace}/R/cyclone.R '
+        '--sce {input} '
+        '--ncpus {threads} '
+        '--outfname {output} '
+        '>& {log}'
+
+rule annotate_sce_qc:
+    input:
+        sce='{outdir}/sce_filtered/{{sample}}.rds'.format(
+            outdir=scratch_dir
+        ),
+        cc='{outdir}/cyclone/{{sample}}.rds'.format(
+            outdir=output_dir
+        ),
+    output:
+        '{outdir}/sce_annotated/{{sample}}.rds'.format(
+            outdir=output_dir
+        )
+    params:
+        name='annotate-{sample}',
+        workspace=workspace_dir,
+    log:
+        '{outdir}/annotate_sce/{{sample}}.log'.format(
+            outdir=log_dir
+        ),
+    #benchmark:
+    #    '{outdir}/annotate_sce/{{sample}}.txt'.format(
+    #        outdir=log_dir
+    #    ),
+    shell:
+        'Rscript {params.workspace}/R/annotate.R '
+        '--sce {input.sce} '
+        '--cyclone {input.cc} '
+        '--outfname {output} '
+        '>& {log}'
+
+        

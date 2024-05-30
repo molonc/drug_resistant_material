@@ -1,0 +1,129 @@
+---
+title: "Explore SA609"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(scater)
+})
+```
+
+```{r}
+devtools::install_github('stephenturner/annotables')
+library(annotables)
+
+hg19 <- annotables::grch37
+```
+
+
+```{r}
+sce <- readRDS("../../results/v1/outputs/integrate/batch_correct/SA609.rds")
+
+rownames(sce) <- rowData(sce)$ID
+```
+
+Using clonealign fit
+
+
+```{r}
+ca_x3 <- readRDS("../../results/v1/outputs/align_clones/clonealign_fit/SA609X3XB01584.rds")
+ca_x10 <- readRDS("../../results/v1/outputs/align_clones/clonealign_fit/SA609X10XB02454.rds")
+```
+
+```{r}
+clone_fit <- bind_rows(
+  ca_x3$clone_fit,
+  ca_x10$clone_fit
+)
+
+colnames(sce) <- sce$Barcode
+sce <- sce[, clone_fit$Barcode]
+sce$clone <- clone_fit$clone
+```
+
+
+
+```{r}
+hg19 <- dplyr::select(hg19, ensgene, chr, start, end) %>% distinct()
+
+rd <- as.data.frame(rowData(sce)) %>% 
+  dplyr::mutate(ensgene = ID) %>% 
+  left_join(hg19, by = "ensgene") %>% 
+  dplyr::rename(start_pos = start, end_pos = end)
+
+rowData(sce) <- rd
+```
+
+```{r}
+sce <- sce[rowSums(as.matrix(counts(sce))) > 100, ]
+```
+
+```{r}
+sce_tmp <- sce[, sample(ncol(sce), 300)]
+sce_tmp <- sce_tmp[rowSums(as.matrix(counts(sce_tmp))) > 100, ]
+```
+
+
+```{r}
+assay(sce_tmp, 'norm_logcounts') <-scale(logcounts(sce_tmp))
+assay(sce_tmp, 'norm_logcounts') <- t(scale(t(assay(sce_tmp, 'norm_logcounts'))))
+```
+
+```{r}
+rd <- rowData(sce_tmp) %>% 
+  as_tibble()
+
+rd <- group_by(rd, chr) %>% 
+  dplyr::mutate(rank_pos = rank(start_pos)) %>% 
+  ungroup() %>% 
+  dplyr::select(ID, chr, rank_pos)
+```
+
+```{r}
+nlc <- assay(sce_tmp, 'logcounts') %>% 
+  as.matrix() %>% 
+  as.data.frame() %>% 
+  rownames_to_column('ID') %>% 
+  gather(cell, expression, -ID) %>% 
+  as_tibble()
+```
+
+```{r}
+df <- inner_join(rd, nlc, by = "ID")
+
+chr_levels <- c(as.character(1:23), "X", "Y")
+
+df$chr <- factor(df$chr, levels = chr_levels)
+
+df <- dplyr::filter(df, !is.na(chr))
+
+d <- dist(t(assay(sce_tmp, 'logcounts')))
+hc <- hclust(d)
+
+df$cell <- factor(df$cell, levels = hc$labels[hc$order])
+```
+
+
+```{r}
+ggplot(df, aes(x = rank_pos, y = cell, fill = expression)) +
+  facet_wrap(~ chr, scales = "free_x") +
+  theme(axis.text.y = element_blank()) +
+  geom_raster() +
+  scale_fill_viridis_c(limits = c(0, 2))
+```
+
+
+
+
+
+
+
+
+```{r}
+load("/cellassign/fitness-scrna/data/external/recount2/rse_gene_breast.Rdata")
+```
+

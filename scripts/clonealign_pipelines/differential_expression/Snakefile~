@@ -1,0 +1,8 @@
+workflow_name = 'align_clones'
+
+output_dir = os.path.join(config['outdir'], workflow_name)
+scratch_dir = os.path.join(config['scratchdir'], workflow_name)
+log_dir = os.path.join(config['logdir'], workflow_name)
+workspace_dir = config['workspaces'][workflow_name]
+
+

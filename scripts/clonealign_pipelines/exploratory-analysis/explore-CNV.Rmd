@@ -1,0 +1,158 @@
+---
+title: "Debug CNV"
+output: html_document
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(SingleCellExperiment)
+  library(scater)
+  library(data.table)
+  library(methods)
+  library(scran)
+  library(yaml)
+  library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+  library(org.Hs.eg.db)
+  library(parallel)
+  
+  library(scrna.utils)
+  library(scrna.sceutils)
+  library(cellassign.utils)
+  library(argparse)
+  
+  library(feather)
+})
+```
+
+
+```{r}
+fs <- dir("/cellassign/fitness-scrna/data/dlp/pdx/", 
+         pattern = "cnvd*.*609",
+         full.names = TRUE)
+
+
+raw_segments <- dplyr::bind_rows(lapply(fs, function(f) {
+  fread(f)
+}))
+```
+
+
+```{r}
+raw_segments <- raw_segments[raw_segments$chr == "4",]
+```
+
+
+
+# Sample max 1000 cells
+
+```{r}
+segments <- raw_segments %>%
+  dplyr::mutate(chr=paste0("chr", chr))
+```
+
+
+# Get gene coordinates
+
+```{r}
+txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+g <- genes(txdb, single.strand.genes.only=FALSE)
+
+segments_gr <- makeGRangesFromDataFrame(segments, keep.extra.columns = TRUE)
+overlaps <- findOverlaps(g, segments_gr, ignore.strand = TRUE)
+```
+
+```{r}
+overlapping_ranges <- pintersect(g[queryHits(overlaps)], segments_gr[subjectHits(overlaps)], ignore.strand = TRUE, drop.nohit.ranges = TRUE)
+
+percentage_overlap <- width(overlapping_ranges) / width(segments_gr[subjectHits(overlaps)])
+percentage_overlap_sum <- sapply(percentage_overlap, sum)
+
+gene_cn <- tibble(entrezgene = names(g)[queryHits(overlaps)], percent_overlap=percentage_overlap_sum)
+gene_cn$ensembl_gene_id <- mapIds(org.Hs.eg.db, 
+                                  keys = gene_cn$entrezgene, 
+                                  column="ENSEMBL", 
+                                  keytype="ENTREZID", 
+                                  multiVals="first")
+
+gene_cn <- gene_cn %>%
+  cbind(mcols(segments_gr[subjectHits(overlaps)]))
+```
+
+```{r}
+
+# Filter for complete entries
+gene_cn <- gene_cn %>%
+  as.data.frame %>%
+  drop_na()
+
+
+gene_cn_summarized <-  dplyr::group_by(gene_cn,
+                                       ensembl_gene_id, cell_names, time, cluster, copy_number) %>%
+  dplyr::summarise(percent_overlap=sum(percent_overlap),
+                   n_parts=n()) %>% 
+    ungroup()
+
+
+gene_cn_summarized <- gene_cn_summarized %>%
+  dplyr::group_by(ensembl_gene_id, cell_names, time, cluster) %>%
+  dplyr::summarise(copy_number_mean=sum(copy_number*percent_overlap)/sum(percent_overlap),
+                   copy_number_min=min(copy_number),
+                   copy_number_max=max(copy_number),
+                   copy_number_mode=copy_number[which.max(percent_overlap)][1],
+                   n_parts=sum(n_parts)) %>% 
+  ungroup()
+
+```
+
+
+```{r}
+annots <- annotables::grch37
+
+annots <- dplyr::select(annots, ensembl_gene_id = ensgene, chr, start, end) 
+
+df <- inner_join(gene_cn_summarized, annots)
+```
+
+```{r}
+pos_only <- dplyr::select(df, ensembl_gene_id, chr, start)
+pos_only <- pos_only[!duplicated(pos_only),]
+
+pos_only <- group_by(pos_only, chr) %>% 
+  dplyr::mutate(start_order = rank(start)) %>% 
+  ungroup()
+
+df <- pos_only %>% 
+  ungroup() %>% 
+  inner_join(df)
+```
+
+```{r}
+chr_levels <- c(as.character(1:23), "X", "Y")
+
+df$chr <- factor(df$chr, levels = chr_levels)
+
+df <- drop_na(df)
+
+cnv_cols <- c("0" = "#2166ac",
+              "1" = "#92c5de", 
+              "2" = "grey80", 
+              "3" = "#f4a582", 
+              "4" = "#d6604d",
+              "5" = "#b2182b",
+              "6+" = "#67001f")
+
+df$cnv <- as.character(round(df$copy_number_mode))
+df$cnv[round(df$copy_number_mode) >= 6] <- "6+"
+```
+
+```{r fig.width = 10, fig.height = 7}
+ggplot(df, aes(x = start_order, y = cell_names, fill = cnv)) +
+  geom_raster() +
+  facet_wrap(~ chr, scales = "free_x", nrow = 1, switch = "x") +
+  theme(legend.position = "top", axis.text = element_blank()) +
+  scale_y_discrete(expand = c(0, 0)) +
+  scale_fill_manual(values = cnv_cols, name = "Copy number") +
+  labs(x = "chromosome")
+```
+

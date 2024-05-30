@@ -1,0 +1,115 @@
+import random
+from itertools import chain
+
+# Shared configuration
+configfile: "../../config/drug-res-extraSA_v6.yaml"
+
+# Containerization
+singularity: "docker://kieranrcampbell/clonealign-analysis-master:v1.6"
+# MA: switching to the docker version that has snpEnrichment installed so it can use more memory
+# singularity: "docker://kieranrcampbell/clonealign-analysis-master:mem"
+
+def get_available_samples():
+    scrna_samples = (config['scrnaseq_data']['sce_library_id']).keys()
+    #dlp_samples = (config['dlp_data']['segments']).keys()
+
+    #full_samples = list(set(scrna_samples) & set(dlp_samples))
+    full_samples = set(scrna_samples)
+
+    ## Exclude 039 while sohrab still getting tree
+#    full_samples = [f for f in full_samples if not "039" in f]
+#    full_samples = [f for f in full_samples if not "532" in f]
+
+    return full_samples
+
+samples = get_available_samples()
+sample_groups = list(config['integrate']['groups'].keys())
+
+#sample_groups = [s for s in sample_groups if not "039" in s]
+#sample_groups = [s for s in sample_groups if not "532" in s]
+
+print(samples)
+print(sample_groups)
+
+# Sub-pipelines
+include: "../murine/murine.smk"
+include: "../preprocess/Snakefile"
+#include: "../integrate/Snakefile"
+include: "../parse_cnv/Snakefile"
+include: "../align_clones/Snakefile"
+#include: "../report/Snakefile"
+#include: "../infercnv/infercnv.smk"
+#include: "../differential_expression/Snakefile"
+# include: "../differential_expression/differential-expression.smk"
+
+
+rule all:
+    input:
+        #output_figs=de_figs, ## defined in differential_expression
+        preprocessed_sces=expand(
+            '{outdir}/sce_annotated/{{sample}}.rds'.format(
+                outdir=os.path.join(config['outdir'], 'preprocess')
+            ),
+            sample=config['scrnaseq_data']['sce_library_id']
+        ),
+        #integrated_sces=expand(
+        #    '{outdir}/batch_correct/{{group}}.rds'.format(
+        #        outdir=os.path.join(config['outdir'], 'integrate')
+        #    ),
+        #    group=sample_groups
+        #),
+        gene_clone_cn=expand(
+            '{outdir}/gene_clone_cn/{{group}}.tsv'.format(
+                outdir=os.path.join(config['outdir'], 'parse_cnv')
+            ),
+            group=sample_groups
+        ),
+        #exploratory_reports=expand('{outdir}/summary_reports/{{group}}.html'.format(
+        #    outdir=os.path.join(config['outdir'])
+        #    ),
+        #    group=sample_groups),
+        clonealign_fits=expand(
+            '{outdir}/clonealign_fit/{{sample}}.rds'.format(
+                outdir=os.path.join(config['outdir'], 'align_clones')
+            ),
+            sample=samples
+        ),
+        # infercnv_figs=infercnv_figs,
+        clonealign_eval_pngs=expand('{outdir}/clonealign_eval/{{sample}}.png'.format(
+            outdir=os.path.join(config['outdir'], 'align_clones')
+            ), sample=samples),
+        # clonealign_reports=expand(
+        #     '{outdir}/clonealign_reports/{{group}}.html'.format(
+        #         outdir=os.path.join(config['outdir'], 'report')
+        #     ),
+        #     group=sample_groups
+        # ),
+        clone_prevalence_figs=expand('{outdir}/clonal_prevalences/{{sample}}.png'.format(
+            outdir=os.path.join(config['outdir'], 'align_clones')
+            ), sample=samples),
+        # de_rds=de_rds,
+        # de_html=de_html,
+        clonealign_fit_csv=expand('{outdir}/clonealign_fit_csv/{{sample}}.csv'.format(
+            outdir=os.path.join(config['outdir'], 'align_clones')
+        ), sample=samples),
+
+
+
+
+#rule summary_reports:
+#    input:
+#        sce='{outdir}/batch_correct/{{group}}.rds'.format(
+#                outdir=os.path.join(config['outdir'], 'integrate')
+#            ),
+#        cnv= '{outdir}/gene_clone_cn/{{group}}.tsv'.format(
+#                outdir=os.path.join(config['outdir'], 'parse_cnv')
+#            ),
+#    output:
+#        '{outdir}/summary_reports/{{group}}.html'.format(
+#            outdir=os.path.join(config['outdir'])
+#            )
+#    script:
+#        "../exploratory-analysis/sample-overview.Rmd"
+
+
+        

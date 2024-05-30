@@ -1,0 +1,114 @@
+---
+title: "Differential expression figs"
+output:
+  html_document:
+    highlight: tango
+    code_folding: "hide"
+params:
+   rmd: "de-figs.Rmd"
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(scater)
+  library(annotables)
+  library(ggrepel)
+})
+
+theme_set(theme_light())
+```
+
+```{r}
+results <- readRDS(snakemake@input[['rds']])
+
+sample <- snakemake@params[['sample']]
+```
+
+```{r}
+clones <- sapply(results, `[[`, 'clone')
+
+cat(paste("Clones under study: ", paste(clones, collapse = " ")))
+
+```
+
+```{r}
+## Define function to generate plots
+
+make_plots <- function(results_clone) {
+  clone <- results_clone$clone
+  other_clones <- setdiff(results_clone$interesting_clones, clone)
+  
+  de_string <- paste(clone, "vs", paste(other_clones, collapse = " + "))
+
+  gsea_hallmark <- results_clone$gsea_hallmark %>% 
+    dplyr::filter(padj < 0.05)%>% 
+    top_n(20, abs(NES))
+  
+  
+  hallmark_plot <- ggplot(gsea_hallmark, aes(x = forcats::fct_reorder(pathway, NES), y = NES)) +
+    geom_bar(stat = 'identity') + 
+    coord_flip() +
+    labs(x = "Pathway", y = "Normalized enrichment score",
+         subtitle = paste("Hallmark enrichment clones", de_string),
+         title = sample)
+
+
+  gsea_go <- results_clone$gsea_go %>% 
+    dplyr::filter(padj < 0.05) %>% 
+    top_n(20, abs(NES))
+  
+  go_plot <- ggplot(gsea_go, aes(x = forcats::fct_reorder(pathway, NES), y = NES)) +
+    geom_bar(stat = 'identity') + 
+    coord_flip() +
+    labs(x = "Pathway", y = "Normalized enrichment score",
+         subtitle = paste("GO enrichment clones", de_string),
+         title = sample)
+  
+  
+  gsea_oncogenic <- results_clone$gsea_oncogenic %>% 
+    dplyr::filter(padj < 0.05) %>% 
+    top_n(20, abs(NES))
+  
+  
+  oncogenic_plot <- ggplot(gsea_oncogenic, aes(x = forcats::fct_reorder(pathway, NES), y = NES)) +
+    geom_bar(stat = 'identity') + 
+    coord_flip() +
+    labs(x = "Pathway", y = "Normalized enrichment score",
+         subtitle = paste("Oncogenic signature enrichment clones", de_string),
+         title = sample)
+
+  de_results <- results_clone$de_results
+  de_annot <- top_n(de_results, 40, abs(logFC))
+    
+  volcano_plot <- ggplot(de_results, aes(x = logFC, y = -log10(FDR))) + 
+    geom_point() +
+    geom_text_repel(data = de_annot, aes(label = symbol)) +
+    labs(x = paste("log fold change", de_string),
+         title = sample)
+
+  list(
+    volcano_plot = volcano_plot,
+    go_plot = go_plot,
+    hallmark_plot = hallmark_plot,
+    oncogenic_plot = oncogenic_plot
+  )
+}
+```
+
+```{r}
+
+all_plots <- lapply(results, make_plots)
+
+```
+
+
+```{r fig.width = 7, fig.height = 4}
+for(clone_plots in all_plots){
+  for(plot in clone_plots ) {
+    print(plot)
+  }
+}
+```
+

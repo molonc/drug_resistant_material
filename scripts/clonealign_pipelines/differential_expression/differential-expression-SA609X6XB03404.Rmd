@@ -1,0 +1,344 @@
+---
+title: "CloneAlign report"
+author:
+  - "Kieran Campbell"
+params:
+  rmd: "differential-expression-SA609X6XB03404.Rmd"
+  sample: SA000
+  output_fig_dir: home
+  input_sce: sce
+  input_ca: ca
+  input_clone_cn: clone_cn
+output: 
+  html_document:
+    highlight: tango
+    toc: true
+    toc_float: true
+    toc_depth: 4
+---
+
+```{r global_chunk_options, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy = TRUE, warning = FALSE, message = FALSE, cache = FALSE, cache.lazy = FALSE, fig.width = 8, fig.height = 4.5)
+```
+
+```{r, echo = FALSE}
+suppressPackageStartupMessages({
+  library(knitr)
+  library(tidyverse)
+  library(tensorflow)
+  library(SingleCellExperiment)
+  library(scater)
+  library(data.table)
+  library(pheatmap)
+  library(ggrepel)
+  library(grid)
+  library(scran)
+  library(yaml)
+  library(scales)
+  library(kableExtra)
+  library(dendextend)
+  library(edgeR)
+  library(org.Hs.eg.db)
+  library(Seurat)
+  library(pheatmap)
+  library(clonealign)
+  library(ggrepel)
+  library(annotables)
+  library(scales)
+  library(RColorBrewer)
+  library(fgsea)
+  
+  library(scrna.utils)
+  library(scrna.sceutils)
+  library(cellassign)
+  library(cellassign.utils)
+})
+
+theme_set(theme_cowplot(font_size = 11))
+```
+
+```{r}
+
+source("de-utils.R")
+```
+
+```{r}
+clones_to_compare <- c("B", "A")
+```
+
+
+# Load data
+
+
+```{r}
+sce <- readRDS(params$input_sce)
+ca <- readRDS(params$input_ca)
+df_cnv <- read_tsv(params$input_clone_cn)
+```
+i
+
+# View clones
+
+```{r}
+pheatmap(ca$ml_params$clone_probs)
+```
+
+
+
+
+```{r}
+colnames(sce) <- sce$Barcode
+sce <- sce[,ca$clone_fit$Barcode]
+
+ca <- clonealign:::recompute_clone_assignment(ca, 0.5)
+
+sce$clone <- ca$clone
+
+# sce_qc <- sce[, sce$clone %in% c("B", "F")]
+#sce_qc <- sce
+# MA:
+sce_qc <- sce[, sce$clone %in% clones_to_compare]
+
+# MA: this gives an error
+# MA: this should remove mitocondrial genes and other genes that are not of interest
+# sce_qc <- sce_qc[!grepl("^RP[L|S]|^MT-|^FOS|^JUN|^HSP", rowData(sce_qc)$Symbol)]
+# mat <- counts(sce_qc)
+# mat <- mat[!grepl("^RP[L|S]|^MT-|^FOS|^JUN|^HSP", rowData(sce_qc)$Symbol),]
+# matlog <- logcounts(sce_qc)
+# matlog <- matlog[!grepl("^RP[L|S]|^MT-|^FOS|^JUN|^HSP", rowData(sce_qc)$Symbol),]
+# sce_qc <- SingleCellExperiment(assays = list(counts = mat, logcounts = matlog))
+
+```
+
+```{r}
+plotTSNE(sce_qc, colour_by = "MALAT1")
+plotTSNE(sce_qc, colour_by = "total_features_by_counts")
+```
+
+
+```{r}
+plotColData(sce_qc, x=  "total_counts", y = "total_features_by_counts", colour = "MALAT1") + 
+  geom_density_2d() + geom_hline(yintercept = 3500, linetype = 2)
+```
+
+```{r}
+sce_qc <- sce_qc[, sce_qc$total_features_by_counts > 3500]
+```
+
+
+## Reduced dimension figures
+
+```{r}
+set.seed(123L)
+
+sce_qc <- runPCA(sce_qc, ncomponents = 20)
+sce_qc <- runTSNE(sce_qc)
+
+df_tsne <- as_tibble(reducedDim(sce_qc, 'TSNE')) %>% 
+  dplyr::rename(tSNE1 = V1, tSNE2 = V2) %>% 
+  dplyr::mutate(Clone = sce_qc$clone,
+                Cell_Cycle = sce_qc$Cell_Cycle)
+```
+
+
+
+
+```{r}
+dplyr::filter(df_tsne) %>% 
+  ggplot(aes(x = tSNE1, y = tSNE2, colour = Clone)) +
+  geom_point(alpha = 0.6) +
+  scale_colour_manual(values = c(get_cluster_colours(), 'unassigned'='grey70')) +
+  theme(#legend.position = c(0.07, 0.85),
+        legend.box.background = element_rect(colour = 'black', size = .2))+
+    labs(subtitle = params$id)
+
+```
+
+```{r}
+saveRDS(last_plot(), glue("{params$output_fig_dir}/{params$sample}_tsne_by_clone.rds"))
+```
+
+```{r}
+
+dplyr::filter(df_tsne) %>% 
+  ggplot(aes(x = tSNE1, y = tSNE2, colour = Cell_Cycle)) +
+  geom_point(alpha = 0.6) +
+  # scale_colour_manual(values = c(get_cluster_colours(), 'unassigned'='grey70')) +
+  theme(#legend.position = c(0.07, 0.85),
+        legend.box.background = element_rect(colour = 'black', size = .2))+
+    labs(subtitle = params$id)
+```
+
+```{r}
+ggsave(glue("{params$output_fig_dir}/{params$sample}_tsne_by_cell_cycle.png"), width = 6, height =5)
+```
+
+
+## Plot important genes
+
+```{r}
+genes_to_plot <- c("MDM4")
+```
+
+```{r}
+for(g in genes_to_plot) {
+  df_tsne[[g]] <- logcounts(sce_qc)[g,]
+}
+```
+
+
+```{r}
+for(g in genes_to_plot) {
+  ggplot(df_tsne, aes_string(x = "tSNE1", y = "tSNE2", colour = g)) +
+    geom_point() +
+    scale_colour_viridis_c(name = glue("{g} expression\n(log normalized counts)")) +
+    theme(legend.position = "top") +
+    labs(subtitle = params$id)
+  saveRDS(last_plot(), glue("{params$output_fig_dir}/{params$sample}_tsne_gene_{g}.rds"))
+}
+```
+
+```{r}
+plotExpression(sce_qc, x = "clone", features = c("MDM4"), exprs_values = "counts")
+```
+
+
+# Differential expression H vs E
+
+```{r}
+sce_de <- sce_qc[, sce_qc$clone %in% clones_to_compare]
+
+rs <- rowSums(as.matrix(counts(sce_qc)))
+qplot(rs, log='x') + geom_vline(xintercept = 100)
+
+#MA: this is giving a subsetting error
+#sce_de <- sce_de[rowSums(as.matrix(counts(sce_de))) > 100, ]
+
+#mat <- as.matrix(counts(sce_de))
+#mat<- mat[rowSums(mat)>100,]
+#sce_de <- SingleCellExperiment(assays = list(counts=mat))
+
+```
+
+
+
+With edgeR instead:
+
+```{r}
+dge <- convertTo(sce_de, type = 'edgeR')
+# dge <- calcNormFactors(dge)
+
+design <- model.matrix(~ clone, data = colData(sce_de))
+
+dge <- estimateDisp(dge, design = design)
+fit <- glmQLFit(dge, design = design)
+qlf <- glmQLFTest(fit)
+tt <- topTags(qlf, n = Inf)
+
+tt <- as.data.frame(tt) %>% 
+  rownames_to_column("gene_symbol") %>% 
+  dplyr::mutate(ensembl_gene_id = rowData(sce_de)$ID) %>% 
+  as_tibble()
+  
+```
+
+```{r}
+saveRDS(tt, glue("{params$output_fig_dir}/{params$sample}_differential_expression_b_a.rds"))
+```
+
+```{r}
+df_annot <- top_n(tt, 50, -log10(FDR))
+
+ggplot(tt, aes(x = logFC, y = -log10(FDR))) +
+  geom_point() +
+  geom_text_repel(data = df_annot, aes(label = gene_symbol)) +
+  labs(x = "log FC, clone B vs clone A")
+```
+
+## Track plot - D vs E
+
+```{r}
+
+plot_gex_cnv(tt, 
+             df_cnv, 
+             clones = clones_to_compare,
+             params$id,
+             additional_genes = c("MYC", "MDM4"))
+```
+
+
+```{r}
+saveRDS(last_plot(), glue("{params$output_fig_dir}/{params$sample}_gex_cnv_plot_b_vs_a.rds"))
+```
+
+
+# Differential expression B vs A
+
+```{r}
+sce_de <- sce_qc[, sce_qc$clone %in% clones_to_compare]
+
+rs <- rowSums(as.matrix(counts(sce_qc)))
+qplot(rs, log='x') + geom_vline(xintercept = 100)
+
+# MA: as before, this gives an error
+# sce_de <- sce_de[rowSums(as.matrix(counts(sce_de))) > 100, ]
+```
+
+
+
+With edgeR instead:
+
+```{r}
+dge <- convertTo(sce_de, type = 'edgeR')
+# dge <- calcNormFactors(dge)
+
+design <- model.matrix(~ clone, data = colData(sce_de))
+
+dge <- estimateDisp(dge, design = design)
+fit <- glmQLFit(dge, design = design)
+qlf <- glmQLFTest(fit)
+tt <- topTags(qlf, n = Inf)
+
+tt <- as.data.frame(tt) %>% 
+  rownames_to_column("gene_symbol") %>% 
+  dplyr::mutate(ensembl_gene_id = rowData(sce_de)$ID) %>% 
+  as_tibble()
+  
+```
+
+```{r}
+saveRDS(tt, glue("{params$output_fig_dir}/{params$sample}_differential_expression_b_a.rds"))
+```
+
+```{r}
+df_annot <- top_n(tt, 50, -log10(FDR))
+
+ggplot(tt, aes(x = logFC, y = -log10(FDR))) +
+  geom_point() +
+  geom_text_repel(data = df_annot, aes(label = gene_symbol)) +
+  labs(x = "log FC, clone B vs clone A")
+```
+
+## Track plot - A vs B
+
+```{r}
+
+plot_gex_cnv(tt, 
+             df_cnv, 
+             clones = clones_to_compare,
+             params$id,
+             additional_genes = c("MYC", "MDM4"))
+```
+
+
+```{r}
+saveRDS(last_plot(), glue("{params$output_fig_dir}/{params$sample}_gex_cnv_plot_b_vs_a.rds"))
+```
+
+# Save image in case we need it
+
+```{r}
+save.image(glue("{params$output_fig_dir}/{params$sample}_image.rds"))
+```
+
+

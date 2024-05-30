@@ -1,0 +1,59 @@
+workflow_name = 'differential_expression'
+
+output_dir = os.path.join(config['outdir'], workflow_name)
+scratch_dir = os.path.join(config['scratchdir'], workflow_name)
+log_dir = os.path.join(config['logdir'], workflow_name)
+workspace_dir = config['workspaces'][workflow_name]
+
+# The sample IDs we're actually
+# carrying forward for differential expression
+# and final analysis
+de_ids = [
+    'SA609X10XB02454',
+#    'SA906_p57a',
+#    'SA609X4XB003083'
+#    'SA609X5XB03230',
+#    'SA609X6XB03404'
+    ]
+#    'SA906_p50b'
+
+de_figs = expand(
+    '{outdir}/output_figures/{{sample}}_{{fig}}'.format(
+        outdir=output_dir
+        ), sample=de_ids, fig=config['final_analysis']['figures']
+)
+
+
+rule de_figures:
+    input:
+        clone_cn=lambda wildcards: '{outdir}/gene_clone_cn/{group}.tsv'.format(
+            outdir=os.path.join(config['outdir'], 'parse_cnv'),
+            group=get_sample_group(wildcards.sample)
+        ),
+        sce=lambda wildcards: '{outdir}/sce_annotated/{{sample}}.rds'.format(
+            outdir=os.path.join(config['outdir'], 'preprocess'),
+            group=get_sample_group(wildcards.sample)
+        ),
+        clonealign_fit='{outdir}/clonealign_fit/{{sample}}.rds'.format(
+            outdir=os.path.join(config['outdir'], 'align_clones'),
+        ),
+    output:
+        expand('{outdir}/output_figures/{{{{sample}}}}_{{fig}}'.format(
+            outdir=output_dir
+        ), fig=config['final_analysis']['figures'])        
+    params:
+        workspace=workspace_dir,
+        sample='{sample}',
+        output_fig_dir='{outdir}/output_figures'.format(outdir=output_dir)
+    shell:
+        "Rscript -e \"rmarkdown::render('../differential_expression/"
+        "differential-expression-{wildcards.sample}.Rmd', "
+        "params=list("
+        "sample='{wildcards.sample}', "
+        "output_fig_dir='{params.output_fig_dir}', "
+        "input_sce='{input.sce}', "
+        "input_ca='{input.clonealign_fit}', "
+        "input_clone_cn='{input.clone_cn}')) \" "
+
+    
+        

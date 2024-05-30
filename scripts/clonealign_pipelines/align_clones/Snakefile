@@ -1,0 +1,155 @@
+
+workflow_name = 'align_clones'
+
+output_dir = os.path.join(config['outdir'], workflow_name)
+scratch_dir = os.path.join(config['scratchdir'], workflow_name)
+log_dir = os.path.join(config['logdir'], workflow_name)
+workspace_dir = config['workspaces'][workflow_name]
+
+
+# Get group for a given sample
+def get_sample_group(sample):
+    group_mapping = config['integrate']['groups']
+    sample_mapping = {}
+    for k,v in group_mapping.items():
+        for x in v:
+            sample_mapping.setdefault(x,[]).append(k)
+
+    return sample_mapping[sample][0]
+
+rule run_clonealign:
+    input:
+        clone_cn=lambda wildcards: '{outdir}/gene_clone_cn/{group}.tsv'.format(
+            outdir=os.path.join(config['outdir'], 'parse_cnv'),
+            group=get_sample_group(wildcards.sample)
+        ),
+        sce=lambda wildcards: '{outdir}/sce_annotated/{group}.rds'.format(
+            outdir=os.path.join(config['outdir'], 'preprocess'),
+            group=get_sample_group(wildcards.sample)
+        ),        
+        #sce=lambda wildcards: '{outdir}/batch_correct/{group}.rds'.format(
+        #    outdir=os.path.join(config['outdir'], 'integrate'),
+        #    group=get_sample_group(wildcards.sample)
+        #),
+        # Using ancient to avoid rerunning for now
+        clone_prevs=lambda wildcards: ancient('{outdir}/clone_prevalences/{group}.csv'.format(
+            outdir=os.path.join(config['outdir'], 'parse_cnv'),
+            group=get_sample_group(wildcards.sample)
+        )),
+    output:
+        ca='{outdir}/clonealign_fit/{{sample}}.rds'.format(
+            outdir=output_dir
+        ),
+        fit='{outdir}/clonealign_fit_csv/{{sample}}.csv'.format(
+            outdir=output_dir
+        ),
+    params:
+        name='run-clonealign-{sample}',
+        gex_var_quantile=config['clonealign']['gex_var_quantile'],
+        conda_env=config['conda_environment'],
+        conda_path=config['conda_path'],
+        sample='{sample}',
+        workspace=workspace_dir,
+        n_extra_genes=config['clonealign']['n_extra_genes'],
+        mean_counts=lambda wildcards: config['clonealign']['mean_counts_per_gene'][wildcards.sample],
+        min_counts_per_cell=lambda wildcards: config['clonealign']['min_counts_per_cell'][wildcards.sample],
+        clones_to_ignore=lambda wildcards: config['clonealign']['clones_to_ignore'][get_sample_group(wildcards.sample)],
+        data_init_mu=lambda wildcards: config['clonealign']['data_init_mu'][get_sample_group(wildcards.sample)],
+        max_copy_number=config['clonealign']['max_copy_number'],
+    log:
+        '{outdir}/run_clonealign/{{sample}}.log'.format(
+            outdir=log_dir
+        ),
+    shell:
+        'Rscript {params.workspace}/R/run_clonealign.R '
+        '--sce {input.sce} '
+        '--cnv {input.clone_cn} '
+        '--clone_prevs {input.clone_prevs} '
+        '--samples {params.sample} '
+        '--n_extra_genes {params.n_extra_genes} '
+        '--max_copy_number {params.max_copy_number} '
+        '--conda_env {params.conda_env} '
+        '--conda_path {params.conda_path} '
+        '--clones_to_ignore {params.clones_to_ignore} '
+        '--data_init_mu {params.data_init_mu} '
+        '--mean_counts {params.mean_counts} '
+        '--min_counts_per_cell {params.min_counts_per_cell} '
+        '--outfname_ca {output.ca} '
+        '--outfname_fit {output.fit} '
+        '>& {log}'
+
+rule evaluate_clonealign:
+    input:
+        clone_cn=lambda wildcards: '{outdir}/gene_clone_cn/{group}.tsv'.format(
+            outdir=os.path.join(config['outdir'], 'parse_cnv'),
+            group=get_sample_group(wildcards.sample)
+        ),
+        sce=lambda wildcards: '{outdir}/sce_annotated/{group}.rds'.format(
+            outdir=os.path.join(config['outdir'], 'preprocess'),
+            group=get_sample_group(wildcards.sample)
+        ),          
+        #sce=lambda wildcards: '{outdir}/batch_correct/{group}.rds'.format(
+        #    outdir=os.path.join(config['outdir'], 'integrate'),
+        #    group=get_sample_group(wildcards.sample)
+        #),
+        clonealign_fit='{outdir}/clonealign_fit/{{sample}}.rds'.format(
+            outdir=output_dir
+        ),
+    output:
+        png='{outdir}/clonealign_eval/{{sample}}.png'.format(
+            outdir=output_dir
+            ),
+    log:
+        '{outdir}/eval_clonealign/{{sample}}.log'.format(
+            outdir=log_dir
+        ),
+    params:
+        workspace=workspace_dir,
+    shell:
+        "Rscript {params.workspace}/R/evaluate_clonealign.R "
+        "--sce {input.sce} "
+        "--cnv {input.clone_cn} "
+        "--clonealign_fit {input.clonealign_fit} "
+        "--outfname {output.png} "
+        "--sample {wildcards.sample} "
+        ">& {log}"
+
+rule prevalence_figs:
+    input:
+        clone_prevs=lambda wildcards: ancient('{outdir}/clone_prevalences/{group}.csv'.format(
+            outdir=os.path.join(config['outdir'], 'parse_cnv'),
+            group=get_sample_group(wildcards.sample)
+        )),
+        clonealign_fit='{outdir}/clonealign_fit/{{sample}}.rds'.format(
+            outdir=output_dir
+        ),
+        metadata=ancient(config['metadata']['sample_metadata'])
+    params:
+        sample='{sample}',
+        workspace=workspace_dir,
+    output:
+        figure='{outdir}/clonal_prevalences/{{sample}}.png'.format(
+            outdir=output_dir
+        ),
+        data='{outdir}/clonal_prevalences/{{sample}}.rds'.format(
+            outdir=output_dir
+            ),
+    script:
+        "{params.workspace}/R/clone_stats.R"
+
+# removing this
+#rule write_clone_assignments_to_csv:
+#    input:
+#        clonealign_fit='{outdir}/clonealign_fit/{{sample}}.rds'.format(
+#            outdir=output_dir
+#        ),
+#    output:
+#        clonealign_fit='{outdir}/clonealign_fit_csv/{{sample}}.csv'.format(
+#            outdir=output_dir
+#        ),
+#    params:
+#        sample='{sample}',
+#        workspace=workspace_dir,
+#    script:
+#        "{params.workspace}/R/write-clones-to-csv.R"
+    

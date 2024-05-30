@@ -1,0 +1,185 @@
+---
+title: "Differential expression report"
+author:
+  - "Kieran Campbell and Mirela Andronescu"
+output_file: "de_SA001X5_Astar_SA609X10_E.html"
+params:
+  rmd: "combine_sce.Rmd"
+  sample1: "SA609X4XB003083"
+  clone1: B_R
+  clonelabel1: "UT B_R"
+  sample2: SA609X5XB03230
+  clone2: R
+  clonelabel2: "UTT R"
+  output_fig_dir: "."
+  outrds: "./sce_SA000X4_BR_SA000X5_R.rds"
+  sce_dir: "../../data/scrna_human_normed_annotated/"
+  #sce_dir: "../../results/new-cut-v1/outputs/preprocess/sce_annotated/"
+  ca_dir: "../../fitness_material/results/clonealign/"
+  #ca_dir: "../../results/new-cut-v2/outputs/align_clones/clonealign_fit_csv/"
+  clone_dir: "../../results/new-cut-v2/outputs/parse_cnv/gene_clone_cn/"
+output: 
+  html_document:
+  highlight: tango
+toc: true
+toc_float: true
+toc_depth: 4
+---
+
+  
+  ```{r global_chunk_options, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy = TRUE, warning = FALSE, message = FALSE, cache = FALSE, cache.lazy = FALSE, fig.width = 8, fig.height = 4.5)
+```
+
+```{r, echo = FALSE}
+suppressPackageStartupMessages({
+  library(knitr)
+  library(tidyverse)
+  library(tensorflow)
+  library(SingleCellExperiment)
+  library(scater)
+  library(data.table)
+  library(pheatmap)
+  library(ggrepel)
+  library(grid)
+  library(scran)
+  library(yaml)
+  library(scales)
+  library(kableExtra)
+  library(dendextend)
+  library(edgeR)
+  library(org.Hs.eg.db)
+  library(Seurat)
+  library(pheatmap)
+  library(clonealign)
+  library(ggrepel)
+  library(annotables)
+  library(scales)
+  library(RColorBrewer)
+  library(fgsea)
+  
+  library(scrna.utils)
+  library(scrna.sceutils)
+  library(cellassign)
+  library(cellassign.utils)
+})
+
+theme_set(theme_cowplot(font_size = 11))
+```
+
+```{r}
+
+source("de-utils.R")
+
+```
+
+# Load data
+
+
+```{r}
+
+print(params$outrds)
+#print(output_file)
+
+output_fig_dir <- params$output_fig_dir
+
+if(is.null(params$clone1)) {
+  input_sce1 <- params$sample1
+} else {
+  input_sce1 <- paste0(params$sce_dir, params$sample1, ".rdata")
+  input_ca1 <- paste0(params$ca_dir, params$sample1, ".csv")
+  clone_cn1 <- paste0(params$clone_dir, params$sample1, ".tsv")
+  clone1 <- params$clone1
+  clonelabel1 <- params$clonelabel1
+}
+
+if(is.null(params$clone2)) {
+  input_sce2 <- params$sample2
+} else {
+  input_sce2 <- paste0(params$sce_dir, params$sample2, ".rdata")
+  input_ca2 <- paste0(params$ca_dir, params$sample2, ".csv")
+  clone_cn2 <- paste0(params$clone_dir, params$sample2, ".tsv")
+  clone2 <- params$clone2
+  clonelabel2 <- params$clonelabel2
+}
+
+
+#sample <- paste0(clonelabel1,"_", clonelabel2)
+
+sce1 <- readRDS(input_sce1)
+
+if(is.null(params$clone1)) {
+  # TODO: assuming the cnv file has similar file name from the sample1
+  clone_cn1 <- gsub("sce_","cnv_",params$sample1)
+  clone_cn1 <- gsub(".rds",".tsv",clone_cn1)
+  df_cnv1 <- read_tsv(clone_cn1)
+  sce_qc1 <- sce1
+} else {
+  sce1 <- fixsce(sce1)
+  ca1 <- read.csv(input_ca1,sep=',')
+  df_cnv1 <- read_tsv(clone_cn1)
+  # clone1 could be for example B_R, df_cnv1$cluster is always one letter
+  df_cnv1 <- df_cnv1[sapply(df_cnv1$cluster, function(x) grepl(x, clone1)),]
+  df_cnv1$cluster <- clonelabel1
+  colnames(sce1) <- sce1$Barcode
+  # 9 Apr 2020: is this really needed? todo
+  #ca1 <- clonealign:::recompute_clone_assignment(ca1, 0.5)
+  # mybarcodes1 <- ca1$clone_fit[ca1$clone_fit$clone==clone1,"Barcode"]
+  mybarcodes1 <- ca1[ca1$clone==clone1,"Barcode"]
+  sce_qc1 <- sce1[,colData(sce1)$Barcode %in% mybarcodes1]
+  sce_qc1$clone <- clonelabel1
+  # remove mitocondrial genes and other genes that are not of interest
+  rowData(sce_qc1)$Symbol <- rownames(counts(sce_qc1))
+  sce_qc1 <- sce_qc1[!grepl("^RP[L|S]|^MT-|^FOS|^JUN|^HSP", rowData(sce_qc1)$Symbol)]
+  # some IDs are NA, removing them
+  sce_qc1 <- sce_qc1[!is.na(rowData(sce_qc1)$ID),]
+}
+
+sce2 <- readRDS(input_sce2)
+if(is.null(params$clone2)) {
+  clone_cn2 <- gsub("sce_","cnv_",params$sample1)
+  clone_cn2 <- gsub(".rds",".tsv",clone_cn2)
+  df_cnv2 <- read_tsv(clone_cn2)  
+  sce_qc2 <- sce2
+} else {
+  sce2 <- fixsce(sce2)
+  ca2 <- read.csv(input_ca2,sep=',')
+  df_cnv2 <- read_tsv(clone_cn2)
+  # clone2 could be for example B_R, df_cnv2$cluster is always one letter
+  df_cnv2 <- df_cnv2[sapply(df_cnv2$cluster, function(x) grepl(x, clone2)),]  
+  df_cnv2$cluster <- clonelabel2
+  colnames(sce2) <- sce2$Barcode
+  #ca2 <- clonealign:::recompute_clone_assignment(ca2, 0.5)
+  #mybarcodes2 <- ca2$clone_fit[ca2$clone_fit$clone==clone2,"Barcode"]
+  mybarcodes2 <- ca2[ca2$clone==clone2,"Barcode"]
+  sce_qc2 <- sce2[,colData(sce2)$Barcode %in% mybarcodes2]
+  sce_qc2$clone <- clonelabel2
+  # remove mitocondrial genes and other genes that are not of interest
+  rowData(sce_qc2)$Symbol <- rownames(counts(sce_qc2))
+  sce_qc2 <- sce_qc2[!grepl("^RP[L|S]|^MT-|^FOS|^JUN|^HSP", rowData(sce_qc2)$Symbol)]
+  # some IDs are NA, removing them
+  sce_qc2 <- sce_qc2[!is.na(rowData(sce_qc2)$ID),]
+}
+
+if (sum(rowData(sce_qc1)$ID!=rowData(sce_qc2)$ID) > 0) {
+  stop("Ensemble gene names are different between the two sce samples!")
+}
+
+#ensgenes <- rowData(sce1)$ID
+
+# combine the two sces
+saveRowData <- rowData(sce_qc1)
+rowData(sce_qc1) <- rowData(sce_qc2) <- NULL
+sce_qc <- cbind(sce_qc1, sce_qc2)
+# Note: keeping the data for the first one, so mean_counts, log10_mean_counts will not be correct for the bind
+rowData(sce_qc) <- saveRowData
+df_cnv <- rbind(df_cnv1, df_cnv2)
+
+print(paste0("Writing rds file to ", params$outrds))
+saveRDS(sce_qc, params$outrds)
+outcnv <- gsub("sce_","cnv_",params$outrds)
+outcnv <- gsub(".rds",".tsv",outcnv)
+print(paste0("Writing cnv file to ", outcnv))
+write.table(df_cnv, file=outcnv, quote=FALSE, sep='\t',row.names=FALSE)
+
+```

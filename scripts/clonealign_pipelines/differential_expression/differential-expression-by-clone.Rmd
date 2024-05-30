@@ -1,0 +1,573 @@
+---
+title: "Differential expression report"
+author:
+  - "Kieran Campbell and Mirela Andronescu"
+output_file: "de_SA906a_A_SA906a_K.html"
+
+params:
+  rmd: "differential-expression-by-clone.Rmd"
+  cno: "comp1"
+  title: "SA1035"
+  sample1: SA1035X8XB03631
+  clone1: D
+  clonelabel1: "UUUUU D"
+  sample2: SA1035X8XB03631
+  clone2: C
+  clonelabel2: "UUUUU C"
+  output_fig_dir: "de"
+
+  sce_dir: "../../results/SA1035-v2/outputs/preprocess/sce_twice_scran/"
+  ca_dir: "../../results/SA1035-v2/outputs/align_clones/clonealign_fit_csv/"
+  clone_dir: "../../results/SA1035-v2/outputs/parse_cnv/gene_clone_cn/"
+  
+output: 
+  html_document:
+    highlight: tango
+    toc: true
+    toc_float: true
+    toc_depth: 4
+---
+
+
+```{r global_chunk_options, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy = TRUE, warning = FALSE, message = FALSE, cache = FALSE, cache.lazy = FALSE, fig.width = 8, fig.height = 4.5)
+```
+
+```{r, echo = FALSE}
+suppressPackageStartupMessages({
+  library(knitr)
+  library(tidyverse)
+  library(tensorflow)
+  library(SingleCellExperiment)
+  library(scater)
+  library(data.table)
+  library(pheatmap)
+  library(ggrepel)
+  library(grid)
+  library(scran)
+  library(yaml)
+  library(scales)
+  library(kableExtra)
+  library(dendextend)
+  library(edgeR)
+  library(org.Hs.eg.db)
+  library(Seurat)
+  library(pheatmap)
+  library(clonealign)
+  library(ggrepel)
+  library(annotables)
+  library(scales)
+  library(RColorBrewer)
+  library(fgsea)
+  
+  library(scrna.utils)
+  library(scrna.sceutils)
+  library(cellassign)
+  library(cellassign.utils)
+  
+  library(svglite)
+})
+
+theme_set(theme_cowplot(font_size = 11))
+```
+
+```{r}
+
+source("de-utils.R")
+```
+
+# Load data
+
+
+```{r}
+
+title <- params$title
+output_fig_dir <- params$output_fig_dir
+input_sce1 <- paste0(params$sce_dir, params$sample1, ".rdata")
+input_ca1 <- paste0(params$ca_dir, params$sample1, ".csv")
+clone_cn1 <- paste0(params$clone_dir, params$sample1, ".tsv")
+clone1 <- params$clone1
+clonelabel1 <- params$clonelabel1
+
+input_sce2 <- paste0(params$sce_dir, params$sample2, ".rdata")
+input_ca2 <- paste0(params$ca_dir, params$sample2, ".csv")
+clone_cn2 <- paste0(params$clone_dir, params$sample2, ".tsv")
+clone2 <- params$clone2
+clonelabel2 <- params$clonelabel2
+
+# Sometimes clone1 or clone2 can be for example B_R, then look for all the clones in dlp
+clone1list <- unlist(strsplit(clone1, "_"))
+clone2list <- unlist(strsplit(clone2, "_"))
+
+sample <- paste0(params$cno,"-", params$sample1,"-", clone1,"-", params$sample2, "-", clone2)
+
+#output_fig_dir <- paste0(output_fig_dir,"/", sample)
+if(!file.exists(output_fig_dir)) {
+    dir.create(output_fig_dir)
+}
+print(output_fig_dir)
+output_file <- glue("{output_fig_dir}/{sample}_summary.html")
+
+# 3 Feb 2020, the genes from Fatemeh's latest files, these are genes unique to A*
+# However, these genes are not found "RP11-248J23.6", "LINC00661", "STEAP2-AS1", 
+# genes_to_plot <- c("MYC", "TMEM132B", "CAPRIN2", "TP53", "IGKV1D-8", "CYP39A1", "ARC", "DAB2IP", "AQP7", "USP51")
+# previous possible sets of genes
+#genes_to_plot <- c("MYC", "TMEM132B", "CAPRIN2", "TP53", "IGKV1D-8", "CYP39A1", "ARC", "DAB2IP", "AQP7", "USP51", "CDK8", "SHISA2", "RNF6", "GPR12", "WASF3", "TMEM205")
+                   
+                   
+# CDK8, SHISA2, RNF6, GPR12, WASF3 are based on copy number gain
+# TMEM205, RAB8, GCF2, PCAF, G-catenin, Nrf2, HSP10, HSP27, HSP60, HSP70, HSP90 - genes directly related to cisplatin
+# Note the HSP genes were removed during qc, so I am removing them here too - I could add them back if needed
+
+
+sce1 <- readRDS(input_sce1)
+sce1 <- fixsce(sce1)
+# this correction should be done in identify-murine.R
+sce1 <- sce1[which(!is.na(rowData(sce1)$ID)),]
+df_cnv1 <- read_tsv(clone_cn1)
+df_cnv1 <- df_cnv1[df_cnv1$cluster %in% clone1list,]
+df_cnv1$cluster <- clonelabel1
+colnames(sce1) <- sce1$Barcode
+#ca1 <- readRDS(input_ca1)
+#ca1 <- clonealign:::recompute_clone_assignment(ca1, 0.5)
+#sce1$clone <- ca1$clone
+#sce_qc1 <- sce1[, sce1$clone %in% clone1]
+#mybarcodes1 <- ca1$clone_fit[ca1$clone_fit$clone==clone1,"Barcode"]
+ca1 <- read.csv(input_ca1,sep=",")
+mybarcodes1 <- ca1[ca1$clone %in% clone1list,"Barcode"]
+sce_qc1 <- sce1[,colData(sce1)$Barcode %in% mybarcodes1]
+### MA 23 Apr 2020: I used to have 1_, but 2_ will actually put it first
+sce_qc1$clone <- paste0("2_", clone1)
+# remove mitocondrial genes and other genes that are not of interest
+rowData(sce_qc1)$Symbol <- rownames(counts(sce_qc1))
+#sce_qc1 <- sce_qc1[!grepl("^RP[L|S]|^MT-|^FOS|^JUN|^HSP", rowData(sce_qc1)$Symbol)]
+
+sce2 <- readRDS(input_sce2)
+sce2 <- fixsce(sce2)
+sce2 <- sce2[which(!is.na(rowData(sce2)$ID)),]
+df_cnv2 <- read_tsv(clone_cn2)
+df_cnv2 <- df_cnv2[df_cnv2$cluster %in% clone2list,]
+df_cnv2$cluster <- clonelabel2
+colnames(sce2) <- sce2$Barcode
+#ca2 <- readRDS(input_ca2)
+#ca2 <- clonealign:::recompute_clone_assignment(ca2, 0.5)
+#mybarcodes2 <- ca2$clone_fit[ca2$clone_fit$clone==clone2,"Barcode"]
+ca2 <- read.csv(input_ca2,sep=",")
+mybarcodes2 <- ca2[ca2$clone %in% clone2list,"Barcode"]
+sce_qc2 <- sce2[,colData(sce2)$Barcode %in% mybarcodes2]
+sce_qc2$clone <- paste0("1_", clone2)
+# remove mitocondrial genes and other genes that are not of interest
+rowData(sce_qc2)$Symbol <- rownames(counts(sce_qc2))
+#sce_qc2 <- sce_qc2[!grepl("^RP[L|S]|^MT-|^FOS|^JUN|^HSP", rowData(sce_qc2)$Symbol)]
+
+if (sum(rowData(sce1)$ID!=rowData(sce2)$ID) > 0) {
+  stop("Ensemble gene names are different between the two sce samples!")
+}
+
+#ensgenes <- rowData(sce1)$ID
+
+# combine the two sces
+saveRowData <- rowData(sce_qc1)
+rowData(sce_qc1) <- rowData(sce_qc2) <- NULL
+sce_qc <- cbind(sce_qc1, sce_qc2)
+# Note: keeping the data for the first one, so mean_counts, log10_mean_counts will not be correct for the bind
+rowData(sce_qc) <- saveRowData
+df_cnv <- rbind(df_cnv1, df_cnv2)
+
+
+```
+
+
+
+# View clones
+
+#```{r}
+#pheatmap(ca1$ml_params$clone_probs)
+#```
+
+
+
+```{r}
+
+# MA 30 Apr 2020 debugging 906b (comp9)
+do_this <- 0
+if (do_this == 1) {
+  sce_E <- sce_qc[,sce_qc$clone=="2_E"]
+  sce_D <- sce_qc[,sce_qc$clone=="1_D"]
+  # NOTE: this includes zeros in the mean
+  print(mean(logcounts(sce_E)))
+  print(mean(logcounts(sce_D)))
+  print(sd(logcounts(sce_E)))
+  print(sd(logcounts(sce_D)))
+  
+  exp_E <- rowMeans(logcounts(sce_E))
+  exp_D <- rowMeans(logcounts(sce_D))
+  exp_E <- exp_E[exp_E !=0]
+  exp_D <- exp_D[exp_D !=0]
+  common_genes <- intersect(names(exp_E),names(exp_D))
+  x <- exp_E[common_genes]
+  y <- exp_D[common_genes]
+  plot(x,y) + abline(coef = c(0,1))
+}
+
+
+
+
+#plotTSNE(sce_qc, colour_by = "MALAT1")
+plotTSNE(sce_qc, colour_by = "total_features_by_counts")
+ggsave(glue("{output_fig_dir}/{sample}_tsne_by_total_features_by_counts.png"), width = 6, height =5)
+```
+
+
+```{r}
+#plotColData(sce_qc, x=  "total_counts", y = "total_features_by_counts", colour = "MALAT1") + 
+#  geom_density_2d() + geom_hline(yintercept = 3500, linetype = 2)
+```
+
+```{r}
+# MA: for some reason, 3500 is too high, setting it to 1500 -- TO FIND OUT WHY
+## TODO: What would be a good number? I set this to 1500 at some point
+sce_qc <- sce_qc[, sce_qc$total_features_by_counts > 1500]
+```
+
+
+## Reduced dimension figures
+
+```{r}
+set.seed(123L)
+
+#This gives error, skipping it for now
+sce_qc <- runPCA(sce_qc, ncomponents = 20)
+sce_qc <- runTSNE(sce_qc)
+
+df_tsne <- as_tibble(reducedDim(sce_qc, 'TSNE')) %>% 
+  dplyr::rename(tSNE1 = V1, tSNE2 = V2) %>% 
+  dplyr::mutate(Clone = sce_qc$clone,
+                Cell_Cycle = sce_qc$Cell_Cycle)
+```
+
+
+
+
+```{r}
+dplyr::filter(df_tsne) %>% 
+ ggplot(aes(x = tSNE1, y = tSNE2, colour = Clone)) +
+ geom_point(alpha = 0.6) +
+# scale_colour_manual(values = c(get_cluster_colours(), 'unassigned'='grey70')) +
+ theme(#legend.position = c(0.07, 0.85),
+       legend.box.background = element_rect(colour = 'black', size = .2))+
+ labs(subtitle = sample)
+
+ggsave(glue("{output_fig_dir}/{sample}_tsne_by_clone.png"), width = 6, height =5)
+```
+
+```{r}
+#saveRDS(last_plot(), glue("{output_fig_dir}/{sample}_tsne_by_clone.rds"))
+```
+
+```{r}
+
+#dplyr::filter(df_tsne) %>% 
+#  ggplot(aes(x = tSNE1, y = tSNE2, colour = Cell_Cycle)) +
+#  geom_point(alpha = 0.6) +
+#  # scale_colour_manual(values = c(get_cluster_colours(), 'unassigned'='grey70')) +
+#  theme(#legend.position = c(0.07, 0.85),
+#        legend.box.background = element_rect(colour = 'black', size = .2))+
+#    labs(subtitle = sample)
+```
+
+```{r}
+# ggsave(glue("{output_fig_dir}/{sample}_tsne_by_cell_cycle.png"), width = 6, height =5)
+```
+
+
+## Plot important genes
+
+
+```{r}
+#for(g in genes_to_plot) {
+#  df_tsne[[g]] <- logcounts(sce_qc)[g,]
+#}
+```
+
+
+```{r}
+#for(g in genes_to_plot) {
+#  ggplot(df_tsne, aes_string(x = "tSNE1", y = "tSNE2", colour = g)) +
+#    geom_point() +
+#    scale_colour_viridis_c(name = glue("{g} expression\n(log normalized counts)")) +
+#    theme(legend.position = "top") +
+#    labs(subtitle = sample)
+#  saveRDS(last_plot(), glue("{output_fig_dir}/{sample}_tsne_gene_{g}.rds"))
+#}
+```
+
+```{r}
+#plotExpression(sce_qc, x = "clone", features = genes_to_plot, exprs_values = "counts")
+```
+
+
+# Differential expression between the two clones
+
+```{r}
+#sce_de <- sce_qc[, sce_qc$clone %in% clones_to_compare]
+# MA: we have already selected for the clones of interest
+sce_de <- sce_qc
+
+rs <- rowSums(as.matrix(counts(sce_qc)))
+qplot(rs, log='x') + geom_vline(xintercept = 100)
+
+sce_de <- sce_de[rowSums(as.matrix(counts(sce_de))) > 100, ]
+```
+
+
+
+With edgeR instead:
+
+```{r}
+# Very good tutorial on differential expression
+# https://chagall.med.cornell.edu/RNASEQcourse/Intro2RNAseq.pdf
+
+ttfile <- glue("{output_fig_dir}/{sample}_logfc_results.csv")
+if (file.exists(ttfile)) {
+  print("ttfile exists, loading")
+  tt <- read.table(ttfile,sep=',',header=TRUE)
+} else {
+  print("ttfile doesn't exist, creating")
+  # Do I need to this for proper order?
+  #levels(sce_de$clone) <- c("1_R","2_R")
+  
+  # to add assay.type="logcounts" ???
+  ## NOTE: for 609b, when I use logcounts I get much more upregulated genes
+  # dge <- convertTo(sce_de, type = 'edgeR', assay.type="logcounts")
+  # dge <- calcNormFactors(dge)
+  
+  # Instead, get dge this way
+  #mycounts <- as.matrix(logcounts(sce_de))
+  #mycounts[mycounts==0] <- NA  ## No, it wants 0 values
+  #dge <- DGEList(counts=mycounts, group=sce_de$clone)
+  
+  # Going back to the original method, edgeR takes RAW counts, untrannsformed and unnormalized
+  #dge <- convertTo(sce_de, type = 'edgeR')
+  mycounts <- as.matrix(counts(sce_de))    # zeros are good
+  dge <- DGEList(counts=mycounts, group=sce_de$clone)
+  
+  # which vs which ???
+  design <- model.matrix(~ clone, data = colData(sce_de))
+  
+  # This describes the edgeR user manual
+  # http://bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf
+  
+  dge <- estimateDisp(dge, design = design)
+  fit <- glmQLFit(dge, design = design)
+  qlf <- glmQLFTest(fit)
+  tt <- topTags(qlf, n = Inf)
+   
+  tt <- as.data.frame(tt) %>% 
+    rownames_to_column("gene_symbol")
+  tt$ensembl_gene_id <- rowData(sce_de)$ID[match(tt$gene_symbol,rowData(sce_de)$Symbol)]
+  
+  # Saving the logFC file
+  
+  write.table(tt,file=ttfile,sep=",", row.names=FALSE, quote=FALSE)
+}   
+
+### NNOT FINISHED
+# ALso trying deseq2  
+#deseq2_file <- glue("{output_fig_dir}/{sample}_logfc_results_deseq2.csv")
+# if (file.exists(deseq2_file)) {
+#  print("deseq2_file exists, loading")
+#  deseq2 <- read.table(deseq2_file,sep=',',header=TRUE)
+#} else {
+#  print("deseq2 file doesn't exist, creating")
+#  # Saving the logFC file
+#  write.table(deseq2,file=deseq2_file,sep=",", row.names=FALSE, quote=FALSE)
+#}   
+
+
+do_this <- 0
+# checking SA906b E vs D
+if(do_this == "1") {
+  down_genes <- tt[tt$logFC<0 & tt$FDR < 0.01,]$gene_symbol
+  up_genes <- tt[tt$logFC>0 & tt$FDR < 0.01,]$gene_symbol
+  down1 <- rowMeans(logcounts(sce_de[intersect(down_genes,rownames(sce_de)),grepl("^2_",sce_de$clone)]))
+  down2 <- rowMeans(logcounts(sce_de[intersect(down_genes,rownames(sce_de)),grepl("^1_",sce_de$clone)]))
+  up1 <- rowMeans(logcounts(sce_de[intersect(up_genes,rownames(sce_de)),grepl("^2_",sce_de$clone)]))
+  up2 <- rowMeans(logcounts(sce_de[intersect(up_genes,rownames(sce_de)),grepl("^1_",sce_de$clone)]))
+  plot(down1,down2) + abline(coef = c(0,1))
+  plot(up1,up2) + abline(coef = c(0,1))
+  
+  #E_down <- rowMeans(logcounts(sce_E[down_genes,]))
+  #D_down <- rowMeans(logcounts(sce_D[down_genes,]))
+  #E_up <- rowMeans(logcounts(sce_E[up_genes,]))
+  #D_up <- rowMeans(logcounts(sce_D[up_genes,]))  
+  #plot(E_down,D_down) + abline(coef = c(0,1))
+  #plot(E_up,D_up) + abline(coef = c(0,1))
+}
+
+getcol <- function(x,y) { 
+  if(x!=0 & y<0.01) {
+    return ("blue")
+  } else {
+    return ("black")
+  }
+}
+
+
+tt_df <- tt[!(is.na(tt$ensembl_gene_id)),]    
+
+### Looking at the genes with a gene dosage effect = differential expression of expression ~ copy number for each clone
+
+# It may happen that this gene is not found in df_cnv at all, or only in one clone, Then, return NA
+tt_df$cnchange <- sapply(tt_df$ensembl_gene_id, 
+                         function(x) {
+                           if (nrow(df_cnv[df_cnv$ensembl_gene_id==x & df_cnv$cluster==clonelabel1,"median_cnmode"]) != 1) { return(NA) }
+                           if (nrow(df_cnv[df_cnv$ensembl_gene_id==x & df_cnv$cluster==clonelabel2,"median_cnmode"]) != 1) { return(NA) }
+                           return(as.numeric(
+                             df_cnv[df_cnv$ensembl_gene_id==x & df_cnv$cluster==clonelabel1,"median_cnmode"] -
+                             df_cnv[df_cnv$ensembl_gene_id==x & df_cnv$cluster==clonelabel2,"median_cnmode"]))
+                         })
+tt_df <- tt_df[!is.na(tt_df$cnchange),]
+tt_df$color <- mapply(getcol,tt_df$cnchange, tt_df$FDR)
+tt_df$mlog10FDR <- -log10(tt_df$FDR)
+tt_df$mlog10FDR <- sapply(tt_df$mlog10FDR, function(x) replace(x, is.infinite(x), 300))
+
+# just keep the ones with FDR<-0.01
+tt_df_fdr <- tt_df[tt_df$FDR<0.01,]
+sig_tt_df <- tt_df[tt_df$cnchange!=0,]
+# reorder to have the most significant cn change at the bottom
+tt_df <- tt_df[order(abs(tt_df$cnchange)),]
+df_annot <- top_n(sig_tt_df, 20, mlog10FDR)
+#cols <- rev(brewer.pal(n = 5, name = "YlOrRd") )
+cols <- rev(brewer.pal(n = 5, name = "YlGnBu") )
+#cols <- rev(brewer.pal(n = 5, name = "Blues") )
+
+# for comp9 I added our selected gene
+# df_annot <- rbind(df_annot,sig_tt_df[sig_tt_df$gene_symbol=="PFDN4",])
+
+getp <- function (cnthr) {
+  return(round(length(tt_df_fdr[abs(tt_df_fdr$cnchange)>=cnthr,"gene_symbol"])/nrow(tt_df_fdr)*100,digits=0))
+}
+
+# TODO: for some reason there are still some MT genes!! -- because I removed MT-, not all MT
+#tt_df <- tt_df[which(!grepl("^MT",tt_df$gene_symbol)),]
+#tt <- tt[which(!grepl("^MT",tt$gene_symbol)),]
+
+#subtitle <- paste0("p1=", getp(1), "%, p2=", getp(2), "%, p3=", getp(3), "%")
+subtitle <- paste0(getp(1), "% of all DEGs are CN induced")
+                   
+png(filename=glue("{output_fig_dir}/{sample}_volcano.png"), width = 580, height = 480)   #, units="in", res=300, pointsize=4)
+
+ggplot(tt_df, aes(x = logFC, y = mlog10FDR)) +
+  geom_point(size=1,color="black") +  
+  geom_point(size=5,aes(color=abs(cnchange), mlog10FDR=NULL), alpha=0.5) +
+  #scale_colour_brewer(palette="Blues", direction=-1)
+  scale_colour_gradientn(colours = rev(cols)) +
+  geom_text_repel(data = df_annot, aes(label = gene_symbol), size=4) +
+  labs(title=title, 
+       subtitle=subtitle,
+       colour="CN diff",
+       y = "-log10(FDR)",
+       x = paste0("log2 fold change of ",clonelabel1," relative to ",clonelabel2)) +
+  theme(
+    text = element_text(size = 24),
+    axis.text.x = element_text(size=20),  
+    axis.text.y = element_text(size=20),
+    plot.title = element_text(size=30, hjust=0))  
+
+dev.off()
+#ggsave(file=glue("{output_fig_dir}/{sample}_volcano.svg"))
+```
+
+
+## Another type of volcano plot
+```{r}
+
+               
+
+png(filename=glue("{output_fig_dir}/{sample}_volcano2.png"), width = 580, height = 480)   #, units="in", res=300, pointsize=4)
+df_neg <- tt_df[tt_df$logFC<0 & tt_df$FDR <0.01,]
+df_pos <- tt_df[tt_df$logFC>0 & tt_df$FDR <0.01,]
+
+df_annot <- rbind(top_n(df_neg, 20, -FDR), top_n(df_pos, 20, -FDR))
+#df_annot <- rbind(top_n(df_pos, 20, -FDR))
+ggplot(tt_df, aes(x = logFC, y = mlog10FDR)) +
+  geom_point(size=3,color="black", alpha=0.5) +  
+  #geom_point(size=5,aes(color=abs(cnchange), mlog10FDR=NULL), alpha=0.5) +
+  #scale_colour_brewer(palette="Blues", direction=-1)
+  #scale_colour_gradientn(colours = rev(cols)) +
+  geom_text_repel(data = df_annot, aes(label = gene_symbol), size=5) +
+  geom_hline(yintercept=2, linetype='dashed', col = 'red')+
+  labs(title=title, 
+       #subtitle=subtitle,
+       #colour="CN diff",
+       y = "-log10(FDR)",
+       x = paste0("log2 fold change of ",clonelabel1," relative to ",clonelabel2)) +
+  theme(
+    text = element_text(size = 24),
+    axis.text.x = element_text(size=20),  
+    axis.text.y = element_text(size=20),
+    plot.title = element_text(size=30, hjust=0))  
+
+
+dev.off()
+#ggsave(file=glue("{output_fig_dir}/{sample}_volcano2.svg"))
+```
+## Track plot
+```{r}
+
+#png(filename=glue("{output_fig_dir}/{sample}_track.png"), width = 18, height = 4, units="in", res=300, pointsize=4)
+#Cairo(800,400,file=paste(output_file, ".svg", sep=""),type="svg",bg="transparent",pointsize=8, units="px",dpi=400)
+#svg(filename=glue("{output_fig_dir}/{sample}_track.svg"), width = 18, height = 4)
+
+source('de-utils.R')
+plot_gex_cnv(tt, 
+             df_cnv, 
+             clones = c(clonelabel1,clonelabel2),
+             title
+             #paste0(clonelabel1,"_",clonelabel2),
+             #additional_genes = genes_to_plot
+             )
+
+dev.off()
+ggsave(file=glue("{output_fig_dir}/{sample}_track.png"),  width = 18, height = 4)
+#ggsave(file=glue("{output_fig_dir}/{sample}_track.svg"),  width = 18, height = 4)
+#saveRDS(last_plot(), glue("{output_fig_dir}/{sample}_gex_cnv_plot.rds"))
+
+```
+
+# Save image in case we need it -- this takes a lot of space though
+
+```{r}
+#save.image(glue("{output_fig_dir}/{sample}_image.rds"))
+
+
+#tt_df[tt_df$mlog10FDR>280,]$mlog10FDR <- 280
+
+#ggplot(tt_df, aes(x=cnchange,y=logFC,color=color)) +geom_point(size=3)+theme(legend.position = "none")
+#table(tt_df$color)
+
+##############
+
+```
+
+```{r}
+#saveRDS(tt, glue("{output_fig_dir}/{sample}_differential_expression.rds"))
+```
+
+```{r}
+
+
+
+#df_annot <- top_n(tt, 20, -log10(FDR))
+#ggplot(tt, aes(x = logFC, y = -log10(FDR))) +
+#  geom_point() +
+#  geom_text_repel(data = df_annot, aes(label = gene_symbol), size=4) +
+#  labs(title=title, x = paste0("log2 fold change of ",clonelabel1," relative to ",clonelabel2))
+
+
+
+
+
+```
+
