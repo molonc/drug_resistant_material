@@ -27,7 +27,7 @@ Genome Biology June 2024.
  
 - [Scripts](#scripts)
   - [Preprocessing functions](#preprocessing-functions)
-  - [Clonealign execution script](#clonealign-execution-script)
+  - [Clonealign pipelines](#clonealign-pipelines)
   - [Differential expression analysis](#differential-expression-analysis)
   - [Gene type identification](#gene-type-identification)
   - [Treatment cycles](#treatment-cycles)
