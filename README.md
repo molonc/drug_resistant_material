@@ -103,8 +103,8 @@ Cell clone assignment results
 ### Preprocessing functions
 - Preprocessing scripts are at [scripts/pipeline/utils/](https://github.com/molonc/drug_resistant_material/tree/main/scripts/pipeline/utils/)
 
-### Clonealign execution script 
-- Scripts are clonealign Figure 2 are at [directory](https://github.com/molonc/drug_resistant_material/tree/main/scripts/)
+### Clonealign pipelines
+- Snakemake pipelines and R scripts at [scripts/clonealign_pipelines](https://github.com/molonc/drug_resistant_material/tree/main/scripts/clonealign_pipelines)
 ### Differential expression analysis
 - Scripts are at [scripts/de_edgeR/](https://github.com/molonc/drug_resistant_material/tree/main/scripts/de_edgeR/)
 ### Gene type identification
